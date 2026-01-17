@@ -5,6 +5,9 @@ import Button from './Button';
 import { MarkdownText, SlideContentRenderer } from './SlideRenderers';
 import { generateQuickQuestion, generateImpromptuQuiz, QuizQuestion } from '../services/geminiService';
 import useBroadcastSync from '../hooks/useBroadcastSync';
+import useWindowManagement from '../hooks/useWindowManagement';
+import PermissionExplainer from './PermissionExplainer';
+import ManualPlacementGuide from './ManualPlacementGuide';
 
 // --- QUIZ GAME MODAL COMPONENT ---
 const QuizOverlay: React.FC<{ 
@@ -208,6 +211,16 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
   const { lastMessage, postMessage } = useBroadcastSync<PresentationMessage>(BROADCAST_CHANNEL_NAME);
   const [popupBlocked, setPopupBlocked] = useState(false);
 
+  // Window Management for display targeting
+  const {
+    isSupported,
+    hasMultipleScreens,
+    permissionState,
+    secondaryScreen,
+    requestPermission
+  } = useWindowManagement();
+  const [showPermissionExplainer, setShowPermissionExplainer] = useState(false);
+
   const currentSlide = slides[currentIndex];
   const totalBullets = currentSlide.content.length;
 
@@ -215,6 +228,13 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
   useEffect(() => {
       setQuickQuestion(null);
   }, [currentIndex]);
+
+  // Show permission explainer on multi-screen Chromium setup
+  useEffect(() => {
+    if (isSupported && hasMultipleScreens && permissionState === 'prompt') {
+      setShowPermissionExplainer(true);
+    }
+  }, [isSupported, hasMultipleScreens, permissionState]);
 
   // Handle incoming messages (student requesting state)
   useEffect(() => {
@@ -380,11 +400,16 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
                  onClick={() => {
                    // MUST be synchronous - no async/await before window.open
                    // This preserves user activation context to avoid popup blockers
-                   const studentWindow = window.open(
-                     `${window.location.origin}${window.location.pathname}#/student`,
-                     'pipi-student',
-                     'width=1280,height=720'
-                   );
+                   const url = `${window.location.origin}${window.location.pathname}#/student`;
+
+                   // Use pre-cached coordinates from hook (no async!)
+                   let features = 'width=1280,height=720';
+                   if (secondaryScreen) {
+                     features = `left=${secondaryScreen.left},top=${secondaryScreen.top},` +
+                                `width=${secondaryScreen.width},height=${secondaryScreen.height}`;
+                   }
+
+                   const studentWindow = window.open(url, 'pipi-student', features);
 
                    // Check if popup was blocked
                    if (!studentWindow || studentWindow.closed || typeof studentWindow.closed === 'undefined') {
@@ -404,8 +429,30 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border-slate-600'
                  }`}
                >
-                 {isStudentWindowOpen ? 'Student Active' : 'Launch Student'}
+                 {secondaryScreen
+                   ? `Launch on ${secondaryScreen.label}`
+                   : isStudentWindowOpen
+                     ? 'Student Active'
+                     : 'Launch Student'}
                </button>
+               {/* Permission Explainer - shown before first launch on Chromium multi-screen */}
+               {showPermissionExplainer && (
+                 <PermissionExplainer
+                   onRequestPermission={async () => {
+                     await requestPermission();
+                     setShowPermissionExplainer(false);
+                   }}
+                   onSkip={() => setShowPermissionExplainer(false)}
+                 />
+               )}
+
+               {/* Manual Guide - shown for non-Chromium OR permission denied (but NOT when popup blocked) */}
+               {hasMultipleScreens && (!isSupported || permissionState === 'denied') && !isStudentWindowOpen && !popupBlocked && (
+                 <ManualPlacementGuide
+                   studentUrl={`${window.location.origin}${window.location.pathname}#/student`}
+                 />
+               )}
+
                {popupBlocked && (
                  <div className="fixed top-16 right-4 z-50 bg-amber-50 border border-amber-200 rounded-lg p-4 shadow-xl max-w-sm animate-fade-in">
                    <div className="flex items-start gap-3">
