@@ -27,11 +27,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Navigating slides in teacher view instantly updates the student window (same slide, same bullet reveal)
   3. Student window shows only slide content (no teleprompter, no controls visible)
   4. Student view works as a standalone /student route that can be opened manually if popup is blocked
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-sync-infrastructure-PLAN.md — Core types, BroadcastChannel hook, hash routing hook
+- [ ] 01-02-dual-window-views-PLAN.md — StudentView component, App.tsx routing, PresentationView refactor
 
 ### Phase 2: Display Targeting
 **Goal**: Chromium users get automatic projector placement; others get clear instructions
@@ -69,7 +69,7 @@ Phases execute in numeric order: 1 -> 2 -> 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/TBD | Not started | - |
+| 1. Foundation | 0/2 | Planned | - |
 | 2. Display Targeting | 0/TBD | Not started | - |
 | 3. Resilience & Polish | 0/TBD | Not started | - |
 
