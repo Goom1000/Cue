@@ -41,10 +41,11 @@ Plans:
   1. On Chrome/Edge with external monitor, student window automatically opens on the secondary display
   2. Permission prompt is preceded by explanation UI so teacher understands why
   3. On Firefox/Safari (or when permission denied), clear instructions appear for dragging window to projector
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: TBD
+- [ ] 02-01-PLAN.md — Window Management API types and useWindowManagement hook
+- [ ] 02-02-PLAN.md — PermissionExplainer, ManualPlacementGuide components, PresentationView integration
 
 ### Phase 3: Resilience & Polish
 **Goal**: Presentation survives interruptions and supports presenter remotes
@@ -69,10 +70,10 @@ Phases execute in numeric order: 1 -> 2 -> 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 2/2 | ✓ Complete | 2026-01-18 |
-| 2. Display Targeting | 0/TBD | Not started | - |
+| 1. Foundation | 2/2 | Complete | 2026-01-18 |
+| 2. Display Targeting | 0/2 | Planned | - |
 | 3. Resilience & Polish | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-01-18*
-*Last updated: 2026-01-18 — Phase 1 complete*
+*Last updated: 2026-01-18 — Phase 2 planned*
