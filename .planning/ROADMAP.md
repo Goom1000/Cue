@@ -12,7 +12,7 @@ This milestone delivers rock-solid dual-monitor presentation functionality where
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - Reliable dual-window launch with BroadcastChannel sync
+- [x] **Phase 1: Foundation** - Reliable dual-window launch with BroadcastChannel sync
 - [ ] **Phase 2: Display Targeting** - Automatic projector placement for Chromium, fallback for others
 - [ ] **Phase 3: Resilience & Polish** - Recovery features and presenter conveniences
 
@@ -30,8 +30,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-sync-infrastructure-PLAN.md — Core types, BroadcastChannel hook, hash routing hook
-- [ ] 01-02-dual-window-views-PLAN.md — StudentView component, App.tsx routing, PresentationView refactor
+- [x] 01-01-sync-infrastructure-PLAN.md — Core types, BroadcastChannel hook, hash routing hook
+- [x] 01-02-dual-window-views-PLAN.md — StudentView component, App.tsx routing, PresentationView refactor
 
 ### Phase 2: Display Targeting
 **Goal**: Chromium users get automatic projector placement; others get clear instructions
@@ -69,10 +69,10 @@ Phases execute in numeric order: 1 -> 2 -> 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/2 | Planned | - |
+| 1. Foundation | 2/2 | ✓ Complete | 2026-01-18 |
 | 2. Display Targeting | 0/TBD | Not started | - |
 | 3. Resilience & Polish | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-01-18*
-*Last updated: 2026-01-18*
+*Last updated: 2026-01-18 — Phase 1 complete*
