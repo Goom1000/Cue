@@ -56,5 +56,56 @@ export enum AppState {
 declare global {
   interface Window {
     PptxGenJS: any;
+    // Window Management API (experimental, Chromium-only)
+    getScreenDetails?(): Promise<ScreenDetails>;
+  }
+
+  // Window Management API types (experimental, not in lib.dom.d.ts)
+  // Source: W3C Window Management Spec, MDN
+
+  /**
+   * Extended screen information available through the Window Management API.
+   * Provides detailed positioning and identification for each connected display.
+   */
+  interface ScreenDetailed extends Screen {
+    /** Left edge of available area (excludes taskbar/dock) */
+    readonly availLeft: number;
+    /** Top edge of available area (excludes taskbar/dock) */
+    readonly availTop: number;
+    /** Left edge of total screen area */
+    readonly left: number;
+    /** Top edge of total screen area */
+    readonly top: number;
+    /** Whether this is the primary/main display */
+    readonly isPrimary: boolean;
+    /** Whether this is an internal display (e.g., laptop screen) */
+    readonly isInternal: boolean;
+    /** Device pixel ratio for this screen */
+    readonly devicePixelRatio: number;
+    /** Human-readable label (e.g., "Built-in Display", "DELL U2718Q") */
+    readonly label: string;
+  }
+
+  /**
+   * Container for all connected screens, with events for configuration changes.
+   */
+  interface ScreenDetails extends EventTarget {
+    /** All connected screens */
+    readonly screens: ReadonlyArray<ScreenDetailed>;
+    /** The screen containing the current window */
+    readonly currentScreen: ScreenDetailed;
+    addEventListener(type: 'screenschange', listener: () => void): void;
+    addEventListener(type: 'currentscreenchange', listener: () => void): void;
+    removeEventListener(type: 'screenschange', listener: () => void): void;
+    removeEventListener(type: 'currentscreenchange', listener: () => void): void;
+  }
+
+  /**
+   * Extends the built-in Screen interface with multi-screen detection.
+   * isExtended is available WITHOUT permission - use for feature detection.
+   */
+  interface Screen {
+    /** True when multiple screens are connected (no permission needed) */
+    readonly isExtended?: boolean;
   }
 }
