@@ -57,11 +57,11 @@ Plans:
   3. Sync survives page refresh (teacher can reconnect to existing student window session)
   4. Page Up/Down keyboard shortcuts navigate slides (for presenter remotes/clickers)
   5. Teacher view shows next slide preview thumbnail
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md — Resilience infrastructure (extended types, heartbeat hook, keyboard hook, ConnectionStatus, Toast)
+- [ ] 03-02-PLAN.md — Integration (StudentView heartbeat, PresentationView wiring, NextSlidePreview)
 
 ## Progress
 
@@ -72,8 +72,8 @@ Phases execute in numeric order: 1 -> 2 -> 3
 |-------|----------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete | 2026-01-18 |
 | 2. Display Targeting | 2/2 | Complete | 2026-01-18 |
-| 3. Resilience & Polish | 0/TBD | Not started | - |
+| 3. Resilience & Polish | 0/2 | Planned | - |
 
 ---
 *Roadmap created: 2026-01-18*
-*Last updated: 2026-01-18 — Phase 2 complete*
+*Last updated: 2026-01-18 — Phase 3 planned*
