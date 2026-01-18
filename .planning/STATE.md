@@ -30,7 +30,7 @@ v1.0 milestone archived — decisions summarized there.
 
 ### Pending Todos
 
-None — milestone complete.
+3 pending — see `.planning/todos/pending/`
 
 ### Blockers/Concerns
 
