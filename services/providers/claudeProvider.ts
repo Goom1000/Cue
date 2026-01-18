@@ -26,6 +26,12 @@ function mapHttpToErrorCode(status: number, body: any): AIErrorCode {
     return 'RATE_LIMIT';
   }
   if (status === 401 || status === 403) return 'AUTH_ERROR';
+  if (status === 400) {
+    // Bad request - often means invalid model, malformed request, etc.
+    // Log for debugging but return a more specific error
+    console.error('Claude API 400 error:', body);
+    return 'UNKNOWN_ERROR';
+  }
   if (status >= 500 || status === 529) return 'SERVER_ERROR';
   return 'UNKNOWN_ERROR';
 }
@@ -70,7 +76,13 @@ async function callClaude(
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
     const code = mapHttpToErrorCode(response.status, errorBody);
-    throw new AIProviderError(USER_ERROR_MESSAGES[code], code, errorBody);
+    // Include API error message if available for better debugging
+    const apiMessage = errorBody?.error?.message;
+    const userMessage = apiMessage
+      ? `${USER_ERROR_MESSAGES[code]} (${apiMessage})`
+      : USER_ERROR_MESSAGES[code];
+    console.error('Claude API error:', response.status, errorBody);
+    throw new AIProviderError(userMessage, code, errorBody);
   }
 
   const data = await response.json();
