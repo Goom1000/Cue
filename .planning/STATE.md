@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-19)
 
 **Core value:** Colleagues can use presentations you create, with optional AI features via their own API keys
-**Current focus:** Phase 2 - Multi-Provider AI
+**Current focus:** Phase 3 - Disabled AI State (complete)
 
 ## Current Position
 
 Phase: 3 of 5 (Disabled AI State)
-Plan: 1/2 complete
-Status: In progress
-Last activity: 2026-01-19 — Completed 03-01-PLAN.md
+Plan: 2/2 complete
+Status: Phase complete
+Last activity: 2026-01-19 — Completed 03-02-PLAN.md
 
-Progress: [█████░░░░░] 50%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -24,11 +24,12 @@ Progress: [█████░░░░░] 50%
 - v1.2: 5 plans, 1 day
 - v2.0 Phase 1: 2 plans complete
 - v2.0 Phase 2: 3 plans complete
+- v2.0 Phase 3: 2 plans complete
 
 **Project Totals:**
 - Milestones shipped: 3 (v1.0, v1.1, v1.2)
-- Total phases: 7 (v1.0: 3, v1.1: 2, v1.2: 2)
-- Total plans: 18 (14 prior + 4 v2.0)
+- Total phases: 8 (v1.0: 3, v1.1: 2, v1.2: 2, v2.0: 1)
+- Total plans: 19 (14 prior + 5 v2.0)
 - Total LOC: ~5,400 TypeScript
 
 ## Completed Milestones
@@ -63,6 +64,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - Single 'Open Settings' action in EnableAIModal (no dismiss button)
 - Lock icon positioned top-right of button for visibility
 - 100ms delay on Settings auto-focus ensures modal animation completes
+- Smaller lock icons (w-3 h-3) for Grade buttons in PresentationView
+- onRequestAI callback pattern for child component AI enablement
 
 ### Pending Todos
 
@@ -75,10 +78,10 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-19
-Stopped at: Completed 03-01-PLAN.md
+Stopped at: Completed 03-02-PLAN.md (Phase 3 complete)
 Resume file: None
-Next: 03-02-PLAN.md (Extend disabled state to child components)
+Next: Phase 4 or milestone release
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-19 — Completed 03-01-PLAN.md*
+*Last updated: 2026-01-19 — Completed 03-02-PLAN.md (Phase 3 complete)*
