@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-18)
 
 **Core value:** Students see only slides; teachers see slides + teleprompter
-**Current focus:** Phase 3 - Resilience & Polish
+**Current focus:** Phase 3 - Resilience & Polish (COMPLETE)
 
 ## Current Position
 
 Phase: 3 of 3 (Resilience & Polish)
-Plan: 1 of 2 in phase
-Status: In progress
-Last activity: 2026-01-18 - Completed 03-01-PLAN.md
+Plan: 2 of 2 in phase
+Status: Phase complete
+Last activity: 2026-01-18 - Completed 03-02-PLAN.md
 
-Progress: [██████████░░] 83%
+Progress: [████████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 2.2 min
-- Total execution time: 0.18 hours
+- Total plans completed: 6
+- Average duration: 2.3 min
+- Total execution time: 0.23 hours
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [██████████░░] 83%
 |-------|-------|-------|----------|
 | 1. Foundation | 2/2 | 4.0 min | 2.0 min |
 | 2. Display Targeting | 2/2 | 5.0 min | 2.5 min |
-| 3. Resilience & Polish | 1/2 | 2.0 min | 2.0 min |
+| 3. Resilience & Polish | 2/2 | 5.0 min | 2.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (2.5 min), 02-01 (3.0 min), 02-02 (2.0 min), 03-01 (2.0 min)
+- Last 5 plans: 02-01 (3.0 min), 02-02 (2.0 min), 03-01 (2.0 min), 03-02 (3.0 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -59,21 +59,24 @@ Recent decisions affecting current work:
 - Heartbeat only starts connection checks after first ack (prevents false disconnected on startup)
 - Toast uses 200ms fade transition for smooth UX
 - Keyboard navigation skips INPUT/TEXTAREA elements to avoid form conflicts
+- Escape key closes student window (not exits presentation) - safer for presenters
+- Connection state derived from heartbeat acks replaces isStudentWindowOpen boolean
+- Reconnection toast only shows when transitioning from disconnected to connected
 
 ### Pending Todos
 
-None yet.
+None - project feature complete for MVP.
 
 ### Blockers/Concerns
 
-None yet.
+None.
 
 ## Session Continuity
 
 Last session: 2026-01-18
-Stopped at: Completed 03-01-PLAN.md
+Stopped at: Completed 03-02-PLAN.md (Phase 3 complete)
 Resume file: None
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-18 - Completed 03-01-PLAN.md*
+*Last updated: 2026-01-18 - Completed 03-02-PLAN.md*
