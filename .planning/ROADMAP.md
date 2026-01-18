@@ -29,24 +29,24 @@ Plans:
 **Depends on**: Phase 1
 **Requirements**: PERM-02, PERM-03, PERM-04, PERM-05, PERM-06
 **Success Criteria** (what must be TRUE):
-  1. Launch button label changes based on permission state (e.g., "Launch on DELL U2718Q" when granted)
-  2. Teacher can request permission from a visible, persistent UI element (not auto-dismissing)
-  3. Toast appears after launch confirming where window opened ("Opened on SmartBoard" vs "Opened on laptop")
-  4. When permission was previously denied, teacher sees recovery guidance explaining how to re-enable in browser settings
-**Plans**: TBD
+  1. Launch button label changes based on permission state ("Launch -> External Display" when granted)
+  2. Teacher can request permission from a visible, persistent UI element (inline link, not popup)
+  3. Toast appears after launch confirming where window opened (5 seconds, auto-dismiss)
+  4. When permission was previously denied, teacher sees recovery guidance with browser-specific instructions
+**Plans**: 4 plans
 
 Plans:
-- [ ] 02-01: Button state labels
-- [ ] 02-02: Permission request UI
-- [ ] 02-03: Launch feedback toast
-- [ ] 02-04: Denied recovery UI
+- [ ] 02-01-PLAN.md - Button labels + warning icon + launch toast
+- [ ] 02-02-PLAN.md - Inline permission request link (replaces PermissionExplainer popup)
+- [ ] 02-03-PLAN.md - Denied recovery UI with browser-specific modal
+- [ ] 02-04-PLAN.md - Human verification of all permission UX
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Permission State Loading | 1/1 | ✓ Complete | 2026-01-18 |
-| 2. Permission UX | 0/4 | Not started | - |
+| 1. Permission State Loading | 1/1 | Complete | 2026-01-18 |
+| 2. Permission UX | 0/4 | Planned | - |
 
 ---
 *Roadmap created: 2026-01-18*
