@@ -1,15 +1,21 @@
 
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Slide, AppState } from './types';
 import { createAIProvider, AIProviderError, AIProviderInterface } from './services/aiProvider';
 import { useSettings } from './hooks/useSettings';
 import { exportToPowerPoint } from './services/pptxService';
+import { createPiPiFile, downloadPresentation, checkFileSize } from './services/saveService';
+import { readPiPiFile } from './services/loadService';
+import { useAutoSave, getAutoSave, getAutoSaveTimestamp, clearAutoSave, hasAutoSave, AutoSaveData } from './hooks/useAutoSave';
+import { useDragDrop } from './hooks/useDragDrop';
 import Button from './components/Button';
 import SlideCard from './components/SlideCard';
 import PresentationView from './components/PresentationView';
 import ResourceHub from './components/ResourceHub';
 import SettingsModal from './components/SettingsModal';
 import EnableAIModal from './components/EnableAIModal';
+import RecoveryModal from './components/RecoveryModal';
+import { useToast, ToastContainer } from './components/Toast';
 import useHashRoute from './hooks/useHashRoute';
 import StudentView from './components/StudentView';
 
@@ -68,6 +74,20 @@ function App() {
   const [errorModal, setErrorModal] = useState<{ title: string; message: string } | null>(null);
   const [enableAIModal, setEnableAIModal] = useState<{ featureName: string } | null>(null);
   const [settingsAutoFocus, setSettingsAutoFocus] = useState(false);
+
+  // Toast notifications
+  const { toasts, addToast, removeToast } = useToast();
+
+  // Recovery modal state
+  const [showRecoveryModal, setShowRecoveryModal] = useState(false);
+  const [recoveryData, setRecoveryData] = useState<AutoSaveData | null>(null);
+  const [recoveryTimestamp, setRecoveryTimestamp] = useState<number>(0);
+
+  // Save/load state
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const loadFileInputRef = useRef<HTMLInputElement>(null);
+  const [showFilenamePrompt, setShowFilenamePrompt] = useState(false);
+  const [pendingSaveFilename, setPendingSaveFilename] = useState('');
 
   // Create provider instance (memoized to avoid recreation on every render)
   const provider = useMemo<AIProviderInterface | null>(() => {
@@ -321,6 +341,166 @@ function App() {
     setAppState(AppState.PRESENTING);
   };
 
+  // ============================================================================
+  // Auto-save integration
+  // ============================================================================
+
+  // Auto-save while editing with slides
+  const autoSaveData = useMemo<AutoSaveData | null>(() => {
+    if (appState !== AppState.EDITING || slides.length === 0) return null;
+    return { slides, studentNames, lessonText, lessonTitle };
+  }, [appState, slides, studentNames, lessonText, lessonTitle]);
+
+  useAutoSave(autoSaveData, appState === AppState.EDITING && slides.length > 0);
+
+  // ============================================================================
+  // Recovery check on mount
+  // ============================================================================
+
+  useEffect(() => {
+    if (hasAutoSave()) {
+      const data = getAutoSave();
+      const timestamp = getAutoSaveTimestamp();
+      if (data && timestamp) {
+        setRecoveryData(data);
+        setRecoveryTimestamp(timestamp);
+        setShowRecoveryModal(true);
+      }
+    }
+  }, []);
+
+  const handleRecoveryRestore = useCallback(() => {
+    if (recoveryData) {
+      setSlides(recoveryData.slides);
+      setStudentNames(recoveryData.studentNames);
+      setLessonText(recoveryData.lessonText);
+      setLessonTitle(recoveryData.lessonTitle);
+      setAppState(AppState.EDITING);
+      clearAutoSave();
+    }
+    setShowRecoveryModal(false);
+    setRecoveryData(null);
+  }, [recoveryData]);
+
+  const handleRecoveryDiscard = useCallback(() => {
+    clearAutoSave();
+    setShowRecoveryModal(false);
+    setRecoveryData(null);
+  }, []);
+
+  // ============================================================================
+  // Save flow
+  // ============================================================================
+
+  const handleSaveClick = useCallback(() => {
+    // Check file size first
+    const file = createPiPiFile(lessonTitle, slides, studentNames, lessonText);
+    const sizeInfo = checkFileSize(file);
+
+    if (sizeInfo.exceeds50MB) {
+      addToast(`This presentation is over 50MB (${sizeInfo.sizeMB.toFixed(1)}MB). It may take longer to save and load.`, 5000, 'warning');
+    }
+
+    // Open filename prompt with lesson title as default
+    setPendingSaveFilename(lessonTitle || 'New Lesson');
+    setShowFilenamePrompt(true);
+  }, [lessonTitle, slides, studentNames, lessonText, addToast]);
+
+  const handleSaveConfirm = useCallback(() => {
+    const file = createPiPiFile(lessonTitle, slides, studentNames, lessonText);
+    downloadPresentation(file, pendingSaveFilename);
+    addToast('Presentation saved successfully!', 3000, 'success');
+    setHasUnsavedChanges(false);
+    setShowFilenamePrompt(false);
+    setPendingSaveFilename('');
+  }, [lessonTitle, slides, studentNames, lessonText, pendingSaveFilename, addToast]);
+
+  const handleSaveCancel = useCallback(() => {
+    setShowFilenamePrompt(false);
+    setPendingSaveFilename('');
+  }, []);
+
+  // ============================================================================
+  // Load flow
+  // ============================================================================
+
+  const handleLoadFile = useCallback(async (file: File) => {
+    // Warn about unsaved changes
+    if (hasUnsavedChanges) {
+      const confirmed = window.confirm('You have unsaved changes. Continue loading?');
+      if (!confirmed) return;
+    }
+
+    try {
+      const pipiFile = await readPiPiFile(file);
+      setSlides(pipiFile.content.slides);
+      setStudentNames(pipiFile.content.studentNames || []);
+      setLessonText(pipiFile.content.lessonText || '');
+      setLessonTitle(pipiFile.title);
+      setAppState(AppState.EDITING);
+      setActiveSlideIndex(0);
+      clearAutoSave();
+      setHasUnsavedChanges(false);
+      addToast('Presentation loaded successfully!', 3000, 'success');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load file.';
+      addToast(message, 5000, 'error');
+    }
+  }, [hasUnsavedChanges, addToast]);
+
+  const handleLoadClick = useCallback(() => {
+    loadFileInputRef.current?.click();
+  }, []);
+
+  const handleLoadInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleLoadFile(file);
+      // Reset input so same file can be selected again
+      e.target.value = '';
+    }
+  }, [handleLoadFile]);
+
+  // ============================================================================
+  // Drag-drop integration
+  // ============================================================================
+
+  useDragDrop(
+    handleLoadFile,
+    !showSettings && !showResourceHub && appState !== AppState.PRESENTING && !showFilenamePrompt && !showRecoveryModal
+  );
+
+  // ============================================================================
+  // Unsaved changes tracking
+  // ============================================================================
+
+  // Track changes to mark as unsaved (skip initial render with ref)
+  const isInitialMount = useRef(true);
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    // Only track changes when in editing state
+    if (appState === AppState.EDITING) {
+      setHasUnsavedChanges(true);
+    }
+  }, [slides, studentNames, lessonText, lessonTitle, appState]);
+
+  // beforeunload warning when there are unsaved changes
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      // Modern browsers ignore custom message, show generic warning
+      return '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
   if (appState === AppState.PRESENTING) {
     return (
       <PresentationView
@@ -373,20 +553,31 @@ function App() {
 
             {appState === AppState.EDITING && (
             <div className="flex items-center gap-3">
-                <Button 
-                   variant="secondary" 
-                   className="!py-1.5 !px-4 text-sm !border-pink-200 !text-pink-600 dark:!border-pink-900 dark:!text-pink-400 dark:hover:!bg-pink-900/20" 
+                <Button
+                   variant="secondary"
+                   className="!py-1.5 !px-4 text-sm !border-pink-200 !text-pink-600 dark:!border-pink-900 dark:!text-pink-400 dark:hover:!bg-pink-900/20"
                    onClick={() => setShowResourceHub(true)}
                 >
                     <span className="mr-1">🖨️</span> Resources
                 </Button>
                 <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                <Button variant="secondary" className="!py-1.5 !px-4 text-sm" onClick={handleLoadClick}>Load</Button>
+                <Button variant="secondary" className="!py-1.5 !px-4 text-sm" onClick={handleSaveClick}>Save</Button>
                 <Button variant="secondary" className="!py-1.5 !px-4 text-sm" onClick={() => exportToPowerPoint(slides, lessonTitle)}>Export PPTX</Button>
                 <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
                 <Button variant="secondary" className="!py-1.5 !px-4 text-sm" onClick={() => startPresentation(activeSlideIndex)}>Present from current</Button>
                 <Button className="!py-1.5 !px-4 text-sm" onClick={() => startPresentation(0)}>Present</Button>
             </div>
             )}
+
+            {/* Hidden file input for load */}
+            <input
+              type="file"
+              accept=".pipi"
+              onChange={handleLoadInputChange}
+              style={{ display: 'none' }}
+              ref={loadFileInputRef}
+            />
         </div>
       </header>
 
@@ -737,6 +928,62 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* Filename Prompt Modal */}
+      {showFilenamePrompt && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-6 animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-6">
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1 font-fredoka">
+              Save Presentation
+            </h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+              Enter a filename for your presentation
+            </p>
+            <div className="flex items-center gap-2 mb-6">
+              <input
+                type="text"
+                value={pendingSaveFilename}
+                onChange={(e) => setPendingSaveFilename(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveConfirm();
+                  if (e.key === 'Escape') handleSaveCancel();
+                }}
+                autoFocus
+                className="flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-amber-500"
+              />
+              <span className="text-slate-400 dark:text-slate-500 text-sm">.pipi</span>
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={handleSaveCancel}
+                className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveConfirm}
+                disabled={!pendingSaveFilename.trim()}
+                className="px-4 py-2 bg-indigo-600 dark:bg-amber-500 text-white dark:text-slate-900 rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Recovery Modal */}
+      {showRecoveryModal && recoveryData && (
+        <RecoveryModal
+          savedTitle={recoveryData.lessonTitle}
+          savedTimestamp={recoveryTimestamp}
+          onRestore={handleRecoveryRestore}
+          onDiscard={handleRecoveryDiscard}
+        />
+      )}
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
     </div>
     </div>
   );
