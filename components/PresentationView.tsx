@@ -9,6 +9,7 @@ import useWindowManagement from '../hooks/useWindowManagement';
 import useKeyboardNavigation from '../hooks/useKeyboardNavigation';
 import ManualPlacementGuide from './ManualPlacementGuide';
 import ConnectionStatus from './ConnectionStatus';
+import PermissionRecovery from './PermissionRecovery';
 import NextSlidePreview from './NextSlidePreview';
 import { useToast, ToastContainer } from './Toast';
 
@@ -216,6 +217,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
     { enableHeartbeat: true }
   );
   const [popupBlocked, setPopupBlocked] = useState(false);
+  const [showRecoveryModal, setShowRecoveryModal] = useState(false);
 
   // Toast notifications for reconnection feedback
   const { toasts, addToast, removeToast } = useToast();
@@ -501,6 +503,18 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
                    Enable auto-placement
                  </button>
                )}
+               {/* Recovery text - only when denied state and multi-screen */}
+               {!isLoading && permissionState === 'denied' && hasMultipleScreens && !isConnected && (
+                 <span className="text-xs text-slate-400 ml-2">
+                   Permission denied.{' '}
+                   <button
+                     onClick={() => setShowRecoveryModal(true)}
+                     className="text-amber-400 hover:text-amber-300 underline"
+                   >
+                     Learn how to reset
+                   </button>
+                 </span>
+               )}
 
                {/* Manual Guide - shown for non-Chromium OR permission denied (but NOT when popup blocked) */}
                {!isLoading && hasMultipleScreens && (!isSupported || permissionState === 'denied') && !isConnected && !popupBlocked && (
@@ -661,6 +675,11 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
 
       {/* Toast notifications for reconnection feedback */}
       <ToastContainer toasts={toasts} removeToast={removeToast} />
+
+      {/* Permission Recovery Modal */}
+      {showRecoveryModal && (
+        <PermissionRecovery onClose={() => setShowRecoveryModal(false)} />
+      )}
     </div>
   );
 };
