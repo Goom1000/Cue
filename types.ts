@@ -48,6 +48,19 @@ export interface LessonPlan {
   slides: Slide[];
 }
 
+// AI Provider configuration for multi-provider support
+export type AIProvider = 'gemini' | 'openai' | 'claude';
+
+export interface Settings {
+  provider: AIProvider;
+  apiKey: string;
+}
+
+export const DEFAULT_SETTINGS: Settings = {
+  provider: 'gemini',
+  apiKey: '',
+};
+
 export enum AppState {
   INPUT = 'INPUT',
   PROCESSING_TEXT = 'PROCESSING_TEXT',
