@@ -26,7 +26,10 @@ export interface PresentationState {
 // Discriminated union for type-safe message handling
 export type PresentationMessage =
   | { type: 'STATE_UPDATE'; payload: PresentationState }
-  | { type: 'STATE_REQUEST' };
+  | { type: 'STATE_REQUEST' }
+  | { type: 'HEARTBEAT'; timestamp: number }
+  | { type: 'HEARTBEAT_ACK'; timestamp: number }
+  | { type: 'CLOSE_STUDENT' };
 
 export interface LessonResource {
   id: string;
