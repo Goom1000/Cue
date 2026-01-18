@@ -330,6 +330,7 @@ function App() {
         initialSlideIndex={presentationStartIndex}
         provider={provider}
         onError={handleComponentError}
+        onRequestAI={handleRequestAI}
       />
     );
   }

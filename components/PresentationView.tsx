@@ -21,7 +21,8 @@ const QuizOverlay: React.FC<{
     onClose: () => void;
     provider: AIProviderInterface | null;
     onError: (title: string, message: string) => void;
-}> = ({ slides, currentIndex, onClose, provider, onError }) => {
+    onRequestAI: (featureName: string) => void;
+}> = ({ slides, currentIndex, onClose, provider, onError, onRequestAI }) => {
     const [mode, setMode] = useState<'setup' | 'loading' | 'play' | 'summary'>('setup');
     const [numQuestions, setNumQuestions] = useState(4);
     const [questions, setQuestions] = useState<QuizQuestion[]>([]);
@@ -30,7 +31,7 @@ const QuizOverlay: React.FC<{
 
     const handleStart = async () => {
         if (!provider) {
-            onError('AI Not Configured', 'Please configure your AI provider in Settings.');
+            onRequestAI('start the quiz game');
             onClose();
             return;
         }
@@ -210,9 +211,11 @@ interface PresentationViewProps {
   initialSlideIndex?: number;
   provider: AIProviderInterface | null;
   onError: (title: string, message: string) => void;
+  onRequestAI: (featureName: string) => void;
 }
 
-const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, studentNames, initialSlideIndex = 0, provider, onError }) => {
+const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, studentNames, initialSlideIndex = 0, provider, onError, onRequestAI }) => {
+  const isAIAvailable = provider !== null;
   const [currentIndex, setCurrentIndex] = useState(initialSlideIndex);
   const [visibleBullets, setVisibleBullets] = useState(0);
   const [showFullScript, setShowFullScript] = useState(false);
@@ -298,7 +301,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
 
   const handleGenerateQuestion = async (level: 'Grade C' | 'Grade B' | 'Grade A') => {
       if (!provider) {
-          onError('AI Not Configured', 'Please configure your AI provider in Settings.');
+          onRequestAI(`generate a ${level} question`);
           return;
       }
       setIsGeneratingQuestion(true);
@@ -446,12 +449,22 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
                />
 
                {/* QUIZ BUTTON */}
-               <button
-                   onClick={() => setIsQuizModalOpen(true)}
-                   className="px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors border bg-indigo-600 border-indigo-500 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/30 flex items-center gap-2"
-               >
-                   <span>🎮</span> Game Mode
-               </button>
+               <div className="relative">
+                 <button
+                     onClick={() => setIsQuizModalOpen(true)}
+                     className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors border bg-indigo-600 border-indigo-500 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/30 flex items-center gap-2 ${!isAIAvailable ? 'opacity-50' : ''}`}
+                     title={!isAIAvailable ? 'Add API key in Settings to enable' : undefined}
+                 >
+                     <span>🎮</span> Game Mode
+                 </button>
+                 {!isAIAvailable && (
+                   <span className="absolute -top-1 -right-1 w-4 h-4 bg-slate-500 rounded-full flex items-center justify-center">
+                     <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                       <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                     </svg>
+                   </span>
+                 )}
+               </div>
 
                <Button variant="ghost-dim" onClick={() => setLayoutMode(prev => prev === 'row' ? 'col' : 'row')} className="!px-3 !py-1 text-xs">
                    {layoutMode === 'row' ? 'Layout: Side' : 'Layout: Stack'}
@@ -598,7 +611,8 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
               onClose={() => setIsQuizModalOpen(false)}
               provider={provider}
               onError={onError}
-          />, 
+              onRequestAI={onRequestAI}
+          />,
           document.body
       )}
 
@@ -659,15 +673,54 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
                                ⚡ Question Time ⚡
                            </div>
                        )}
-                       <button onClick={() => handleGenerateQuestion('Grade C')} className="bg-emerald-800/50 hover:bg-emerald-700 text-emerald-200 border border-emerald-700/50 rounded-lg py-2 text-[10px] font-bold uppercase tracking-wider transition-colors">
+                       <div className="relative">
+                         <button
+                           onClick={() => handleGenerateQuestion('Grade C')}
+                           className={`w-full bg-emerald-800/50 hover:bg-emerald-700 text-emerald-200 border border-emerald-700/50 rounded-lg py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${!isAIAvailable ? 'opacity-50' : ''}`}
+                           title={!isAIAvailable ? 'Add API key in Settings to enable' : undefined}
+                         >
                            Grade C ?
-                       </button>
-                       <button onClick={() => handleGenerateQuestion('Grade B')} className="bg-amber-800/50 hover:bg-amber-700 text-amber-200 border border-amber-700/50 rounded-lg py-2 text-[10px] font-bold uppercase tracking-wider transition-colors">
+                         </button>
+                         {!isAIAvailable && (
+                           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-slate-500 rounded-full flex items-center justify-center">
+                             <svg className="w-2 h-2 text-white" viewBox="0 0 20 20" fill="currentColor">
+                               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                             </svg>
+                           </span>
+                         )}
+                       </div>
+                       <div className="relative">
+                         <button
+                           onClick={() => handleGenerateQuestion('Grade B')}
+                           className={`w-full bg-amber-800/50 hover:bg-amber-700 text-amber-200 border border-amber-700/50 rounded-lg py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${!isAIAvailable ? 'opacity-50' : ''}`}
+                           title={!isAIAvailable ? 'Add API key in Settings to enable' : undefined}
+                         >
                            Grade B ?
-                       </button>
-                       <button onClick={() => handleGenerateQuestion('Grade A')} className="bg-rose-800/50 hover:bg-rose-700 text-rose-200 border border-rose-700/50 rounded-lg py-2 text-[10px] font-bold uppercase tracking-wider transition-colors">
+                         </button>
+                         {!isAIAvailable && (
+                           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-slate-500 rounded-full flex items-center justify-center">
+                             <svg className="w-2 h-2 text-white" viewBox="0 0 20 20" fill="currentColor">
+                               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                             </svg>
+                           </span>
+                         )}
+                       </div>
+                       <div className="relative">
+                         <button
+                           onClick={() => handleGenerateQuestion('Grade A')}
+                           className={`w-full bg-rose-800/50 hover:bg-rose-700 text-rose-200 border border-rose-700/50 rounded-lg py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${!isAIAvailable ? 'opacity-50' : ''}`}
+                           title={!isAIAvailable ? 'Add API key in Settings to enable' : undefined}
+                         >
                            Grade A ?
-                       </button>
+                         </button>
+                         {!isAIAvailable && (
+                           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-slate-500 rounded-full flex items-center justify-center">
+                             <svg className="w-2 h-2 text-white" viewBox="0 0 20 20" fill="currentColor">
+                               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                             </svg>
+                           </span>
+                         )}
+                       </div>
                    </div>
                    
                    {/* Generated Question Display (Now underneath buttons) */}
