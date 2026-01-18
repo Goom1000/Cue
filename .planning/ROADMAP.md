@@ -6,10 +6,10 @@ Transform PiPi from a personal tool into a shareable application colleagues can 
 
 ## Milestones
 
-- ✅ **v1.0 MVP** - Shipped 2026-01-18 (see milestones/v1.0-ROADMAP.md)
-- ✅ **v1.1 Draggable Preview** - Shipped 2026-01-18 (see milestones/v1.1-ROADMAP.md)
-- ✅ **v1.2 Permission UX** - Shipped 2026-01-18 (see milestones/v1.2-ROADMAP.md)
-- 🚧 **v2.0 Shareable Presentations** - Phases 1-5 (in progress)
+- v1.0 MVP - Shipped 2026-01-18 (see milestones/v1.0-ROADMAP.md)
+- v1.1 Draggable Preview - Shipped 2026-01-18 (see milestones/v1.1-ROADMAP.md)
+- v1.2 Permission UX - Shipped 2026-01-18 (see milestones/v1.2-ROADMAP.md)
+- **v2.0 Shareable Presentations** - Phases 1-5 (in progress)
 
 ## Phases
 
@@ -35,11 +35,11 @@ Transform PiPi from a personal tool into a shareable application colleagues can 
   3. User can enter, view (toggle), and test their API key
   4. User sees "stored locally only" security notice and can clear all data
   5. Settings include step-by-step instructions with cost info and direct links to provider API pages
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
+- [ ] 01-01-PLAN.md - Settings infrastructure (types, useSettings hook, API validation)
+- [ ] 01-02-PLAN.md - SettingsModal UI and header integration
 
 ### Phase 2: Multi-Provider AI
 **Goal**: AI features work with user's chosen provider and handle errors gracefully
@@ -105,7 +105,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Settings & API Key UI | 0/? | Not started | - |
+| 1. Settings & API Key UI | 0/2 | Planned | - |
 | 2. Multi-Provider AI | 0/? | Not started | - |
 | 3. Disabled AI State | 0/? | Not started | - |
 | 4. Save/Load System | 0/? | Not started | - |
@@ -113,4 +113,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 ---
 *Roadmap created: 2026-01-19*
-*Last updated: 2026-01-19*
+*Last updated: 2026-01-19 - Phase 1 planned*
