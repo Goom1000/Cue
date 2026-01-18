@@ -282,8 +282,8 @@ function useWindowManagement(): UseWindowManagementResult {
       // Calling getScreenDetails() triggers the permission prompt if needed
       const details = await window.getScreenDetails!();
 
-      if (!mountedRef.current) return false;
-
+      // No mountedRef check here - user-triggered actions should always complete
+      // (component is clearly mounted if user can click the permission button)
       screenDetailsRef.current = details;
 
       // Find and cache secondary screen
@@ -301,9 +301,8 @@ function useWindowManagement(): UseWindowManagementResult {
       setPermissionState('granted');
       return true;
     } catch {
-      if (mountedRef.current) {
-        setPermissionState('denied');
-      }
+      // User-triggered action - always update state
+      setPermissionState('denied');
       return false;
     }
   }, [isSupported, hasMultipleScreens]);
