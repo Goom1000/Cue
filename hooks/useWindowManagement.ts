@@ -79,6 +79,9 @@ function useWindowManagement(): UseWindowManagementResult {
 
   // Initial detection: check screen.isExtended (no permission needed)
   useEffect(() => {
+    // Reset mounted state on each effect run (handles Strict Mode double-invoke)
+    mountedRef.current = true;
+
     if (!isSupported) {
       setPermissionState('unavailable');
       setIsLoading(false);
@@ -100,6 +103,14 @@ function useWindowManagement(): UseWindowManagementResult {
 
     checkExtended();
 
+    // Fallback timeout: ensure isLoading becomes false within 5 seconds
+    // This handles edge cases where permission query or other async operations hang
+    const fallbackTimeout = setTimeout(() => {
+      if (mountedRef.current) {
+        setIsLoading(false);
+      }
+    }, 5000);
+
     // Listen for screen configuration changes (monitor plug/unplug)
     // Note: 'change' event on screen is Chromium-specific, not in standard typings
     // Cast through unknown because Screen doesn't extend EventTarget in lib.dom.d.ts
@@ -108,6 +119,7 @@ function useWindowManagement(): UseWindowManagementResult {
     screenWithEvents.addEventListener('change', screenChangeHandler);
 
     return () => {
+      clearTimeout(fallbackTimeout);
       screenWithEvents.removeEventListener('change', screenChangeHandler);
     };
   }, [isSupported]);
@@ -115,6 +127,9 @@ function useWindowManagement(): UseWindowManagementResult {
   // Check existing permission state via navigator.permissions.query
   useEffect(() => {
     if (!isSupported || !hasMultipleScreens) return;
+
+    // Reset mounted state on each effect run (handles Strict Mode double-invoke)
+    mountedRef.current = true;
 
     let permissionStatus: PermissionStatus | null = null;
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
