@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom';
 import { Slide, PresentationMessage, BROADCAST_CHANNEL_NAME } from '../types';
 import Button from './Button';
 import { MarkdownText, SlideContentRenderer } from './SlideRenderers';
-import { generateQuickQuestion, generateImpromptuQuiz, QuizQuestion } from '../services/geminiService';
+import { QuizQuestion } from '../services/geminiService';
+import { AIProviderInterface, AIProviderError } from '../services/aiProvider';
 import useBroadcastSync from '../hooks/useBroadcastSync';
 import useWindowManagement from '../hooks/useWindowManagement';
 import useKeyboardNavigation from '../hooks/useKeyboardNavigation';
@@ -14,11 +15,13 @@ import NextSlidePreview from './NextSlidePreview';
 import { useToast, ToastContainer } from './Toast';
 
 // --- QUIZ GAME MODAL COMPONENT ---
-const QuizOverlay: React.FC<{ 
-    slides: Slide[]; 
-    currentIndex: number; 
-    onClose: () => void 
-}> = ({ slides, currentIndex, onClose }) => {
+const QuizOverlay: React.FC<{
+    slides: Slide[];
+    currentIndex: number;
+    onClose: () => void;
+    provider: AIProviderInterface | null;
+    onError: (title: string, message: string) => void;
+}> = ({ slides, currentIndex, onClose, provider, onError }) => {
     const [mode, setMode] = useState<'setup' | 'loading' | 'play' | 'summary'>('setup');
     const [numQuestions, setNumQuestions] = useState(4);
     const [questions, setQuestions] = useState<QuizQuestion[]>([]);
@@ -26,14 +29,24 @@ const QuizOverlay: React.FC<{
     const [reveal, setReveal] = useState(false);
 
     const handleStart = async () => {
+        if (!provider) {
+            onError('AI Not Configured', 'Please configure your AI provider in Settings.');
+            onClose();
+            return;
+        }
         setMode('loading');
         try {
-            const data = await generateImpromptuQuiz(slides, currentIndex, numQuestions);
+            const data = await provider.generateImpromptuQuiz(slides, currentIndex, numQuestions);
             setQuestions(data);
             setMode('play');
         } catch (e) {
             console.error(e);
-            onClose(); // Or show error
+            if (e instanceof AIProviderError) {
+                onError('Quiz Generation Failed', e.userMessage);
+            } else {
+                onError('Error', 'Could not generate quiz. Please try again.');
+            }
+            onClose();
         }
     };
 
@@ -195,9 +208,11 @@ interface PresentationViewProps {
   onExit: () => void;
   studentNames: string[];
   initialSlideIndex?: number;
+  provider: AIProviderInterface | null;
+  onError: (title: string, message: string) => void;
 }
 
-const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, studentNames, initialSlideIndex = 0 }) => {
+const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, studentNames, initialSlideIndex = 0, provider, onError }) => {
   const [currentIndex, setCurrentIndex] = useState(initialSlideIndex);
   const [visibleBullets, setVisibleBullets] = useState(0);
   const [showFullScript, setShowFullScript] = useState(false);
@@ -282,10 +297,23 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
   }, [postMessage]);
 
   const handleGenerateQuestion = async (level: 'Grade C' | 'Grade B' | 'Grade A') => {
+      if (!provider) {
+          onError('AI Not Configured', 'Please configure your AI provider in Settings.');
+          return;
+      }
       setIsGeneratingQuestion(true);
-      const q = await generateQuickQuestion(currentSlide.title, currentSlide.content, level);
-      setQuickQuestion({ text: q, level });
-      setIsGeneratingQuestion(false);
+      try {
+          const q = await provider.generateQuickQuestion(currentSlide.title, currentSlide.content, level);
+          setQuickQuestion({ text: q, level });
+      } catch (err) {
+          if (err instanceof AIProviderError) {
+              onError('Question Generation Failed', err.userMessage);
+          } else {
+              onError('Error', 'Could not generate question. Please try again.');
+          }
+      } finally {
+          setIsGeneratingQuestion(false);
+      }
   };
 
   // --- Student Assignment Logic ---
@@ -564,10 +592,12 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
 
       {/* QUIZ OVERLAY PORTAL */}
       {isQuizModalOpen && createPortal(
-          <QuizOverlay 
-              slides={slides} 
-              currentIndex={currentIndex} 
-              onClose={() => setIsQuizModalOpen(false)} 
+          <QuizOverlay
+              slides={slides}
+              currentIndex={currentIndex}
+              onClose={() => setIsQuizModalOpen(false)}
+              provider={provider}
+              onError={onError}
           />, 
           document.body
       )}
