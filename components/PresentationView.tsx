@@ -7,7 +7,6 @@ import { generateQuickQuestion, generateImpromptuQuiz, QuizQuestion } from '../s
 import useBroadcastSync from '../hooks/useBroadcastSync';
 import useWindowManagement from '../hooks/useWindowManagement';
 import useKeyboardNavigation from '../hooks/useKeyboardNavigation';
-import PermissionExplainer from './PermissionExplainer';
 import ManualPlacementGuide from './ManualPlacementGuide';
 import ConnectionStatus from './ConnectionStatus';
 import NextSlidePreview from './NextSlidePreview';
@@ -230,7 +229,6 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
     requestPermission,
     isLoading
   } = useWindowManagement();
-  const [showPermissionExplainer, setShowPermissionExplainer] = useState(false);
 
   // Helper function for permission-aware button label
   const getLaunchButtonLabel = (): string => {
@@ -247,14 +245,6 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
   useEffect(() => {
       setQuickQuestion(null);
   }, [currentIndex]);
-
-  // Show permission explainer on multi-screen Chromium setup
-  // Only show when NOT loading AND state is definitively 'prompt'
-  useEffect(() => {
-    if (!isLoading && isSupported && hasMultipleScreens && permissionState === 'prompt') {
-      setShowPermissionExplainer(true);
-    }
-  }, [isLoading, isSupported, hasMultipleScreens, permissionState]);
 
   // Handle incoming messages (student requesting state)
   useEffect(() => {
