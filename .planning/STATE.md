@@ -10,25 +10,25 @@ See: .planning/PROJECT.md (updated 2026-01-18)
 ## Current Position
 
 Phase: 2 of 2 (Snap-to-Grid & Persistence)
-Plan: 1 of 2 complete
-Status: In progress
-Last activity: 2026-01-18 — Completed 02-01-PLAN.md
+Plan: 2 of 2 complete
+Status: Milestone complete
+Last activity: 2026-01-18 — Completed Phase 2, v1.1 milestone done
 
-Progress: [=======   ] 75%
+Progress: [==========] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2 (v1.1)
-- Average duration: 5.5min
-- Total execution time: 11min
+- Total plans completed: 3 (v1.1)
+- Average duration: 5min
+- Total execution time: 15min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-drag-resize-float | 1/1 | 8min | 8min |
-| 02-snap-to-grid-persistence | 1/2 | 3min | 3min |
+| 02-snap-to-grid-persistence | 2/2 | 7min | 3.5min |
 
 *Updated after each plan completion*
 
@@ -53,6 +53,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - Save on visibilitychange + beforeunload + unmount for reliability
 - Viewport bounds validation ensures preview visible on smaller screens
 - Controlled mode via position/size props maintains uncontrolled backward compatibility
+- 50px grid size for snap-to-grid positioning
+- Invisible grid snapping (removed visual overlay per user feedback)
 
 ### Pending Todos
 
@@ -64,10 +66,10 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-18T02:59:27Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-01-18
+Stopped at: v1.1 milestone complete
 Resume file: None
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-18 — Completed Phase 2 Plan 1*
+*Last updated: 2026-01-18 — v1.1 milestone complete*

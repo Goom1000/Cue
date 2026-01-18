@@ -17,15 +17,15 @@ Requirements for draggable preview window milestone.
 
 ### Snap-to-Grid
 
-- [ ] **PREV-06**: Toggle button on preview window enables/disables snap-to-grid
-- [ ] **PREV-07**: When enabled, window snaps to invisible grid positions during drag
-- [ ] **PREV-08**: Visual feedback shows snap state (button appearance changes)
+- [x] **PREV-06**: Toggle button on preview window enables/disables snap-to-grid
+- [x] **PREV-07**: When enabled, window snaps to invisible grid positions during drag
+- [x] **PREV-08**: Visual feedback shows snap state (button appearance changes)
 
 ### Persistence
 
-- [ ] **PREV-09**: Position persists across sessions (localStorage)
-- [ ] **PREV-10**: Size persists across sessions (localStorage)
-- [ ] **PREV-11**: Snap toggle state persists across sessions
+- [x] **PREV-09**: Position persists across sessions (localStorage)
+- [x] **PREV-10**: Size persists across sessions (localStorage)
+- [x] **PREV-11**: Snap toggle state persists across sessions
 
 ## v2 Requirements
 
@@ -54,18 +54,18 @@ Deferred from previous milestones:
 | PREV-03 | Phase 1 | Complete |
 | PREV-04 | Phase 1 | Complete |
 | PREV-05 | Phase 1 | Complete |
-| PREV-06 | Phase 2 | Pending |
-| PREV-07 | Phase 2 | Pending |
-| PREV-08 | Phase 2 | Pending |
-| PREV-09 | Phase 2 | Pending |
-| PREV-10 | Phase 2 | Pending |
-| PREV-11 | Phase 2 | Pending |
+| PREV-06 | Phase 2 | Complete |
+| PREV-07 | Phase 2 | Complete |
+| PREV-08 | Phase 2 | Complete |
+| PREV-09 | Phase 2 | Complete |
+| PREV-10 | Phase 2 | Complete |
+| PREV-11 | Phase 2 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 11 total
 - Mapped to phases: 11
-- Unmapped: 0
+- Complete: 11 ✓
 
 ---
 *Requirements defined: 2026-01-18*
-*Last updated: 2026-01-18 — Phase 1 requirements complete*
+*Last updated: 2026-01-18 — All v1.1 requirements complete*

@@ -8,12 +8,12 @@ Transform the fixed-position next slide preview into a fully interactive floatin
 
 - v1.0 Dual-Monitor Student View (shipped 2026-01-18)
   See: .planning/milestones/v1.0-ROADMAP.md
-- **v1.1 Draggable Preview Window** - Phases 1-2 (in progress)
+- **v1.1 Draggable Preview Window** - Phases 1-2 (complete)
 
 ## Phases
 
 - [x] **Phase 1: Drag, Resize & Float** - Core preview window interaction ✓
-- [ ] **Phase 2: Snap-to-Grid & Persistence** - Smart positioning and memory
+- [x] **Phase 2: Snap-to-Grid & Persistence** - Smart positioning and memory ✓
 
 ## Phase Details
 
@@ -44,16 +44,16 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Persistence infrastructure (hook + controlled FloatingWindow)
-- [ ] 02-02-PLAN.md — Snap toggle UI and grid overlay
+- [x] 02-01-PLAN.md — Persistence infrastructure (hook + controlled FloatingWindow) ✓
+- [x] 02-02-PLAN.md — Snap toggle UI and grid overlay ✓
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Drag, Resize & Float | 1/1 | ✓ Complete | 2026-01-18 |
-| 2. Snap-to-Grid & Persistence | 0/2 | Planned | - |
+| 2. Snap-to-Grid & Persistence | 2/2 | ✓ Complete | 2026-01-18 |
 
 ---
 *Roadmap created: 2026-01-18*
-*Last updated: 2026-01-18 — Phase 2 planned*
+*Last updated: 2026-01-18 — Milestone complete*
