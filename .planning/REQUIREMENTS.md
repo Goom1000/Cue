@@ -17,14 +17,14 @@ Requirements for rock-solid dual-monitor student view.
 
 ### Presentation Enhancements
 
-- [ ] **PRES-01**: Support presenter remote navigation (Page Up/Down keyboard shortcuts for prev/next)
-- [ ] **PRES-02**: Display next slide preview thumbnail in teacher view
+- [x] **PRES-01**: Support presenter remote navigation (Page Up/Down keyboard shortcuts for prev/next)
+- [x] **PRES-02**: Display next slide preview thumbnail in teacher view
 
 ### Resilience
 
-- [ ] **RES-01**: Student window can be reopened if accidentally closed (button re-enables)
-- [ ] **RES-02**: Visual sync status indicator shows whether student view is connected
-- [ ] **RES-03**: Sync persists after page refresh (session can be reconnected)
+- [x] **RES-01**: Student window can be reopened if accidentally closed (button re-enables)
+- [x] **RES-02**: Visual sync status indicator shows whether student view is connected
+- [x] **RES-03**: Sync persists after page refresh (session can be reconnected)
 
 ## v2 Requirements
 
@@ -56,11 +56,11 @@ Which phases cover which requirements.
 | WIN-03 | Phase 1 | Complete |
 | WIN-04 | Phase 2 | Complete |
 | WIN-05 | Phase 2 | Complete |
-| PRES-01 | Phase 3 | Pending |
-| PRES-02 | Phase 3 | Pending |
-| RES-01 | Phase 3 | Pending |
-| RES-02 | Phase 3 | Pending |
-| RES-03 | Phase 3 | Pending |
+| PRES-01 | Phase 3 | Complete |
+| PRES-02 | Phase 3 | Complete |
+| RES-01 | Phase 3 | Complete |
+| RES-02 | Phase 3 | Complete |
+| RES-03 | Phase 3 | Complete |
 
 **Coverage:**
 - v1 requirements: 10 total
@@ -69,4 +69,4 @@ Which phases cover which requirements.
 
 ---
 *Requirements defined: 2026-01-18*
-*Last updated: 2026-01-18 — Phase 2 requirements complete (WIN-04, WIN-05)*
+*Last updated: 2026-01-18 — All v1 requirements complete*

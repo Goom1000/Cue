@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Reliable dual-window launch with BroadcastChannel sync
 - [x] **Phase 2: Display Targeting** - Automatic projector placement for Chromium, fallback for others
-- [ ] **Phase 3: Resilience & Polish** - Recovery features and presenter conveniences
+- [x] **Phase 3: Resilience & Polish** - Recovery features and presenter conveniences
 
 ## Phase Details
 
@@ -60,8 +60,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Resilience infrastructure (extended types, heartbeat hook, keyboard hook, ConnectionStatus, Toast)
-- [ ] 03-02-PLAN.md — Integration (StudentView heartbeat, PresentationView wiring, NextSlidePreview)
+- [x] 03-01-PLAN.md — Resilience infrastructure (extended types, heartbeat hook, keyboard hook, ConnectionStatus, Toast)
+- [x] 03-02-PLAN.md — Integration (StudentView heartbeat, PresentationView wiring, NextSlidePreview)
 
 ## Progress
 
@@ -72,8 +72,8 @@ Phases execute in numeric order: 1 -> 2 -> 3
 |-------|----------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete | 2026-01-18 |
 | 2. Display Targeting | 2/2 | Complete | 2026-01-18 |
-| 3. Resilience & Polish | 0/2 | Planned | - |
+| 3. Resilience & Polish | 2/2 | Complete | 2026-01-18 |
 
 ---
 *Roadmap created: 2026-01-18*
-*Last updated: 2026-01-18 — Phase 3 planned*
+*Last updated: 2026-01-18 — Phase 3 complete, milestone complete*
