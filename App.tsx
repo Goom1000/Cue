@@ -1,13 +1,8 @@
 
 import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { Slide, AppState } from './types';
-import {
-  generateLessonSlides,
-  generateSlideImage,
-  reviseSlide,
-  generateContextualSlide,
-  generateExemplarSlide
-} from './services/geminiService';
+import { createAIProvider, AIProviderError, AIProviderInterface } from './services/aiProvider';
+import { useSettings } from './hooks/useSettings';
 import { exportToPowerPoint } from './services/pptxService';
 import Button from './components/Button';
 import SlideCard from './components/SlideCard';
@@ -66,6 +61,29 @@ function App() {
   if (route === '/student') {
     return <StudentView />;
   }
+
+  // Settings and provider
+  const [settings] = useSettings();
+  const [errorModal, setErrorModal] = useState<{ title: string; message: string } | null>(null);
+
+  // Create provider instance (memoized to avoid recreation on every render)
+  const provider = useMemo<AIProviderInterface | null>(() => {
+    if (!settings.apiKey) return null;
+    try {
+      return createAIProvider({ provider: settings.provider, apiKey: settings.apiKey });
+    } catch (e) {
+      // OpenAI will throw here - show error
+      if (e instanceof AIProviderError) {
+        setErrorModal({ title: 'Provider Not Available', message: e.userMessage });
+      }
+      return null;
+    }
+  }, [settings.provider, settings.apiKey]);
+
+  // Error handler callback for child components
+  const handleComponentError = useCallback((title: string, message: string) => {
+    setErrorModal({ title, message });
+  }, []);
 
   const [appState, setAppState] = useState<AppState>(AppState.INPUT);
   const [lessonText, setLessonText] = useState('');
@@ -144,27 +162,39 @@ function App() {
   };
 
   const handleGenerate = async () => {
+    if (!provider) {
+      setErrorModal({
+        title: 'API Key Required',
+        message: 'Please configure your AI provider in Settings before generating slides.'
+      });
+      return;
+    }
+
     if (!lessonText.trim() && pageImages.length === 0) return;
     setIsGenerating(true);
     setAppState(AppState.PROCESSING_TEXT);
     setError(null);
 
     try {
-      const generatedSlides = await generateLessonSlides(lessonText, pageImages);
+      const generatedSlides = await provider.generateLessonSlides(lessonText, pageImages);
       setSlides(generatedSlides);
       setLessonTitle(generatedSlides[0]?.title || "New Lesson");
       setActiveSlideIndex(0);
       setAppState(AppState.EDITING);
-      
+
       if (autoGenerateImages) {
         generatedSlides.forEach(async (s) => {
             setSlides(curr => curr.map(item => item.id === s.id ? {...item, isGeneratingImage: true} : item));
-            const img = await generateSlideImage(s.imagePrompt, s.layout);
+            const img = await provider.generateSlideImage(s.imagePrompt, s.layout);
             setSlides(curr => curr.map(item => item.id === s.id ? {...item, imageUrl: img, isGeneratingImage: false} : item));
         });
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      if (err instanceof AIProviderError) {
+        setErrorModal({ title: 'Generation Failed', message: err.userMessage });
+      } else {
+        setErrorModal({ title: 'Error', message: 'An unexpected error occurred.' });
+      }
       setAppState(AppState.INPUT);
     } finally {
       setIsGenerating(false);
@@ -186,19 +216,26 @@ function App() {
   }, [activeSlideIndex]);
 
   const handleReviseSlide = async (id: string, instruction: string) => {
+    if (!provider) {
+      setErrorModal({ title: 'AI Not Configured', message: 'Please configure your AI provider in Settings.' });
+      return;
+    }
     const target = slides.find(s => s.id === id);
     if (!target) return;
     handleUpdateSlide(id, { isGeneratingImage: true });
     try {
-      const updates = await reviseSlide(target, instruction);
+      const updates = await provider.reviseSlide(target, instruction);
       handleUpdateSlide(id, { ...updates, isGeneratingImage: false });
-      
+
       if (updates.imagePrompt && updates.imagePrompt !== target.imagePrompt && autoGenerateImages) {
-          const img = await generateSlideImage(updates.imagePrompt, updates.layout || target.layout);
+          const img = await provider.generateSlideImage(updates.imagePrompt, updates.layout || target.layout);
           handleUpdateSlide(id, { imageUrl: img });
       }
     } catch (err) {
       handleUpdateSlide(id, { isGeneratingImage: false });
+      if (err instanceof AIProviderError) {
+        setErrorModal({ title: 'Revision Failed', message: err.userMessage });
+      }
     }
   };
 
@@ -219,6 +256,11 @@ function App() {
   };
 
   const handleInsertExemplarSlide = async (index: number) => {
+    if (!provider) {
+      setErrorModal({ title: 'AI Not Configured', message: 'Please configure your AI provider in Settings.' });
+      return;
+    }
+
     const tempId = `temp-ex-${Date.now()}`;
     const tempSlide: Slide = {
       id: tempId,
@@ -229,7 +271,7 @@ function App() {
       isGeneratingImage: true,
       layout: 'split'
     };
-    
+
     const newSlides = [...slides];
     newSlides.splice(index + 1, 0, tempSlide);
     setSlides(newSlides);
@@ -239,17 +281,20 @@ function App() {
       const prev = index >= 0 ? slides[index] : undefined;
       if (!prev) throw new Error("Need a previous slide for exemplar context.");
 
-      const exemplar = await generateExemplarSlide(lessonTitle, prev);
+      const exemplar = await provider.generateExemplarSlide(lessonTitle, prev);
       setSlides(curr => curr.map(s => s.id === tempId ? { ...exemplar, id: tempId, isGeneratingImage: autoGenerateImages } : s));
-      
+
       if (autoGenerateImages) {
-        const img = await generateSlideImage(exemplar.imagePrompt, exemplar.layout);
+        const img = await provider.generateSlideImage(exemplar.imagePrompt, exemplar.layout);
         setSlides(curr => curr.map(s => s.id === tempId ? { ...s, imageUrl: img, isGeneratingImage: false } : s));
       }
     } catch (err) {
       console.error("Exemplar error:", err);
       // Fallback to blank if exemplar fails
       setSlides(curr => curr.map(s => s.id === tempId ? { ...tempSlide, title: "Custom Slide", isGeneratingImage: false } : s));
+      if (err instanceof AIProviderError) {
+        setErrorModal({ title: 'Exemplar Generation Failed', message: err.userMessage });
+      }
     }
   };
 
@@ -265,7 +310,16 @@ function App() {
   };
 
   if (appState === AppState.PRESENTING) {
-    return <PresentationView slides={slides} onExit={() => setAppState(AppState.EDITING)} studentNames={studentNames} initialSlideIndex={presentationStartIndex} />;
+    return (
+      <PresentationView
+        slides={slides}
+        onExit={() => setAppState(AppState.EDITING)}
+        studentNames={studentNames}
+        initialSlideIndex={presentationStartIndex}
+        provider={provider}
+        onError={handleComponentError}
+      />
+    );
   }
 
   return (
@@ -329,6 +383,8 @@ function App() {
                 lessonText={lessonText}
                 slideContext={JSON.stringify(slides)}
                 onClose={() => setShowResourceHub(false)}
+                provider={provider}
+                onError={handleComponentError}
             />
         )}
 
@@ -445,8 +501,12 @@ function App() {
                 <div className="absolute inset-4 border-4 border-amber-400 dark:border-indigo-400 border-b-transparent dark:border-b-transparent rounded-full animate-spin [animation-direction:reverse]"></div>
               </div>
               <h2 className="text-3xl font-bold text-slate-800 dark:text-white font-fredoka">Deep Learning Architecture</h2>
-              <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg max-w-md">Gemini is mapping pedagogical phases and interpreting visual data from your document.</p>
-              
+              <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg max-w-md">
+                Generating with {settings.provider === 'gemini' ? 'Gemini' :
+                                 settings.provider === 'claude' ? 'Claude' : 'AI'}...
+              </p>
+              <p className="text-slate-400 dark:text-slate-500 mt-1 text-sm">Mapping pedagogical phases and interpreting visual data from your document.</p>
+
               <div className="mt-12 flex gap-4 overflow-hidden py-4 opacity-30">
                   {pageImages.map((img, i) => (
                       <img key={i} src={img} className="h-32 rounded-lg shadow-sm border border-slate-700 grayscale invert dark:invert-0" alt="Document context" />
@@ -554,18 +614,22 @@ function App() {
                     <div className="max-w-5xl w-full">
                         {activeSlide ? (
                            <div className="animate-fade-in">
-                               <SlideCard 
-                                 slide={activeSlide} 
-                                 index={activeSlideIndex} 
+                               <SlideCard
+                                 slide={activeSlide}
+                                 index={activeSlideIndex}
                                  onUpdate={handleUpdateSlide}
                                  onDelete={handleDeleteSlide}
                                  onRegenerateImage={async (id, p) => {
+                                    if (!provider) {
+                                      setErrorModal({ title: 'AI Not Configured', message: 'Please configure your AI provider in Settings.' });
+                                      return;
+                                    }
                                     handleUpdateSlide(id, {isGeneratingImage: true});
-                                    const img = await generateSlideImage(p, activeSlide.layout);
+                                    const img = await provider.generateSlideImage(p, activeSlide.layout);
                                     handleUpdateSlide(id, {imageUrl: img, isGeneratingImage: false});
                                  }}
-                                 onRevise={handleReviseSlide} 
-                                 onInsertAfter={() => handleInsertBlankSlide(activeSlideIndex)} 
+                                 onRevise={handleReviseSlide}
+                                 onInsertAfter={() => handleInsertBlankSlide(activeSlideIndex)}
                                />
                                <div className="mt-6 flex justify-between items-center text-slate-400 dark:text-slate-600 px-4">
                                    <div className="text-[10px] font-bold uppercase tracking-widest flex gap-4">
@@ -602,6 +666,34 @@ function App() {
           </div>
         )}
       </main>
+
+      {/* Error Modal */}
+      {errorModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md mx-4 shadow-2xl">
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">
+              {errorModal.title}
+            </h3>
+            <p className="text-slate-600 dark:text-slate-300 mb-6">
+              {errorModal.message}
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => { setErrorModal(null); setShowSettings(true); }}
+                className="px-4 py-2 text-sm font-medium text-indigo-600 dark:text-amber-400 hover:underline"
+              >
+                Open Settings
+              </button>
+              <button
+                onClick={() => setErrorModal(null)}
+                className="px-4 py-2 bg-indigo-600 dark:bg-amber-500 text-white dark:text-slate-900 rounded-lg font-medium hover:opacity-90"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     </div>
   );
