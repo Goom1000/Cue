@@ -62,6 +62,26 @@ export const DEFAULT_SETTINGS: Settings = {
   apiKey: '',
 };
 
+// File format version - increment on breaking changes
+export const CURRENT_FILE_VERSION = 1;
+
+// Content structure stored in .pipi files
+export interface PiPiFileContent {
+  slides: Slide[];
+  studentNames: string[];
+  lessonText: string;
+}
+
+// .pipi file format with version metadata
+export interface PiPiFile {
+  version: number;
+  createdAt: string; // ISO 8601
+  modifiedAt: string; // ISO 8601
+  title: string;
+  author?: string;
+  content: PiPiFileContent;
+}
+
 export enum AppState {
   INPUT = 'INPUT',
   PROCESSING_TEXT = 'PROCESSING_TEXT',
