@@ -4,10 +4,13 @@ import React, { useEffect, useState, useCallback } from 'react';
 // Types
 // ============================================================================
 
+export type ToastVariant = 'success' | 'error' | 'warning' | 'info';
+
 export interface ToastData {
   id: string;
   message: string;
   duration: number;
+  variant?: ToastVariant;
 }
 
 // ============================================================================
@@ -21,9 +24,9 @@ export interface ToastData {
 export function useToast() {
   const [toasts, setToasts] = useState<ToastData[]>([]);
 
-  const addToast = useCallback((message: string, duration: number = 3000) => {
+  const addToast = useCallback((message: string, duration: number = 3000, variant?: ToastVariant) => {
     const id = crypto.randomUUID();
-    setToasts((prev) => [...prev, { id, message, duration }]);
+    setToasts((prev) => [...prev, { id, message, duration, variant }]);
   }, []);
 
   const removeToast = useCallback((id: string) => {
@@ -41,13 +44,37 @@ interface ToastProps {
   message: string;
   duration: number;
   onDismiss: () => void;
+  variant?: ToastVariant;
+}
+
+/**
+ * Map variant to Tailwind classes for background and text color.
+ * - success: green (default, backward compatible)
+ * - error: red
+ * - warning: amber with dark text for visibility
+ * - info: neutral slate
+ */
+function getVariantClasses(variant?: ToastVariant): string {
+  if (!variant) return 'bg-green-600 text-white';
+  switch (variant) {
+    case 'success':
+      return 'bg-green-600 text-white';
+    case 'error':
+      return 'bg-red-600 text-white';
+    case 'warning':
+      return 'bg-amber-500 text-slate-900';
+    case 'info':
+      return 'bg-slate-700 text-white';
+    default:
+      return 'bg-green-600 text-white';
+  }
 }
 
 /**
  * Single toast notification that auto-dismisses after duration.
- * Styled for reconnection feedback (green success color).
+ * Supports success (green), error (red), warning (amber), and info (gray) variants.
  */
-export const Toast: React.FC<ToastProps> = ({ message, duration, onDismiss }) => {
+export const Toast: React.FC<ToastProps> = ({ message, duration, onDismiss, variant }) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -70,7 +97,7 @@ export const Toast: React.FC<ToastProps> = ({ message, duration, onDismiss }) =>
   return (
     <div
       className={`
-        bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg
+        ${getVariantClasses(variant)} px-4 py-2 rounded-lg shadow-lg
         transition-opacity duration-200
         ${isVisible ? 'opacity-100' : 'opacity-0'}
       `}
@@ -103,6 +130,7 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, removeTo
           key={toast.id}
           message={toast.message}
           duration={toast.duration}
+          variant={toast.variant}
           onDismiss={() => removeToast(toast.id)}
         />
       ))}
