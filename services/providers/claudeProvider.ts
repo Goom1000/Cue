@@ -40,21 +40,32 @@ async function callClaude(
   systemPrompt: string,
   maxTokens: number = 4096
 ): Promise<string> {
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',  // REQUIRED for browser
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-5-20250929',
-      max_tokens: maxTokens,
-      system: systemPrompt,
-      messages,
-    }),
-  });
+  let response: Response;
+
+  try {
+    response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',  // REQUIRED for browser
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5-20250929',
+        max_tokens: maxTokens,
+        system: systemPrompt,
+        messages,
+      }),
+    });
+  } catch (fetchError) {
+    // fetch() itself failed - network error, CORS preflight failure, etc.
+    throw new AIProviderError(
+      USER_ERROR_MESSAGES.NETWORK_ERROR,
+      'NETWORK_ERROR',
+      fetchError
+    );
+  }
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
