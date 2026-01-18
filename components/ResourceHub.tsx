@@ -10,9 +10,11 @@ interface ResourceHubProps {
   onClose: () => void;
   provider: AIProviderInterface | null;
   onError: (title: string, message: string) => void;
+  onRequestAI: (featureName: string) => void;
 }
 
-const ResourceHub: React.FC<ResourceHubProps> = ({ lessonText, slideContext, onClose, provider, onError }) => {
+const ResourceHub: React.FC<ResourceHubProps> = ({ lessonText, slideContext, onClose, provider, onError, onRequestAI }) => {
+  const isAIAvailable = provider !== null;
   const [resources, setResources] = useState<LessonResource[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedResource, setSelectedResource] = useState<LessonResource | null>(null);
@@ -23,8 +25,8 @@ const ResourceHub: React.FC<ResourceHubProps> = ({ lessonText, slideContext, onC
   const contentRef = useRef<HTMLDivElement>(null);
 
   const handleGenerate = async () => {
-    if (!provider) {
-      onError('AI Not Configured', 'Please configure your AI provider in Settings.');
+    if (!isAIAvailable) {
+      onRequestAI('generate classroom resources');
       return;
     }
     setIsGenerating(true);
@@ -257,9 +259,23 @@ const ResourceHub: React.FC<ResourceHubProps> = ({ lessonText, slideContext, onC
                              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                         </div>
                         <p className="text-sm text-slate-500 mb-6">AI will analyze your slides to find referenced materials.</p>
-                        <Button onClick={handleGenerate} isLoading={isGenerating} className="w-full">
+                        <div className="relative">
+                          <Button
+                            onClick={handleGenerate}
+                            isLoading={isGenerating}
+                            className={`w-full ${!isAIAvailable ? 'opacity-50' : ''}`}
+                            title={!isAIAvailable ? 'Add API key in Settings to enable' : undefined}
+                          >
                             Generate Resources
-                        </Button>
+                          </Button>
+                          {!isAIAvailable && (
+                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-slate-500 dark:bg-slate-600 rounded-full flex items-center justify-center">
+                              <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                              </svg>
+                            </span>
+                          )}
+                        </div>
                     </div>
                 ) : (
                     <>
@@ -276,9 +292,24 @@ const ResourceHub: React.FC<ResourceHubProps> = ({ lessonText, slideContext, onC
                                 </div>
                             </button>
                         ))}
-                         <Button onClick={handleGenerate} variant="secondary" isLoading={isGenerating} className="mt-4 text-xs">
-                            Regenerate
-                        </Button>
+                         <div className="relative mt-4">
+                           <Button
+                             onClick={handleGenerate}
+                             variant="secondary"
+                             isLoading={isGenerating}
+                             className={`text-xs w-full ${!isAIAvailable ? 'opacity-50' : ''}`}
+                             title={!isAIAvailable ? 'Add API key in Settings to enable' : undefined}
+                           >
+                             Regenerate
+                           </Button>
+                           {!isAIAvailable && (
+                             <span className="absolute -top-1 -right-1 w-4 h-4 bg-slate-500 dark:bg-slate-600 rounded-full flex items-center justify-center">
+                               <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                 <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                               </svg>
+                             </span>
+                           )}
+                         </div>
                     </>
                 )}
             </div>

@@ -397,6 +397,7 @@ function App() {
                 onClose={() => setShowResourceHub(false)}
                 provider={provider}
                 onError={handleComponentError}
+                onRequestAI={handleRequestAI}
             />
         )}
 
