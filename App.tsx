@@ -13,6 +13,7 @@ import Button from './components/Button';
 import SlideCard from './components/SlideCard';
 import PresentationView from './components/PresentationView';
 import ResourceHub from './components/ResourceHub';
+import SettingsModal from './components/SettingsModal';
 import useHashRoute from './hooks/useHashRoute';
 import StudentView from './components/StudentView';
 
@@ -76,6 +77,7 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showResourceHub, setShowResourceHub] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   
   const [autoGenerateImages, setAutoGenerateImages] = useState(true);
   const [studentNames, setStudentNames] = useState<string[]>([]);
@@ -277,8 +279,20 @@ function App() {
         </div>
         
         <div className="flex items-center gap-4">
+             {/* SETTINGS GEAR */}
+            <button
+                onClick={() => setShowSettings(true)}
+                className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                title="Settings"
+            >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.573-1.066z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </button>
+
              {/* THEME TOGGLE */}
-            <button 
+            <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
                 className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                 title="Toggle Dark Mode"
@@ -311,11 +325,15 @@ function App() {
 
       <main className="flex-1 flex flex-col overflow-hidden">
         {showResourceHub && (
-            <ResourceHub 
-                lessonText={lessonText} 
-                slideContext={JSON.stringify(slides)} 
-                onClose={() => setShowResourceHub(false)} 
+            <ResourceHub
+                lessonText={lessonText}
+                slideContext={JSON.stringify(slides)}
+                onClose={() => setShowResourceHub(false)}
             />
+        )}
+
+        {showSettings && (
+            <SettingsModal onClose={() => setShowSettings(false)} />
         )}
 
         {appState === AppState.INPUT && (
