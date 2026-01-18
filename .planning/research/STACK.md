@@ -171,54 +171,6 @@ channel.onmessage = (event) => {
 
 ---
 
-## Recommended Architecture
-
-### Progressive Enhancement Pattern
-
-```
-User clicks "Launch Student View"
-        |
-        v
-[Check: 'getScreenDetails' in window?]
-        |
-    YES |                NO
-        v                 v
-[Request window-management   [Open window.open() immediately]
- permission]                  |
-        |                     v
-        v              [Show instructions:
-[Get screen details]    "Drag to secondary monitor"]
-        |
-        v
-[Find secondary screen]
-        |
-    FOUND               NOT FOUND
-        v                   v
-[Open window on        [Open window centered,
- secondary screen]      prompt user to drag]
-        |                   |
-        v                   v
-[Connect BroadcastChannel for sync]
-```
-
-### Component Architecture
-
-```
-/src
-  /hooks
-    useWindowManagement.ts    # Feature detection, permission handling
-    useBroadcastChannel.ts    # Cross-window state sync
-    useStudentWindow.ts       # Student window lifecycle
-  /components
-    PresentationView.tsx      # Teacher's presenter console
-    StudentView.tsx           # Student display (separate route)
-    StudentWindowLauncher.tsx # Button with proper user gesture handling
-  /contexts
-    PresentationContext.tsx   # Shared state (current slide, bullets)
-```
-
----
-
 ## What NOT to Use
 
 ### 1. Synchronous window.open() in useEffect
@@ -264,37 +216,6 @@ npm install @broadcaster/react
 
 ---
 
-## Implementation Priorities
-
-### Phase 1: Fix Current Popup Blocker Issue (Quick Win)
-
-1. Move `window.open()` call into click handler (synchronous)
-2. Remove `useEffect` wrapper for window creation
-3. Test across Chrome, Firefox, Safari
-
-### Phase 2: Add BroadcastChannel Sync
-
-1. Create `useBroadcastChannel` hook
-2. Create `/student` route with its own component
-3. Sync slide state across windows
-4. Remove React Portal approach
-
-### Phase 3: Add Window Management API (Chromium Enhancement)
-
-1. Add feature detection
-2. Add permission request UI
-3. Auto-detect and use secondary monitor
-4. Graceful fallback for Firefox/Safari
-
-### Phase 4: Polish UX
-
-1. Add "Drag to secondary monitor" instructions for fallback
-2. Add screen detection status indicator
-3. Handle screen connect/disconnect events
-4. Add fullscreen toggle for student window
-
----
-
 ## Confidence Assessment
 
 | Recommendation | Confidence | Basis |
@@ -326,3 +247,270 @@ npm install @broadcaster/react
 ### Community Resources (MEDIUM confidence)
 - [DEV.to: BroadcastChannel in React](https://dev.to/sachinchaurasiya/how-to-use-broadcast-channel-api-in-react-5eec)
 - [Medium: Popup Blocking Solutions](https://muhammadamas.medium.com/javascript-solution-overcoming-popup-blocking-issues-in-browser-ea1b7c21aaad)
+
+---
+
+# Addendum: Async Permission State Patterns (v1.2)
+
+**Added:** 2026-01-18
+**Focus:** React patterns for reliable async permission state initialization
+**Milestone:** v1.2 Permission Flow Fix
+
+---
+
+## Problem Statement
+
+The current `useWindowManagement` hook has a race condition:
+1. `permissionState` initializes as `'unavailable'`
+2. `useEffect` runs async permission query
+3. By the time permission query resolves to `'prompt'`, the consumer's `useEffect` that should show `PermissionExplainer` may have already run with stale state
+
+**Root cause:** useEffect runs after render, but the initial render happens with placeholder state values before async initialization completes.
+
+**Code demonstrating the bug (PresentationView.tsx lines 243-247):**
+```typescript
+useEffect(() => {
+  // BUG: Runs on first render when permissionState is 'unavailable'
+  // The async query hasn't completed yet
+  if (isSupported && hasMultipleScreens && permissionState === 'prompt') {
+    setShowPermissionExplainer(true);
+  }
+}, [isSupported, hasMultipleScreens, permissionState]);
+```
+
+---
+
+## Recommended Pattern: Explicit Loading State
+
+| Aspect | Recommendation | Confidence |
+|--------|---------------|------------|
+| Primary Pattern | Discriminated union with `'loading'` state | HIGH |
+| Alternative | `useSyncExternalStore` | MEDIUM |
+| Not Recommended | React 19 `use()` hook | LOW - wrong fit |
+
+### Why Discriminated Union
+
+**HIGH Confidence** - Based on [React official docs](https://react.dev/reference/react/useState), [TkDodo's useState guide](https://tkdodo.eu/blog/things-to-know-about-use-state), and [Steve Kinney's TypeScript patterns](https://stevekinney.com/courses/react-typescript/loading-states-error-handling).
+
+The core insight: "TypeScript's discriminated unions let us model these states in a way that makes bugs literally impossible to write."
+
+**Current problematic type:**
+```typescript
+// BAD: Allows impossible/ambiguous states
+type PermissionState = 'prompt' | 'granted' | 'denied' | 'unavailable';
+```
+
+The problem: `'unavailable'` means two things:
+1. "API not supported" (permanent)
+2. "Haven't checked yet" (temporary)
+
+Consumer code cannot distinguish these, causing the race condition.
+
+---
+
+## Recommended Implementation
+
+### Pattern 1: Five-State Discriminated Union (Recommended)
+
+```typescript
+type PermissionState =
+  | 'loading'      // Async check in progress
+  | 'prompt'       // Permission available to request
+  | 'granted'      // Permission granted
+  | 'denied'       // Permission denied
+  | 'unavailable'; // API not supported (permanent)
+
+// Initialize based on synchronous feature detection
+const [permissionState, setPermissionState] = useState<PermissionState>(
+  'getScreenDetails' in window ? 'loading' : 'unavailable'
+);
+```
+
+**Why this works:**
+- `'loading'` is immediately distinguishable from `'unavailable'`
+- Consumer can show nothing/spinner during `'loading'`
+- Consumer only shows `PermissionExplainer` when state is definitively `'prompt'`
+- No race condition because initial `'loading'` prevents premature decisions
+
+### Pattern 2: Separate Loading Flag
+
+```typescript
+interface UseWindowManagementResult {
+  isLoading: boolean;
+  permissionState: 'prompt' | 'granted' | 'denied' | 'unavailable';
+  // ... other fields
+}
+```
+
+**Pros:** Explicit loading state, backward-compatible type
+**Cons:** `permissionState` value during loading is technically meaningless
+
+### Why NOT Other Patterns
+
+#### useSyncExternalStore
+
+**MEDIUM Confidence** - Based on [React useSyncExternalStore docs](https://react.dev/reference/react/useSyncExternalStore).
+
+```typescript
+function usePermissionState(name: PermissionName) {
+  const getSnapshot = useCallback(() => {
+    return permissionCache.get(name) ?? 'loading';
+  }, [name]);
+
+  const subscribe = useCallback((callback: () => void) => {
+    navigator.permissions.query({ name }).then(status => {
+      permissionCache.set(name, status.state);
+      callback();
+      status.addEventListener('change', callback);
+    });
+    return () => {/* cleanup */};
+  }, [name]);
+
+  return useSyncExternalStore(subscribe, getSnapshot, () => 'loading');
+}
+```
+
+**Why not primary recommendation:**
+- Adds complexity for marginal benefit
+- Permission state changes are rare (only user action in browser settings)
+- Requires external cache to make getSnapshot work
+- The simple five-state pattern solves the actual problem more directly
+
+#### React 19 `use()` Hook
+
+**NOT Recommended** for this use case.
+
+Per [React use() documentation](https://react.dev/reference/react/use):
+- `use()` is designed for Server Component -> Client Component promise streaming
+- "Promises created in Client Components are recreated on every render"
+- Would require lifting permission query to a stable promise outside component
+- Suspense fallback would show loading UI, but:
+  - We need granular loading state, not full component suspension
+  - Permission check is fast; Suspense overhead is overkill
+  - Can't show partial UI while permission loads
+
+---
+
+## Consumer Pattern Fix
+
+### Current (Buggy)
+
+```typescript
+// In PresentationView.tsx
+const { permissionState } = useWindowManagement();
+
+useEffect(() => {
+  // BUG: Runs on first render when permissionState is 'unavailable'
+  // By the time permissionState becomes 'prompt', this already ran
+  if (isSupported && hasMultipleScreens && permissionState === 'prompt') {
+    setShowPermissionExplainer(true);
+  }
+}, [isSupported, hasMultipleScreens, permissionState]);
+```
+
+### Fixed (With Loading State in Union)
+
+```typescript
+const { permissionState } = useWindowManagement();
+
+useEffect(() => {
+  // Skip during loading - wait for definitive state
+  if (permissionState === 'loading') return;
+
+  if (isSupported && hasMultipleScreens && permissionState === 'prompt') {
+    setShowPermissionExplainer(true);
+  }
+}, [isSupported, hasMultipleScreens, permissionState]);
+```
+
+### Fixed (With Separate Loading Flag)
+
+```typescript
+const { isLoading, permissionState } = useWindowManagement();
+
+useEffect(() => {
+  if (isLoading) return;
+
+  if (isSupported && hasMultipleScreens && permissionState === 'prompt') {
+    setShowPermissionExplainer(true);
+  }
+}, [isLoading, isSupported, hasMultipleScreens, permissionState]);
+```
+
+---
+
+## Additional Patterns Considered
+
+### AbortController for Race Conditions
+
+**Not needed here.** Per [Max Rozen's race condition guide](https://maxrozen.com/race-conditions-fetching-data-react-with-useeffect):
+
+AbortController is for canceling network requests when component unmounts or deps change. Our permission query is:
+1. Single query per mount (not re-fetched on dep change)
+2. No network request to abort (browser-internal API)
+3. Fast enough that cancellation isn't needed
+
+### Boolean Flag Pattern
+
+```typescript
+useEffect(() => {
+  let active = true;
+
+  checkPermission().then(state => {
+    if (active) setPermissionState(state);
+  });
+
+  return () => { active = false; };
+}, []);
+```
+
+**Already implemented** in current hook via `mountedRef`. This prevents state updates after unmount but doesn't solve the "initial render with placeholder state" problem.
+
+---
+
+## Recommended Changes Summary
+
+### Hook Changes (useWindowManagement.ts)
+
+| Change | Purpose |
+|--------|---------|
+| Add `'loading'` to PermissionState union | Distinguish pending from unavailable |
+| Initialize to `'loading'` when API supported | Enable consumers to wait for definitive state |
+| Optionally export `isLoading` derived boolean | Convenience for consumers |
+
+### Consumer Changes (PresentationView.tsx)
+
+| Change | Purpose |
+|--------|---------|
+| Check for `'loading'` state before showing UI | Prevent race condition |
+| Early return from useEffect while loading | Ensure UI decisions use final state |
+
+---
+
+## v1.2 Addendum Sources
+
+### HIGH Confidence (Official Documentation)
+- [React useState documentation](https://react.dev/reference/react/useState)
+- [React useSyncExternalStore documentation](https://react.dev/reference/react/useSyncExternalStore)
+- [React use() hook documentation](https://react.dev/reference/react/use)
+- [React useEffect documentation](https://react.dev/reference/react/useEffect)
+
+### MEDIUM Confidence (Community Best Practices)
+- [Max Rozen - Fixing Race Conditions in React with useEffect](https://maxrozen.com/race-conditions-fetching-data-react-with-useeffect)
+- [TkDodo - Things to know about useState](https://tkdodo.eu/blog/things-to-know-about-use-state)
+- [Steve Kinney - Loading States and Error Handling](https://stevekinney.com/courses/react-typescript/loading-states-error-handling)
+- [LogRocket - How to initialize state using React Hooks](https://blog.logrocket.com/initialize-state-react-hooks/)
+- [Kent C. Dodds - useState lazy initialization](https://kentcdodds.com/blog/use-state-lazy-initialization-and-function-updates)
+- [Medium - Race conditions in useEffect with async: modern patterns for ReactJS 2025](https://medium.com/@sureshdotariya/race-conditions-in-useeffect-with-async-modern-patterns-for-reactjs-2025-9efe12d727b0)
+
+### LOW Confidence (Reference Only)
+- [Epic React - useSyncExternalStore demystified](https://www.epicreact.dev/use-sync-external-store-demystified-for-practical-react-development-w5ac0)
+- [GitHub - react-use-navigator-permissions](https://github.com/JamesIves/react-use-navigator-permissions)
+
+---
+
+## Summary
+
+The fix is conceptually simple: **distinguish "haven't checked yet" from "checked and not available"** by adding a `'loading'` state to the discriminated union. This allows consumers to wait for the definitive permission state before making UI decisions, eliminating the race condition.
+
+No new dependencies required. This is a pattern change within existing React 19 codebase.

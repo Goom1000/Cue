@@ -220,6 +220,105 @@ request.start().then(connection => {
 
 ---
 
+## Permission UX for Display Targeting (v1.2 Focus)
+
+**Updated:** 2026-01-18
+**Milestone:** v1.2 Permission Flow Fix
+
+### Current Problem
+
+The existing permission flow has a critical UX issue:
+
+```tsx
+// Current: Appears on component mount when conditions are met
+useEffect(() => {
+  if (isSupported && hasMultipleScreens && permissionState === 'prompt') {
+    setShowPermissionExplainer(true);
+  }
+}, [isSupported, hasMultipleScreens, permissionState]);
+```
+
+This creates a small blue popup (`PermissionExplainer.tsx`) that appears **before the user clicks anything**. Per [web.dev best practices](https://web.dev/articles/permissions-best-practices):
+
+> "77% of permission prompts on Desktop Chrome are shown without such a basic signal of user intent and consequently only 12% of such prompts get allowed."
+
+Teachers focus on the "Launch Student" button, not peripheral UI. The popup is easily missed.
+
+### Permission UX Table Stakes
+
+| Feature | Why Expected | Current State |
+|---------|--------------|---------------|
+| **Pre-action context** | Users need to understand *why* before granting | WRONG TIMING - appears before user intent |
+| **User-initiated prompt** | Permission should follow user action | MISSING - appears on mount |
+| **Clear benefit statement** | Grant rates increase with obvious benefit | PARTIAL - text is good, timing wrong |
+| **Escape hatch** | User can proceed without granting | PRESENT - "Skip" button exists |
+| **Fallback workflow** | Path when denied/unavailable | PRESENT - ManualPlacementGuide |
+
+### Permission UX Anti-Features
+
+| Anti-Feature | Why Avoid | PiPi Status |
+|--------------|-----------|-------------|
+| **Prompt on page load** | No context = 88%+ denial | DOING THIS |
+| **Blocking modal for optional feature** | Permission is enhancement, not requirement | NOT doing |
+| **Permission without user activation** | 3x lower accept rates | DOING THIS |
+| **Auto-dismissing permission UI** | Users miss it if distracted | DOING THIS (small corner popup) |
+| **No fallback for denied** | Users stuck | NOT doing (has fallback) |
+
+### Recommended Permission Flow
+
+**Phase 1: Detection (Silent)**
+- Check `screen.isExtended` on mount
+- Query permission state
+- Cache in hook (already done)
+- **DO NOT show any UI**
+
+**Phase 2: Action Initiation (User Click)**
+```
+User clicks "Launch Student":
+  IF permission === 'granted'
+    -> Open window with cached coordinates (works today)
+  IF permission === 'prompt' AND hasMultipleScreens
+    -> Show PermissionExplainer INSTEAD of opening window
+    -> User clicks "Enable Auto-Placement"
+       -> Browser shows native prompt
+       -> If granted: Open on projector
+       -> If denied: Open + show ManualPlacementGuide
+    -> User clicks "Skip"
+       -> Open + show ManualPlacementGuide
+  IF permission === 'denied'
+    -> Open + show ManualPlacementGuide (works today)
+  IF !hasMultipleScreens
+    -> Open window normally (works today)
+```
+
+**Phase 3: Feedback (Post-Action)**
+- Toast: "Student view opened on [Projector Name]" (if targeted)
+- OR toast: "Drag the student window to your projector"
+
+### Competitor Permission Patterns
+
+**PowerPoint/Keynote:** No permission needed (desktop apps)
+- Automatic detection and smart defaults
+- One-click swap if wrong
+
+**Google Slides:** Manual configuration
+- Dropdown to select target display
+- Browser limitations same as PiPi
+
+**Zoom Screen Share:** Permission at action
+- macOS Sequoia: "Bypass system private window picker"
+- Shows when user clicks Share, not on page load
+- Privacy-focused explanation
+
+### High-Value Quick Wins for v1.2
+
+1. **Move trigger to button click** - Core fix (P0)
+2. **Block action until decision** - User must decide before window opens (P0)
+3. **Include screen label** - "Send to [DELL U2718Q]?" (P1)
+4. **Success toast** - Confirm where window opened (P1)
+
+---
+
 ## Sources
 
 ### PowerPoint Presenter View
@@ -236,6 +335,12 @@ request.start().then(connection => {
 - [MDN: Window Management API](https://developer.mozilla.org/en-US/docs/Web/API/Window_Management_API)
 - [Chrome Developers: Presentation API](https://developer.chrome.com/blog/present-web-pages-to-secondary-attached-displays)
 - [web.dev: How to use multiple screens](https://web.dev/patterns/web-apps/multiple-screens)
+
+### Permission UX Research
+- [web.dev: Permissions Best Practices](https://web.dev/articles/permissions-best-practices) - 77% stat, timing research
+- [NN/g: Permission Requests](https://www.nngroup.com/articles/permission-requests/) - Cost-benefit analysis
+- [Smashing Magazine: Permission UX](https://www.smashingmagazine.com/2019/04/privacy-better-notifications-ux-permission-requests/) - Anti-patterns
+- [UX Planet: Toast vs Dialog](https://uxplanet.org/toast-notification-or-dialog-box-ae32ad53106d) - When to use each
 
 ### reveal.js
 - [reveal.js: Speaker View](https://revealjs.com/speaker-view/)

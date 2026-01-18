@@ -1,679 +1,800 @@
-# Domain Pitfalls: Browser-Based Dual-Monitor Presentation Systems
+# Domain Pitfalls: Browser Permission Request UX
 
-**Domain:** Browser-based presentation tools with dual-display (teacher/student view) support
-**Project:** PiPi - AI-powered presentation tool for teachers
+**Domain:** Browser permission request UX for Window Management API
+**Project:** PiPi v1.2 - Permission Flow Fix
 **Researched:** 2026-01-18
-**Confidence:** HIGH (verified against MDN, Chrome DevDocs, and W3C specifications)
+**Confidence:** HIGH (verified against MDN, Chrome DevDocs, W3C, and web.dev best practices)
+
+---
+
+## Executive Summary
+
+This research identifies pitfalls specific to browser permission request UX, with focus on the Window Management API and classroom/SmartBoard environments. The four issues identified in PiPi (race condition, visibility, feedback, recovery) are common patterns with well-documented solutions.
+
+**Key insight:** Chrome data shows 77% of permission prompts shown without user interaction result in only 12% acceptance. With user interaction, acceptance rises to 30%. Timing is critical.
 
 ---
 
 ## Critical Pitfalls
 
-Mistakes that cause complete feature failure or require architectural rewrites.
+Mistakes that cause the permission flow to fail or leave users unable to use the feature.
 
 ---
 
-### Pitfall 1: Popup Blockers Silently Blocking `window.open()`
+### Pitfall 1: Permission Check Race Condition on Initial Render
 
 **What goes wrong:**
-The student view window never opens. Teachers see nothing happen when clicking "Launch Student View." No error is shown to the user—the feature simply fails silently.
-
-**Why it happens:**
-Modern browsers (especially Arc, Safari, and browsers with strict privacy extensions) block `window.open()` calls that:
-- Are not triggered by a direct user gesture (click/tap)
-- Have any async delay between the click and the `window.open()` call
-- Occur after the ~1 second window (Safari) or ~5 second window (Chrome/Firefox)
+Permission status check completes AFTER the initial React render. The UI renders with stale state (assuming "prompt" or unknown), then the async permission check returns, but by then:
+- The component has already rendered without the permission-aware UI
+- State updates trigger a re-render, but the permission priming UI moment is lost
+- User sees a flash of incorrect UI or nothing at all
 
 **Your current code vulnerability:**
 ```typescript
-// PresentationView.tsx line 15
-const win = window.open('', '', 'width=800,height=600,left=200,top=200');
+// Likely pattern in Dashboard.tsx
+useEffect(() => {
+  // This runs AFTER first render
+  navigator.permissions.query({ name: 'window-management' })
+    .then(status => setPermissionState(status.state));
+}, []);
+
+// First render: permissionState is undefined/null
+// Second render: permissionState is 'prompt'|'granted'|'denied'
+// But user already saw the first render!
 ```
-This opens on component mount via `useEffect`, not from a direct user click. This WILL be blocked in Arc and Safari.
+
+**Why it happens:**
+- `useEffect` runs after paint, not before
+- `navigator.permissions.query()` is async
+- React's default behavior is to render immediately, update later
+- No loading state means stale UI is shown
 
 **Consequences:**
-- Feature completely broken for Arc users (your reported issue)
-- Safari users blocked by default
-- Users with uBlock Origin or privacy extensions blocked
-- Teachers cannot present to students, defeating core product value
+- Permission priming UI never appears (user sees launch button immediately)
+- "Auto-Place on Projector" popup appears after user has already mentally moved on
+- Teachers miss the permission opportunity entirely
+- Feature appears broken ("it used to work, now it doesn't")
 
-**Prevention:**
-1. **Only call `window.open()` synchronously inside a click handler**
-   ```typescript
-   const handleLaunchStudent = () => {
-     const win = window.open('', 'studentView', 'width=800,height=600');
-     if (!win) {
-       // Show user-friendly message with instructions
-     }
-   };
-   ```
+**Warning signs in code review:**
+- Permission check in `useEffect` without loading state
+- No `isLoading` or `isCheckingPermission` state
+- Permission-dependent UI renders before permission state is known
+- Missing dependency array or stale closure issues
 
-2. **Detect blocked popups and provide clear guidance:**
-   ```typescript
-   const win = window.open(...);
-   if (!win || win.closed || typeof win.closed === 'undefined') {
-     showPopupBlockedUI(); // Explain how to allow popups for this site
-   }
-   ```
+**Prevention strategy:**
+```typescript
+// 1. Start with explicit loading state
+const [permissionStatus, setPermissionStatus] = useState<{
+  state: PermissionState | null;
+  isLoading: boolean;
+}>({ state: null, isLoading: true });
 
-3. **Consider iframe-based fallback** (see Pitfall 7)
+// 2. Check permission before first meaningful render
+useEffect(() => {
+  let isMounted = true;
 
-**Detection (Warning Signs):**
-- QA fails on Arc, Safari, or Brave browsers
-- User reports "nothing happens" when clicking launch
-- `window.open()` returns `null`
+  const checkPermission = async () => {
+    try {
+      const status = await navigator.permissions.query({
+        name: 'window-management' as PermissionName
+      });
+      if (isMounted) {
+        setPermissionStatus({ state: status.state, isLoading: false });
 
-**Phase to address:** Phase 1 (Foundation) - This must be solved before any other dual-window work.
+        // Subscribe to changes
+        status.onchange = () => {
+          if (isMounted) {
+            setPermissionStatus({ state: status.state, isLoading: false });
+          }
+        };
+      }
+    } catch (e) {
+      // API not supported (Firefox/Safari)
+      if (isMounted) {
+        setPermissionStatus({ state: null, isLoading: false });
+      }
+    }
+  };
+
+  checkPermission();
+  return () => { isMounted = false; };
+}, []);
+
+// 3. Don't render permission-dependent UI until state is known
+if (permissionStatus.isLoading) {
+  return <LoadingState />; // Or skeleton
+}
+```
+
+**Which requirement should address this:** PERM-01 (Fix permission detection race condition)
 
 **Sources:**
-- [MDN Window.open()](https://developer.mozilla.org/en-US/docs/Web/API/Window/open)
-- [Mike Palmer: Open New Window Without Triggering Popup Blockers](https://www.mikepalmer.dev/blog/open-a-new-window-without-triggering-pop-up-blockers)
-- [JavaScript.info Popup Windows](https://javascript.info/popup-windows)
+- [React useEffect documentation](https://react.dev/reference/react/useEffect) - cleanup and race conditions
+- [MDN Permissions.query()](https://developer.mozilla.org/en-US/docs/Web/API/Permissions/query)
+- [Max Rozen: Fixing Race Conditions in React](https://maxrozen.com/race-conditions-fetching-data-react-with-useeffect)
 
 ---
 
-### Pitfall 2: Window Reference Lost After Open
+### Pitfall 2: Chrome Permission Chip is Easy to Miss
 
 **What goes wrong:**
-The student window opens successfully, but subsequent communication fails. State doesn't sync. Controls don't work. The teacher view and student view become disconnected.
+Chrome's permission UI is a small "chip" in the address bar that auto-dismisses after 12 seconds. In a classroom with a teacher focused on their SmartBoard setup, this chip is:
+- Tiny compared to the overall browser window
+- Located away from the user's visual focus (address bar vs. page content)
+- Auto-dismisses while teacher is looking at projector/students
+- Provides no indication that anything important just happened
 
 **Why it happens:**
-Several scenarios cause the window reference to become unusable:
-1. **Cross-Origin-Opener-Policy (COOP) headers** sever the connection, making `window.opener` null
-2. **User navigates the popup** (even accidentally) breaks same-origin access
-3. **Browser security sandbox** restricts access in certain modes
-4. **Window is closed by user** but app doesn't detect it
+Chrome intentionally made permission prompts less intrusive starting in Chrome 98. The goal was to reduce "prompt fatigue" and stop sites from spamming users. But for legitimate use cases like classroom multi-display, this creates problems:
+- The chip collapses to a blocked icon after 4-12 seconds
+- Non-gesture-triggered prompts auto-dismiss even faster
+- Teachers looking at SmartBoard setup miss the address bar entirely
+
+**Chrome's stated rationale:**
+> "The request chip automatically collapses to a blocked icon after a 12-second delay, then disappears entirely—allowing users to ignore requests without forced interaction."
 
 **Consequences:**
-- Teacher clicks "next slide" but student view doesn't update
-- App believes student window is open when it's closed
-- `postMessage` calls fail silently
-- Memory leaks from orphaned event listeners
+- Teacher never notices permission prompt
+- Permission remains in "prompt" state (not denied, not granted)
+- Auto-placement silently doesn't work
+- Teacher thinks feature is broken
+- Support burden: "Why doesn't auto-placement work?"
 
-**Prevention:**
-1. **Use BroadcastChannel for communication** (doesn't require window reference):
-   ```typescript
-   const channel = new BroadcastChannel('presentation-sync');
-   channel.postMessage({ type: 'SLIDE_CHANGE', index: 5 });
-   ```
+**Warning signs in code review:**
+- No custom permission priming UI before browser prompt
+- Relying solely on browser's built-in permission chip
+- No visual indicator on the page that permission is needed
+- No explanation of what the permission enables
 
-2. **Implement heartbeat/ping mechanism:**
-   ```typescript
-   // Teacher view sends ping every 2 seconds
-   setInterval(() => channel.postMessage({ type: 'PING' }), 2000);
+**Prevention strategy:**
+```typescript
+// 1. NEVER rely on browser permission chip alone
+// 2. Show in-page permission priming BEFORE triggering browser prompt
 
-   // Student view responds with pong
-   channel.onmessage = (e) => {
-     if (e.data.type === 'PING') channel.postMessage({ type: 'PONG' });
-   };
+const PermissionPrimer = ({ onAccept, onDecline }) => (
+  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+    <div className="flex items-start gap-3">
+      <MonitorIcon className="w-6 h-6 text-blue-600 mt-0.5" />
+      <div>
+        <h3 className="font-semibold text-blue-900">
+          Enable Auto-Placement on SmartBoard?
+        </h3>
+        <p className="text-sm text-blue-700 mt-1">
+          PiPi can automatically place the student view on your projector
+          or SmartBoard. You'll see a browser prompt in the address bar.
+        </p>
+        <div className="flex gap-2 mt-3">
+          <Button onClick={onAccept} variant="primary" size="sm">
+            Enable Auto-Placement
+          </Button>
+          <Button onClick={onDecline} variant="ghost" size="sm">
+            I'll Position Manually
+          </Button>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
-   // Teacher detects missing pong = window closed/disconnected
-   ```
+// 3. Draw attention to address bar when browser prompt appears
+const drawAttentionToAddressBar = () => {
+  // Show arrow or highlight pointing to address bar
+  // Pulse animation on page to draw eye up
+};
+```
 
-3. **Always verify window is still valid before operations:**
-   ```typescript
-   if (studentWindow && !studentWindow.closed) {
-     // Safe to interact
-   } else {
-     // Reconnection flow
-   }
-   ```
-
-**Detection:**
-- Student view shows stale content
-- Console errors about cross-origin access
-- `studentWindow.closed` unexpectedly returns true
-
-**Phase to address:** Phase 1 (Foundation) - Core to reliable sync architecture.
+**Which requirement should address this:** PERM-02 (Make auto-placement status visible on launch button)
 
 **Sources:**
-- [MDN Cross-Origin-Opener-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cross-Origin-Opener-Policy)
-- [MDN Window.opener](https://developer.mozilla.org/en-US/docs/Web/API/Window/opener)
-- [MDN BroadcastChannel API](https://developer.mozilla.org/en-US/docs/Web/API/Broadcast_Channel_API)
+- [Chrome Developers: Permissions Request Chip](https://developer.chrome.com/blog/permissions-chip)
+- [web.dev: Permissions Best Practices](https://web.dev/articles/permissions-best-practices) - "77% of prompts without user interaction result in only 12% acceptance"
+- [gHacks: Chrome Permission Prompts](https://www.ghacks.net/2022/02/05/google-is-making-permission-prompts-in-chrome-less-annoying/)
 
 ---
 
-### Pitfall 3: Window Management API Browser Support Gap
+### Pitfall 3: No Feedback When Permission Not Granted
 
 **What goes wrong:**
-Code using `getScreenDetails()` or `window-management` permission works in Chrome but fails completely in Firefox and Safari. Teachers using non-Chromium browsers get degraded or broken experiences.
+Button says "Launch Student" regardless of permission state. User has no idea that:
+- Auto-placement is available but not enabled
+- Permission was denied so feature is degraded
+- Permission is in "prompt" state and can be requested
+- Manual placement is the current mode
 
 **Why it happens:**
-The Window Management API is:
-- **Chromium-only** (Chrome 100+, Edge)
-- **Not supported in Firefox** (no timeline)
-- **Not supported in Safari** (no timeline)
-- **Experimental/not Baseline**
+- Developers assume permission state is binary (works/doesn't)
+- Button label written once, never updated based on state
+- No distinction between "feature unavailable" vs "feature disabled by user choice"
+- Missing permission state in component props/state
 
 **Consequences:**
-- Teachers with Firefox (common in education) cannot use multi-screen features
-- Safari users (common on school-issued MacBooks) are excluded
-- Feature detection missing leads to runtime errors
-- App appears "broken" rather than gracefully degraded
+- Teacher expects auto-placement, window appears on wrong screen
+- No explanation of why feature isn't working
+- Teacher doesn't know they can enable it
+- "This used to work" confusion when permission expires/resets
 
-**Prevention:**
-1. **Always feature-detect before using:**
-   ```typescript
-   const hasWindowManagement = 'getScreenDetails' in window;
+**Warning signs in code review:**
+- Button label is static string, not computed from state
+- No permission state prop passed to launch button component
+- Missing conditional rendering based on `permissionStatus.state`
+- No tooltip or secondary text explaining current mode
 
-   if (hasWindowManagement) {
-     // Modern multi-screen path
-     const screens = await window.getScreenDetails();
-   } else {
-     // Fallback: single window or basic popup
-   }
-   ```
+**Prevention strategy:**
+```typescript
+// 1. Compute button state from permission
+const getLaunchButtonState = (permissionState: PermissionState | null) => {
+  if (permissionState === 'granted') {
+    return {
+      label: 'Launch on SmartBoard',
+      sublabel: 'Auto-placement enabled',
+      icon: <MonitorCheckIcon />,
+      variant: 'primary'
+    };
+  }
+  if (permissionState === 'denied') {
+    return {
+      label: 'Launch Student View',
+      sublabel: 'Manual placement (permission blocked)',
+      icon: <MonitorIcon />,
+      variant: 'secondary',
+      showRecoveryHint: true
+    };
+  }
+  // 'prompt' or null (unsupported)
+  return {
+    label: 'Launch Student View',
+    sublabel: 'Enable auto-placement',
+    icon: <MonitorIcon />,
+    variant: 'secondary',
+    showEnableAction: true
+  };
+};
 
-2. **Design the feature to work WITHOUT the API first**, then enhance:
-   - Primary path: BroadcastChannel + window.open (works everywhere)
-   - Enhanced path: Add screen positioning with Window Management API
+// 2. Show inline status, not separate popup
+<Button {...buttonState}>
+  <span className="flex flex-col items-start">
+    <span>{buttonState.label}</span>
+    <span className="text-xs opacity-70">{buttonState.sublabel}</span>
+  </span>
+</Button>
 
-3. **Communicate browser requirements clearly** in onboarding
+// 3. If permission denied, show inline recovery hint
+{buttonState.showRecoveryHint && (
+  <div className="text-xs text-amber-600 mt-1">
+    <a href="#" onClick={showRecoveryInstructions}>
+      How to enable auto-placement
+    </a>
+  </div>
+)}
+```
 
-**Detection:**
-- TypeError when accessing `window.getScreenDetails`
-- Permission query fails for `window-management`
-- Works in Chrome, breaks in Firefox testing
-
-**Phase to address:** Phase 2 (Enhancement) - After core dual-window works, add as progressive enhancement.
+**Which requirement should address this:** PERM-04 (Clear feedback for manual vs auto placement)
 
 **Sources:**
-- [MDN Window Management API](https://developer.mozilla.org/en-US/docs/Web/API/Window_Management_API)
-- [Can I Use: window-management permission](https://caniuse.com/mdn-api_permissions_permission_window-management)
+- [web.dev: Permission UX](https://web.dev/articles/push-notifications-permissions-ux)
+- [Adam Lynch: Improve Permissions UX](https://adamlynch.com/improve-permissions-ux/)
+
+---
+
+### Pitfall 4: No Recovery Path After Permission Dismissal
+
+**What goes wrong:**
+User dismisses browser permission prompt (clicks away, prompt auto-expires, or explicitly denies). Now:
+- Permission state is "prompt" (dismissed) or "denied" (explicit deny)
+- There's no obvious way to trigger the permission request again
+- Feature appears permanently unavailable
+- User must navigate browser settings to fix (they won't)
+
+**Why it happens:**
+- Browser permission model is "ask once, remember forever"
+- Dismissal doesn't equal denial, but browsers don't re-prompt automatically
+- No in-app mechanism to re-trigger permission request
+- Developer assumes user will figure out browser settings
+
+**Chrome's behavior:**
+> "Once a user has decided to permanently not allow access to a permission-gated capability, browsers honor that decision. If it was possible to keep prompting for access, ill-meaning sites would continue bombarding users with prompts."
+
+**But for dismissal (not explicit deny):**
+> "Users can re-request temporarily blocked permissions within the same session, though repeated requests risk triggering auto-blocking."
+
+**Consequences:**
+- Teacher accidentally dismisses prompt during class setup
+- Auto-placement never works for this teacher
+- Teacher blames app, not browser
+- 54% recovery rate possible with proper UI (Chrome's data on `<permission>` element)
+
+**Warning signs in code review:**
+- No way to trigger `getScreenDetails()` after initial component mount
+- No "Enable Auto-Placement" action in settings or UI
+- No detection of "prompt" state with recovery action
+- No instructions for recovering from "denied" state
+
+**Prevention strategy:**
+```typescript
+// 1. Provide explicit action to request permission
+const RequestPermissionButton = () => {
+  const handleClick = async () => {
+    try {
+      // This MUST be in a click handler (user gesture required)
+      await window.getScreenDetails();
+      // Success - permission granted
+    } catch (e) {
+      if (e.name === 'NotAllowedError') {
+        // User denied or dismissed
+        showRecoveryInstructions();
+      }
+    }
+  };
+
+  return (
+    <Button onClick={handleClick}>
+      Enable Auto-Placement
+    </Button>
+  );
+};
+
+// 2. For 'denied' state, show browser-specific recovery instructions
+const RecoveryInstructions = ({ browser }) => {
+  const steps = {
+    chrome: [
+      'Click the lock/tune icon in the address bar',
+      'Find "Window management" in the list',
+      'Change from "Block" to "Allow"',
+      'Refresh the page'
+    ],
+    edge: [
+      'Click the lock icon in the address bar',
+      'Click "Permissions for this site"',
+      'Find "Window placement" and set to "Allow"',
+      'Refresh the page'
+    ]
+  };
+
+  return (
+    <div className="text-sm">
+      <h4 className="font-medium">To enable auto-placement:</h4>
+      <ol className="list-decimal list-inside mt-2">
+        {steps[browser].map((step, i) => (
+          <li key={i}>{step}</li>
+        ))}
+      </ol>
+    </div>
+  );
+};
+
+// 3. Detect browser for correct instructions
+const detectBrowser = () => {
+  if (navigator.userAgent.includes('Edg/')) return 'edge';
+  if (navigator.userAgent.includes('Chrome')) return 'chrome';
+  return 'unknown';
+};
+```
+
+**Which requirement should address this:** PERM-03 (Add reliable permission request trigger)
+
+**Sources:**
+- [web.dev: Permissions Best Practices](https://web.dev/articles/permissions-best-practices) - recovery from blocked state
+- [Chrome: Rethinking Web Permissions](https://developer.chrome.com/blog/rethinking-web-permissions) - 54.4% recovery rate with proper UI
+- [Google Chrome Help: Site Permissions](https://support.google.com/chrome/answer/114662?hl=en)
+
+---
+
+### Pitfall 5: User Gesture Requirement for getScreenDetails()
+
+**What goes wrong:**
+Calling `getScreenDetails()` outside of a user gesture (click, keypress) results in:
+- `DOMException: Permission decision deferred`
+- Permission prompt never appears
+- Code appears to work but silently fails
+
+**Why it happens:**
+Chrome requires "transient user activation" for permission prompts. From W3C issue #135:
+> "Chrome only shows a permission prompt if window.getScreenDetails() consumes a transient activation. Try calling it in response to a mouse click or key press."
+
+**Your current code vulnerability:**
+If calling `getScreenDetails()` in:
+- `useEffect` on mount (no gesture)
+- `setTimeout` or `setInterval` callback (gesture expired)
+- Promise chain that lost activation context
+
+**Consequences:**
+- Permission state stays "prompt" forever
+- No error in catch block (promise resolves, just deferred)
+- Developer thinks code works, users see nothing
+- Intermittent bug based on timing
+
+**Warning signs in code review:**
+- `getScreenDetails()` called outside click handler
+- Async/await chain between click and API call
+- `setTimeout` or debounce wrapping the permission request
+- Error: "Permission decision deferred" in console
+
+**Prevention strategy:**
+```typescript
+// BAD: Called in useEffect
+useEffect(() => {
+  window.getScreenDetails(); // Will defer, not prompt
+}, []);
+
+// BAD: Async delay loses activation
+const handleClick = async () => {
+  await someOtherAsyncWork();
+  await window.getScreenDetails(); // May defer
+};
+
+// GOOD: Synchronous call in click handler
+const handleClick = () => {
+  window.getScreenDetails()
+    .then(details => {
+      // Use details
+    })
+    .catch(err => {
+      // Handle denial
+    });
+};
+
+// GOOD: Call first, then do other work
+const handleClick = async () => {
+  const detailsPromise = window.getScreenDetails(); // Consumes activation
+  await someOtherAsyncWork();
+  const details = await detailsPromise;
+};
+```
+
+**Which requirement should address this:** PERM-01 (Fix permission detection race condition) and PERM-03 (Reliable permission request trigger)
+
+**Sources:**
+- [W3C Window Management Issue #135](https://github.com/w3c/window-management/issues/135) - exact error and solution
 - [Chrome Developers: Window Management API](https://developer.chrome.com/docs/capabilities/web-apis/window-management)
-
----
-
-### Pitfall 4: Permission Prompt Confusion for Non-Technical Users
-
-**What goes wrong:**
-Teachers encounter browser permission prompts they don't understand. They deny permissions out of confusion or fear, then can't figure out how to re-enable them. Feature appears permanently broken.
-
-**Why it happens:**
-- Browser permission prompts use technical language ("window-management")
-- Prompts appear without context—user doesn't know why it's asking
-- Denied permissions are hard to find and reset
-- 90% of permission prompts are dismissed or ignored (Chrome internal data)
-- Teachers are not technical users—they won't debug browser settings
-
-**Consequences:**
-- Teachers deny permission, feature doesn't work
-- "This app is broken" perception
-- Support burden explaining how to enable permissions
-- Loss of user trust ("why does it need this?")
-
-**Prevention:**
-1. **Pre-prompt with explanation UI** (permission priming):
-   ```typescript
-   // Before requesting real permission
-   const primeResult = await showExplanationDialog({
-     title: "Enable Dual-Screen Presentation",
-     explanation: "PiPi needs permission to detect your projector so the student view appears on the correct screen.",
-     benefit: "This lets you see your notes while students see the slides.",
-     actions: ["Enable Now", "Maybe Later"]
-   });
-
-   if (primeResult === 'enable') {
-     await navigator.permissions.query({ name: 'window-management' });
-   }
-   ```
-
-2. **Provide recovery UI when permission denied:**
-   ```typescript
-   if (permission.state === 'denied') {
-     showRecoveryInstructions({
-       browser: detectBrowser(),
-       steps: getBrowserSpecificSteps()
-     });
-   }
-   ```
-
-3. **Design features to work without permissions when possible** (graceful degradation)
-
-4. **Request permissions in context**, not on page load
-
-**Detection:**
-- Permission state is 'denied'
-- User reports feature "doesn't work" but gave no specific error
-- High rate of permission denials in analytics
-
-**Phase to address:** Phase 1 (Foundation) - Essential for teacher-friendly UX.
-
-**Sources:**
-- [web.dev: Permission UX](https://web.dev/push-notifications-permissions-ux/)
-- [web.dev: Permissions Best Practices](https://web.dev/articles/permissions-best-practices)
-- [Chrome Blog: Permissions Chip](https://developer.chrome.com/blog/permissions-chip)
-- [W3C Workshop on Permissions Report](https://www.w3.org/Privacy/permissions-ws-2022/report)
 
 ---
 
 ## Moderate Pitfalls
 
-Mistakes that cause degraded experiences, edge case failures, or technical debt.
+Mistakes that cause degraded UX but don't completely break the feature.
 
 ---
 
-### Pitfall 5: Fullscreen Mode Exit Disruptions
+### Pitfall 6: Permission Priming at Wrong Moment
 
 **What goes wrong:**
-Student view enters fullscreen on projector, but exits unexpectedly when:
-- Teacher alt-tabs to another app
-- A system notification appears
-- User presses any key (some browsers)
-- Teacher interacts with presenter view
+Showing permission priming UI:
+- On page load (annoying, no context)
+- In a dismissible popup (easy to miss/dismiss)
+- Before user has indicated intent to use the feature
 
 **Why it happens:**
-The Fullscreen API exits fullscreen on:
-- Pressing Escape (by design)
-- Alt-Tab or switching to another application
-- Any navigation, even within an SPA if not handled correctly
-- Loss of keyboard focus
-- Browser UI interactions
+Developers want to "front-load" permission so it's ready when needed. But:
+> "In terms of user experience, displaying a permission prompt on load is probably the best way to make a poor first impression, and in most cases an irreversible mistake."
+
+**Chrome data:**
+- 79% of permission prompts triggered without user gesture
+- Only 12% acceptance rate for auto-triggered prompts
+- 30% acceptance rate when prompted after user action
 
 **Consequences:**
-- Student view shrinks mid-presentation, embarrassing teacher
-- Teacher has to fumble to restore fullscreen
-- Disrupts class flow
-- Makes app feel unreliable
+- Users deny permission reflexively
+- "Why is this asking me stuff?" distrust
+- Permission denied before user understands value
+- Feature appears broken later
 
-**Prevention:**
-1. **Don't rely solely on Fullscreen API for student view**
-   - Design the student view to look good at any size
-   - Use CSS to maximize content area even without fullscreen
+**Warning signs in code review:**
+- Permission request in component mount (`useEffect` with `[]`)
+- No user action required before permission prompt
+- Permission priming shows regardless of user intent
+- Popup/toast that can be dismissed without decision
 
-2. **Listen for fullscreen exit and offer re-entry:**
-   ```typescript
-   document.addEventListener('fullscreenchange', () => {
-     if (!document.fullscreenElement) {
-       showRestoreFullscreenButton();
-     }
-   });
-   ```
+**Prevention strategy:**
+```typescript
+// 1. Prime at the right moment: when user clicks "Launch"
+const handleLaunchClick = async () => {
+  if (permissionState === 'prompt') {
+    // Show inline priming, wait for confirmation
+    setShowPriming(true);
+    return; // Don't launch yet
+  }
+  // Permission already granted or denied, proceed
+  launchStudentView();
+};
 
-3. **Educate users** about fullscreen limitations with inline tips
+// 2. In priming UI, explain the benefit
+<PermissionPrimer
+  onEnable={() => {
+    window.getScreenDetails()
+      .then(() => launchStudentView())
+      .catch(() => launchStudentView()); // Fallback to manual
+  }}
+  onSkip={() => launchStudentView()} // Manual placement
+/>
 
-4. **Consider PWA installed mode** where fullscreen is more stable
+// 3. Don't block the happy path
+// If permission granted, go straight to launch
+// If permission denied, still let them launch manually
+```
 
-**Detection:**
-- `document.fullscreenElement` becomes null unexpectedly
-- User reports "it keeps shrinking"
-- QA finds fullscreen exits when testing cross-window focus
-
-**Phase to address:** Phase 2 (Enhancement) - After basic dual-window works.
+**Which requirement should address this:** PERM-02 (Make status visible on button) and PERM-04 (Clear feedback)
 
 **Sources:**
-- [MDN Fullscreen API](https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API)
-- [MDN Fullscreen API Guide](https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API/Guide)
+- [UX Planet: Right Ways to Ask for Permissions](https://uxplanet.org/mobile-ux-design-the-right-ways-to-ask-users-for-permissions-6cdd9ab25c27)
+- [web.dev: Push Notifications Permissions UX](https://web.dev/articles/push-notifications-permissions-ux)
 
 ---
 
-### Pitfall 6: Cross-Window State Sync Latency
+### Pitfall 7: Not Listening for Permission State Changes
 
 **What goes wrong:**
-Teacher clicks "next slide" but student view updates 500ms-2s later. With animations, the timing feels broken. Quick clicking causes state to get out of sync.
+Permission state changes (user grants/revokes in browser settings) but app doesn't update:
+- User grants permission in site settings, but button still says "Manual Placement"
+- User revokes permission, but app still tries auto-placement (and fails)
+- Page refresh required to see current state
 
 **Why it happens:**
-- BroadcastChannel/postMessage are async
-- React state updates and re-renders add latency
-- Large slide objects take time to serialize
-- Multiple rapid messages can arrive out of order
+- Initial permission check, but no `onchange` listener
+- Stale closure captures initial state
+- No reactive pattern for permission updates
 
 **Consequences:**
-- Teacher clicks faster than sync can keep up
-- Student sees slide 3 then slide 5, missing slide 4
-- Animations don't coordinate between windows
-- Professional feel is compromised
+- UI out of sync with reality
+- User confusion: "I just enabled it, why doesn't it work?"
+- Silent failures when permission revoked
 
-**Prevention:**
-1. **Send minimal state changes**, not full objects:
-   ```typescript
-   // Bad: Sending entire slide
-   channel.postMessage({ type: 'UPDATE', slide: currentSlide });
+**Warning signs in code review:**
+- `navigator.permissions.query()` called once, result stored
+- No `status.onchange` handler
+- No polling fallback for browsers without `onchange` support
 
-   // Good: Sending just the index
-   channel.postMessage({ type: 'SLIDE_CHANGE', index: 5 });
-   ```
+**Prevention strategy:**
+```typescript
+useEffect(() => {
+  let status: PermissionStatus | null = null;
 
-2. **Include sequence numbers for ordering:**
-   ```typescript
-   let seq = 0;
-   const send = (msg) => channel.postMessage({ ...msg, seq: ++seq });
+  const checkPermission = async () => {
+    try {
+      status = await navigator.permissions.query({
+        name: 'window-management' as PermissionName
+      });
 
-   // Receiver ignores out-of-order messages
-   if (msg.seq <= lastSeq) return;
-   ```
+      setPermissionState(status.state);
 
-3. **Debounce rapid changes on sender side:**
-   ```typescript
-   const debouncedSync = useMemo(
-     () => debounce((index) => channel.postMessage({ index }), 50),
-     []
-   );
-   ```
+      // Subscribe to changes
+      status.onchange = () => {
+        setPermissionState(status!.state);
+      };
+    } catch (e) {
+      // Not supported
+    }
+  };
 
-4. **Pre-load adjacent slides** in student view for instant transitions
+  checkPermission();
 
-**Detection:**
-- Visible delay between teacher action and student update
-- Console logs show message received timestamps
-- Animation timing feels "off" between windows
+  return () => {
+    if (status) {
+      status.onchange = null; // Cleanup listener
+    }
+  };
+}, []);
+```
 
-**Phase to address:** Phase 2 (Enhancement) - Optimization after core sync works.
+**Which requirement should address this:** PERM-01 (Fix permission detection)
 
 **Sources:**
-- [MDN BroadcastChannel.postMessage()](https://developer.mozilla.org/en-US/docs/Web/API/BroadcastChannel/postMessage)
-- [Ponyfoo: Cross-Tab Communication](https://ponyfoo.com/articles/cross-tab-communication)
+- [MDN PermissionStatus.onchange](https://developer.mozilla.org/en-US/docs/Web/API/PermissionStatus/change_event)
 
 ---
 
-### Pitfall 7: Iframe as Popup Alternative Has Own Issues
+### Pitfall 8: Classroom Environment: Teacher Focused on Students/Equipment
 
 **What goes wrong:**
-When pivoting from popup to iframe (to avoid popup blockers), new problems emerge: iframe can't go fullscreen on external display, iframe inherits parent's domain restrictions, iframe can't be dragged to another screen.
+Permission prompts and UI designed for single-user desktop scenario. In classroom:
+- Teacher is looking at SmartBoard, not laptop
+- Teacher is managing 30 students, not watching browser
+- Setup happens under time pressure (class starting)
+- Small UI elements invisible from arm's length
 
 **Why it happens:**
-Iframes are embedded in the parent document, not separate windows:
-- Fullscreen API for iframe requires `allow="fullscreen"` attribute
-- Iframe cannot be positioned outside parent window bounds
-- Iframe shares parent's browsing context restrictions
+- Web UX assumes user is focused on screen
+- Permission chips designed to be unobtrusive (too unobtrusive for classroom)
+- No consideration for split-attention environments
 
 **Consequences:**
-- Can't achieve true dual-display with iframe alone
-- Student view is trapped inside teacher's browser window
-- Teachers can't drag student view to projector
+- Teacher misses 12-second permission window entirely
+- Small status indicators invisible from teaching position
+- Setup takes multiple attempts
+- Feature appears unreliable
 
-**Prevention:**
-1. **Iframe is good for preview, not the final student view:**
-   - Use iframe for "preview student view" in editor
-   - Use popup for actual presentation mode
+**Warning signs in code review:**
+- Small (text-xs, text-sm) status indicators
+- Subtle color differentiation (light gray vs slightly lighter gray)
+- Animations that complete quickly
+- No persistent visual state indicator
 
-2. **Hybrid approach:**
-   ```typescript
-   // Same-page preview mode (works always)
-   const PreviewMode = () => (
-     <iframe src="/student-view" className="w-full aspect-video" />
-   );
+**Prevention strategy:**
+```typescript
+// 1. Large, obvious status on the launch button itself
+<Button size="lg" className="min-w-[200px]">
+  <div className="flex flex-col items-center py-1">
+    <span className="text-lg font-semibold">
+      {permissionGranted ? 'Launch on SmartBoard' : 'Launch Student View'}
+    </span>
+    <span className={cn(
+      "text-xs mt-0.5",
+      permissionGranted ? "text-green-200" : "text-amber-200"
+    )}>
+      {permissionGranted ? 'Auto-placement enabled' : 'Manual placement'}
+    </span>
+  </div>
+</Button>
 
-   // Popup mode (for actual presentation)
-   const launchStudentPopup = () => {
-     const win = window.open('/student-view', 'student');
-     // ... sync setup
-   };
-   ```
+// 2. Persistent indicator, not disappearing toast
+// Show status badge/icon that doesn't auto-dismiss
 
-3. **URL-based student view** that works standalone:
-   - `/present/student/[session-id]` opens student view
-   - Teachers can manually open this URL on second display
-   - Works even if popup blocked—user just opens URL themselves
+// 3. Consider visual size for arm's-length viewing
+// Minimum touch target 44x44px, larger for classroom
 
-**Detection:**
-- Iframe-only solution tested, found it can't reach second display
-- User feedback that student view should be "its own window"
+// 4. High contrast colors (not subtle pastels)
+// Green/amber/red status, not slight shade variations
+```
 
-**Phase to address:** Phase 1 (Foundation) - Architecture decision needed early.
-
-**Sources:**
-- [MDN iframe element](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/iframe)
-- [JavaScript.info Cross-Window Communication](https://javascript.info/cross-window-communication)
-
----
-
-### Pitfall 8: Screen Position Detection Unreliability
-
-**What goes wrong:**
-Code attempts to position student window on the external display but it appears on the wrong screen, or positioned partially off-screen.
-
-**Why it happens:**
-- `screen.availLeft` and `screen.availTop` are non-standard and inconsistent
-- Windows primary screen is always coordinate (0,0) even if physically on the right
-- Mac and Windows calculate multi-display coordinates differently
-- Firefox calculates `moveTo` relative to top-left-most monitor origin; Safari uses per-display origin
-
-**Consequences:**
-- Student window opens on teacher's screen instead of projector
-- Window opens off-screen (invisible)
-- Teacher has to manually drag window, negating automation benefit
-
-**Prevention:**
-1. **With Window Management API (Chromium only):**
-   ```typescript
-   const screens = await window.getScreenDetails();
-   const external = screens.screens.find(s => !s.isPrimary);
-   if (external) {
-     window.open(url, '', `left=${external.availLeft},top=${external.availTop}`);
-   }
-   ```
-
-2. **Without API, don't try to auto-position:**
-   - Open window at default position
-   - Show instructional UI: "Drag this window to your projector"
-   - Remember position for next time using localStorage
-
-3. **Let user choose the screen manually:**
-   ```typescript
-   // Show screen picker UI
-   const selectedScreen = await showScreenPicker(screens.screens);
-   ```
-
-**Detection:**
-- Window appears on wrong display during testing
-- `screen.availLeft` returns unexpected values
-- Position works in Chrome but wrong in Firefox
-
-**Phase to address:** Phase 2 (Enhancement) - Nice-to-have after manual drag works.
-
-**Sources:**
-- [W3C Window Management Explainer](https://github.com/w3c/window-management/blob/main/EXPLAINER.md)
-- [MDN screen.availLeft](https://developer.mozilla.org/en-US/docs/Web/API/Screen/availLeft)
-- [Chrome Developers: Window Management](https://developer.chrome.com/docs/capabilities/web-apis/window-management)
+**Which requirement should address this:** PERM-02 (Make status visible on button) and PERM-04 (Clear feedback)
 
 ---
 
 ## Minor Pitfalls
 
-Annoyances that are fixable but worth knowing about.
+Annoyances that are fixable but worth noting.
 
 ---
 
-### Pitfall 9: Projector Resolution Mismatch
+### Pitfall 9: Old vs New Permission Name
 
 **What goes wrong:**
-Slides designed for 1920x1080 look blurry or have wrong aspect ratio on projector with different native resolution.
-
-**Why it happens:**
-- Projector is 1024x768 (4:3) but slides are 16:9
-- CSS viewport assumes certain dimensions
-- Browser scales content, causing blur
-
-**Prevention:**
-- Design slides responsively with relative units
-- Detect aspect ratio and adjust layout
-- Provide aspect ratio options in settings (16:9, 4:3)
-
-**Phase to address:** Phase 3 (Polish) - UI refinement.
-
----
-
-### Pitfall 10: Focus Stealing Between Windows
-
-**What goes wrong:**
-Clicking in student window to go fullscreen steals keyboard focus from teacher. Teacher's keyboard shortcuts stop working until they click back.
-
-**Why it happens:**
-- Only one window can have keyboard focus
-- Fullscreen request requires user gesture in that window
-- `window.focus()` behavior varies by browser
-
-**Prevention:**
-- Design student window to require minimal interaction
-- Use on-screen controls in teacher view for student window actions
-- Accept that some focus switching is unavoidable; optimize for quick recovery
-
-**Phase to address:** Phase 2 (Enhancement)
-
----
-
-### Pitfall 11: BroadcastChannel Memory Leaks
-
-**What goes wrong:**
-App performance degrades over time. Memory usage climbs. Eventually browser tab becomes unresponsive.
-
-**Why it happens:**
-From MDN: "Creating many BroadcastChannel objects and discarding them while leaving them with an event listener and without closing them can lead to an apparent memory leak."
+Code uses old permission name `window-placement` instead of `window-management`. Works in some Chrome versions, fails in others.
 
 **Prevention:**
 ```typescript
-useEffect(() => {
-  const channel = new BroadcastChannel('presentation');
-  channel.onmessage = handleMessage;
-
-  return () => {
-    channel.close(); // Critical: close on cleanup
-  };
-}, []);
+// Defensive code for both names
+async function getWindowManagementPermissionState() {
+  let state;
+  try {
+    // Try new name first
+    state = await navigator.permissions.query({
+      name: 'window-management' as PermissionName
+    });
+  } catch {
+    try {
+      // Fallback to old name
+      state = await navigator.permissions.query({
+        name: 'window-placement' as PermissionName
+      });
+    } catch {
+      return null; // Neither supported
+    }
+  }
+  return state;
+}
 ```
-
-**Phase to address:** Phase 1 (Foundation) - Get this right from the start.
 
 **Sources:**
-- [MDN BroadcastChannel API](https://developer.mozilla.org/en-US/docs/Web/API/Broadcast_Channel_API)
+- [Chrome Developers: Window Management](https://developer.chrome.com/docs/capabilities/web-apis/window-management) - mentions name change
 
 ---
 
-### Pitfall 12: Style Copying to Popup Window Fails
+### Pitfall 10: TypeScript Types for Permission Name
 
 **What goes wrong:**
-Student popup window opens but has no styles. Content appears as unstyled HTML.
-
-**Your current code vulnerability:**
-```typescript
-// PresentationView.tsx lines 19-34 - copies stylesheets
-Array.from(document.styleSheets).forEach(styleSheet => {
-  try {
-    if (styleSheet.href) {
-      // This works for external stylesheets
-    } else if (styleSheet instanceof CSSStyleSheet) {
-      // This can fail for cross-origin stylesheets
-    }
-  } catch (e) {
-    console.warn("Could not copy style", e);
-  }
-});
-```
-
-**Why it happens:**
-- Cross-origin stylesheets throw security errors when accessing `cssRules`
-- Dynamically injected styles may not be captured
-- Build tools may inline or chunk CSS unpredictably
+TypeScript complains that `'window-management'` is not assignable to `PermissionName` type because it's not in the standard type definitions yet.
 
 **Prevention:**
-1. **Serve student view from same URL structure**, letting it load its own CSS
-2. **Use CSS-in-JS** that's included in the component bundle
-3. **Link to a dedicated student-view stylesheet** rather than copying
+```typescript
+// Option 1: Type assertion
+await navigator.permissions.query({
+  name: 'window-management' as PermissionName
+});
 
-**Phase to address:** Phase 1 (Foundation) - Part of popup architecture.
+// Option 2: Extend types (in global.d.ts)
+interface PermissionDescriptor {
+  name: 'window-management' | PermissionName;
+}
+```
 
 ---
 
 ## Phase-Specific Risk Summary
 
-| Phase | Topic | Likely Pitfall | Mitigation |
-|-------|-------|----------------|------------|
-| **Phase 1: Foundation** | Popup launch | Pitfall 1: Popup blockers | Direct click handler, detection, fallback |
-| **Phase 1: Foundation** | Window communication | Pitfall 2: Lost reference | BroadcastChannel, heartbeat |
-| **Phase 1: Foundation** | Permissions | Pitfall 4: User confusion | Permission priming UI |
-| **Phase 1: Foundation** | Styles | Pitfall 12: Unstyled popup | Dedicated student route |
-| **Phase 2: Enhancement** | Browser support | Pitfall 3: Window Management API | Feature detection, graceful degradation |
-| **Phase 2: Enhancement** | Fullscreen | Pitfall 5: Unexpected exit | Non-fullscreen-dependent design |
-| **Phase 2: Enhancement** | Sync | Pitfall 6: Latency | Minimal payloads, sequencing |
-| **Phase 2: Enhancement** | Positioning | Pitfall 8: Wrong screen | Manual positioning, user choice |
-| **Phase 3: Polish** | Display | Pitfall 9: Resolution | Responsive design |
+| Requirement | Pitfall | Priority | Detection |
+|-------------|---------|----------|-----------|
+| PERM-01 | Pitfall 1: Race condition | CRITICAL | Permission UI never appears on first load |
+| PERM-01 | Pitfall 5: User gesture required | CRITICAL | "Permission decision deferred" error |
+| PERM-01 | Pitfall 7: No state change listener | MODERATE | UI doesn't update after settings change |
+| PERM-02 | Pitfall 2: Chrome chip easy to miss | CRITICAL | Teacher doesn't notice address bar |
+| PERM-02 | Pitfall 8: Classroom split attention | MODERATE | Small UI elements |
+| PERM-03 | Pitfall 4: No recovery path | CRITICAL | No way to re-request after dismiss |
+| PERM-03 | Pitfall 5: User gesture required | CRITICAL | Permission request fails silently |
+| PERM-04 | Pitfall 3: No feedback | CRITICAL | Button always says "Launch Student" |
+| PERM-04 | Pitfall 6: Wrong timing | MODERATE | Permission asked before user intent |
 
 ---
 
-## Architecture Recommendation to Avoid Multiple Pitfalls
+## Architecture Recommendation
 
-Based on the pitfalls above, recommend this architecture:
+Based on these pitfalls, the permission flow should be:
 
-### Student View as Standalone Route
-
-Instead of using `window.open('')` with an empty URL and injecting content via React Portal:
-
+### 1. On Component Mount
 ```
-/present/student?session=[uuid]
-```
-
-**Benefits:**
-- Student view loads its own CSS/JS (avoids Pitfall 12)
-- Works if opened manually by user (bypasses Pitfall 1)
-- Survives page refreshes
-- Can be bookmarked/shared
-- No window reference needed—uses BroadcastChannel (avoids Pitfall 2)
-
-### Communication via BroadcastChannel
-
-```typescript
-// Shared channel name derived from session
-const channelName = `pipi-presentation-${sessionId}`;
-
-// Teacher sends
-const teacherChannel = new BroadcastChannel(channelName);
-teacherChannel.postMessage({ type: 'SLIDE', index, visibleBullets });
-
-// Student receives
-const studentChannel = new BroadcastChannel(channelName);
-studentChannel.onmessage = (e) => {
-  setSlideIndex(e.data.index);
-  setVisibleBullets(e.data.visibleBullets);
-};
+Check permission state (with loading indicator)
+  -> 'granted': Show "Launch on SmartBoard" button
+  -> 'denied': Show "Launch Student View" + recovery hint
+  -> 'prompt': Show "Launch Student View" + enable option
+  -> null (unsupported): Show "Launch Student View" (manual only)
 ```
 
-**Benefits:**
-- No window reference needed
-- Works across tabs, not just popups
-- Same-origin only (secure)
-- Simple API
+### 2. On Launch Button Click
+```
+If 'prompt':
+  Show inline priming UI explaining benefit
+  On "Enable" click: call getScreenDetails() in click handler
+  On "Skip" click: launch with manual placement
 
-### Fallback for Popup-Blocked Scenario
+If 'granted':
+  Launch with auto-placement on external screen
 
-If `window.open()` returns null:
-1. Show modal with QR code + URL for `/present/student?session=X`
-2. Teacher tells students to open URL on projector display
-3. Same BroadcastChannel sync works regardless of how window was opened
+If 'denied' or unsupported:
+  Launch with manual placement
+  Show inline tip about dragging to projector
+```
+
+### 3. State Display
+```
+Button label reflects current mode:
+  - "Launch on SmartBoard" (granted)
+  - "Launch Student View" (prompt/denied/unsupported)
+
+Sublabel shows status:
+  - "Auto-placement enabled" (granted)
+  - "Enable auto-placement" (prompt)
+  - "Manual placement" (denied/unsupported)
+```
+
+### 4. Recovery
+```
+Settings/gear icon opens modal with:
+  - Current permission status
+  - "Request Permission" button (if prompt)
+  - Browser-specific recovery instructions (if denied)
+```
 
 ---
 
-## Key Questions to Answer Before Implementation
+## Summary: Top 5 Permission UX Pitfalls
 
-1. **Do we need true multi-display automation?**
-   - If yes: Accept Chromium-only for advanced features
-   - If no: Keep it simple with manual window positioning
-
-2. **What's the acceptable fallback when popups blocked?**
-   - Manual URL sharing?
-   - Fullscreen single-window toggle?
-   - Embedded preview only?
-
-3. **What browser/OS combinations must we support?**
-   - Chrome on Windows: Full support possible
-   - Safari on Mac: Limited (no Window Management API)
-   - Firefox: Limited (no Window Management API)
-   - Arc: Requires careful popup handling
+| Priority | Pitfall | Impact | Requirement |
+|----------|---------|--------|-------------|
+| 1 | Race condition on initial render | Permission UI never appears | PERM-01 |
+| 2 | Chrome chip auto-dismisses | Teacher misses prompt entirely | PERM-02, PERM-03 |
+| 3 | No feedback on button | User doesn't know feature state | PERM-04 |
+| 4 | No recovery after dismiss | Feature appears permanently broken | PERM-03 |
+| 5 | User gesture required | Silent failure if called wrong | PERM-01, PERM-03 |
 
 ---
 
-## Summary: Top 5 Pitfalls to Track
+## Sources Summary
 
-| Priority | Pitfall | Impact | Phase |
-|----------|---------|--------|-------|
-| 1 | Popup blockers | Feature completely broken | Phase 1 |
-| 2 | Window reference lost | Sync fails silently | Phase 1 |
-| 3 | Permission confusion | Teachers abandon feature | Phase 1 |
-| 4 | Browser API support gap | Non-Chrome users excluded | Phase 2 |
-| 5 | Fullscreen exit disruptions | Unprofessional UX | Phase 2 |
+**Official Documentation:**
+- [MDN: Window Management API](https://developer.mozilla.org/en-US/docs/Web/API/Window_Management_API)
+- [MDN: Using the Window Management API](https://developer.mozilla.org/en-US/docs/Web/API/Window_Management_API/Using)
+- [MDN: Permissions.query()](https://developer.mozilla.org/en-US/docs/Web/API/Permissions/query)
+- [Chrome Developers: Window Management API](https://developer.chrome.com/docs/capabilities/web-apis/window-management)
+- [Chrome Developers: Permissions Request Chip](https://developer.chrome.com/blog/permissions-chip)
 
-**Bottom line:** The popup blocker issue you already hit is the tip of the iceberg. A robust dual-window system needs:
-1. BroadcastChannel-based communication (not window references)
-2. Standalone student view route (not injected content)
-3. Graceful fallbacks when automation fails
-4. Clear user guidance for permission and manual positioning
+**Best Practices:**
+- [web.dev: Permissions Best Practices](https://web.dev/articles/permissions-best-practices)
+- [web.dev: Push Notifications Permissions UX](https://web.dev/articles/push-notifications-permissions-ux)
+- [Adam Lynch: Improve Permissions UX](https://adamlynch.com/improve-permissions-ux/)
+
+**Issue Discussions:**
+- [W3C Window Management Issue #135](https://github.com/w3c/window-management/issues/135) - Permission popup not displaying
+- [Chrome: Rethinking Web Permissions](https://developer.chrome.com/blog/rethinking-web-permissions)
+
+**React Patterns:**
+- [Max Rozen: Fixing Race Conditions in React](https://maxrozen.com/race-conditions-fetching-data-react-with-useeffect)
+- [React useEffect Documentation](https://react.dev/reference/react/useEffect)

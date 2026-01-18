@@ -171,3 +171,185 @@ Phases with standard patterns (skip research-phase):
 ---
 *Research completed: 2026-01-18*
 *Ready for roadmap: yes*
+
+---
+
+## v1.2 Permission Flow Fix Research
+
+**Updated:** 2026-01-18
+**Scope:** Fix race condition in Window Management API permission flow
+**Confidence:** HIGH
+
+### Executive Summary
+
+The v1.2 milestone addresses a race condition in the permission flow for the Window Management API. The `useWindowManagement` hook initializes `permissionState` as `'unavailable'`, then runs an async permission query. By the time the query resolves to `'prompt'`, the consumer's useEffect in PresentationView has already run with the stale initial value, causing the `PermissionExplainer` component to never appear.
+
+**The fix is conceptually simple:** distinguish "haven't checked yet" from "checked and not available" by adding explicit loading state. This allows consumers to wait for the definitive permission state before making UI decisions.
+
+**No new dependencies required.** This is a pattern change within the existing React 19 codebase using discriminated unions for state management.
+
+### Key Findings by Dimension
+
+#### From STACK.md (Async Permission State Patterns)
+
+**Recommended pattern: Five-state discriminated union**
+
+```typescript
+type PermissionState =
+  | 'loading'      // Async check in progress
+  | 'prompt'       // Permission available to request
+  | 'granted'      // Permission granted
+  | 'denied'       // Permission denied
+  | 'unavailable'; // API not supported (permanent)
+```
+
+**Why this works:**
+- `'loading'` is immediately distinguishable from `'unavailable'`
+- Consumers can show spinner/nothing during `'loading'`
+- PermissionExplainer only shows when state is definitively `'prompt'`
+- No race condition because initial `'loading'` prevents premature decisions
+
+**Alternatives considered:**
+- `useSyncExternalStore`: MEDIUM confidence, adds complexity for marginal benefit
+- React 19 `use()` hook: NOT recommended, wrong fit for this use case
+- Separate `isLoading` boolean: Works but less explicit than union
+
+#### From FEATURES.md (Permission UX)
+
+**Current anti-patterns identified:**
+| Anti-Feature | Why Bad | PiPi Status |
+|--------------|---------|-------------|
+| Prompt on page load | No context = 88%+ denial | DOING THIS |
+| Permission without user activation | 3x lower accept rates | DOING THIS |
+| Auto-dismissing permission UI | Users miss it if distracted | DOING THIS |
+
+**Recommended flow:**
+1. **Detection (Silent):** Check `screen.isExtended` and permission state on mount, DO NOT show any UI
+2. **Action Initiation (User Click):** When user clicks "Launch Student", show PermissionExplainer if state is `'prompt'`
+3. **Feedback (Post-Action):** Toast confirming where window opened
+
+**Key insight from Chrome data:** 77% of permission prompts shown without user interaction result in only 12% acceptance. Timing matters.
+
+#### From ARCHITECTURE.md (Component Structure)
+
+**Recommended hook interface:**
+```typescript
+export interface UseWindowManagementResult {
+  isSupported: boolean;
+  hasMultipleScreens: boolean;
+  isLoading: boolean;           // NEW: true until async completes
+  permissionState: 'prompt' | 'granted' | 'denied' | null;  // null = not applicable
+  secondaryScreen: ScreenTarget | null;
+  requestPermission: () => Promise<boolean>;
+}
+```
+
+**UI gating strategy:**
+
+| isLoading | permissionState | Launch Button | PermissionExplainer |
+|-----------|-----------------|---------------|---------------------|
+| true | any | Disabled/"Checking..." | Hidden |
+| false | null (single screen) | Enabled, normal | Hidden |
+| false | 'prompt' | Enabled | Visible |
+| false | 'granted' | Enabled, shows screen name | Hidden |
+| false | 'denied' | Enabled | Hidden (show recovery hint) |
+
+**Remove the race-condition useEffect:**
+```typescript
+// REMOVE this useEffect:
+useEffect(() => {
+  if (isSupported && hasMultipleScreens && permissionState === 'prompt') {
+    setShowPermissionExplainer(true);
+  }
+}, [isSupported, hasMultipleScreens, permissionState]);
+
+// REPLACE with direct conditional render:
+{!isLoading && isSupported && hasMultipleScreens && permissionState === 'prompt' && (
+  <PermissionExplainer ... />
+)}
+```
+
+#### From PITFALLS.md (Permission-Specific Risks)
+
+**Top 5 pitfalls for v1.2:**
+
+| Priority | Pitfall | Impact | Mitigation |
+|----------|---------|--------|------------|
+| 1 | Race condition on initial render | Permission UI never appears | Add `isLoading` state, gate UI decisions |
+| 2 | Chrome chip auto-dismisses (12s) | Teacher misses prompt entirely | In-page priming UI before browser prompt |
+| 3 | No feedback on button | User doesn't know feature state | Dynamic button label reflecting permission |
+| 4 | No recovery after dismiss | Feature appears permanently broken | Recovery instructions for denied state |
+| 5 | User gesture required for getScreenDetails() | Silent failure | Call API synchronously in click handler |
+
+**Critical code pattern:**
+```typescript
+// BAD: Called outside click handler
+useEffect(() => {
+  window.getScreenDetails(); // Will defer, not prompt
+}, []);
+
+// GOOD: Synchronous call in click handler
+const handleClick = () => {
+  window.getScreenDetails()
+    .then(details => { /* use details */ })
+    .catch(err => { /* handle denial */ });
+};
+```
+
+### Recommended Implementation Approach
+
+**Phase 1: Hook Changes (useWindowManagement.ts)**
+1. Add `isLoading` state, initialize to `true`
+2. Change `permissionState` initial value from `'unavailable'` to `'loading'` (or use union with null)
+3. Set `isLoading = false` after:
+   - API not supported (immediately)
+   - Single screen detected (immediately)
+   - Permission query completes (after async)
+   - Permission query fails (catch block)
+4. Return `isLoading` in hook result
+
+**Phase 2: Consumer Changes (PresentationView.tsx)**
+1. Destructure `isLoading` from `useWindowManagement()`
+2. Remove the problematic useEffect that sets `showPermissionExplainer`
+3. Replace with direct conditional render gated by `!isLoading`
+4. Optionally disable "Launch Student" button while `isLoading`
+5. Update button text to show loading state: "Checking displays..."
+
+**Phase 3: Optional Enhancements**
+- Track `showPermissionExplainerDismissed` state for "Skip" functionality
+- Add dynamic button label reflecting permission state
+- Add recovery hint link for denied state
+
+### Confidence Assessment
+
+| Area | Confidence | Notes |
+|------|------------|-------|
+| Root cause diagnosis | HIGH | Code paths traced, race condition clearly identified |
+| Discriminated union pattern | HIGH | React official docs, TkDodo, Steve Kinney |
+| Loading state approach | HIGH | Standard async React pattern, MDN verified |
+| Consumer fix | HIGH | Direct conditional render eliminates race |
+
+**Overall v1.2 confidence:** HIGH
+
+### Gaps Remaining
+
+1. **Exact timing of initial `isLoading` flip:** Should happen synchronously for unsupported browsers, need to verify feature detection is sync
+2. **Permission change listener cleanup:** Ensure `status.onchange` is properly cleaned up on unmount
+3. **Edge case: API supported but permission query throws:** Need defensive handling in catch block
+
+### v1.2 Sources
+
+**Official Documentation (HIGH):**
+- [React useState documentation](https://react.dev/reference/react/useState)
+- [React useEffect documentation](https://react.dev/reference/react/useEffect)
+- [MDN: Using the Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API/Using_the_Permissions_API)
+
+**Community Best Practices (MEDIUM):**
+- [Max Rozen - Fixing Race Conditions in React](https://maxrozen.com/race-conditions-fetching-data-react-with-useeffect)
+- [TkDodo - Things to know about useState](https://tkdodo.eu/blog/things-to-know-about-use-state)
+- [Steve Kinney - Loading States and Error Handling](https://stevekinney.com/courses/react-typescript/loading-states-error-handling)
+- [web.dev: Permissions Best Practices](https://web.dev/articles/permissions-best-practices)
+
+---
+*v1.2 research completed: 2026-01-18*
+*Ready for requirements: yes*
