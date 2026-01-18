@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AIProvider, DEFAULT_SETTINGS } from '../types';
 import { useSettings, clearSettings } from '../hooks/useSettings';
 import { validateApiKey, ValidationResult } from '../services/apiValidation';
 
 interface SettingsModalProps {
   onClose: () => void;
+  autoFocusApiKey?: boolean;
 }
 
 type TestStatus =
@@ -38,9 +39,12 @@ const PROVIDER_INSTRUCTIONS: Record<AIProvider, { steps: string[]; cost: string;
   },
 };
 
-const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
+const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, autoFocusApiKey = false }) => {
   // Hook for persisted settings
   const [savedSettings, updateSettings] = useSettings();
+
+  // Ref for auto-focus API key input
+  const apiKeyInputRef = useRef<HTMLInputElement>(null);
 
   // Local form state
   const [provider, setProvider] = useState<AIProvider>(savedSettings.provider);
@@ -70,6 +74,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
       setTestPassed(true);
     }
   }, [savedSettings]);
+
+  // Auto-focus API key input when opened from EnableAIModal
+  useEffect(() => {
+    if (autoFocusApiKey && apiKeyInputRef.current) {
+      // Small delay ensures modal animation completes
+      setTimeout(() => {
+        apiKeyInputRef.current?.focus();
+      }, 100);
+    }
+  }, [autoFocusApiKey]);
 
   // Intercept provider change to show warning if key exists
   const handleProviderChange = (newProvider: AIProvider) => {
@@ -190,6 +204,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             </label>
             <div className="relative">
               <input
+                ref={apiKeyInputRef}
                 type={showKey ? 'text' : 'password'}
                 value={apiKey}
                 onChange={(e) => handleKeyChange(e.target.value)}
