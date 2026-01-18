@@ -114,11 +114,11 @@ Deferred to future release.
 | PROV-05 | 2 | Complete |
 | PROV-06 | 2 | Complete |
 | PROV-07 | 2 | Complete |
-| DISB-01 | 3 | Pending |
-| DISB-02 | 3 | Pending |
-| DISB-03 | 3 | Pending |
-| DISB-04 | 3 | Pending |
-| DISB-05 | 3 | Pending |
+| DISB-01 | 3 | Complete |
+| DISB-02 | 3 | Complete |
+| DISB-03 | 3 | Complete |
+| DISB-04 | 3 | Complete |
+| DISB-05 | 3 | Complete |
 | INST-01 | 1 | Complete |
 | INST-02 | 1 | Complete |
 | INST-03 | 1 | Complete |
@@ -133,4 +133,4 @@ Deferred to future release.
 
 ---
 *Requirements defined: 2026-01-19*
-*Last updated: 2026-01-19 — Phase 2 requirements complete (PROV-03 removed: OpenAI lacks browser CORS)*
+*Last updated: 2026-01-19 — Phase 3 requirements complete (DISB-01 through DISB-05)*
