@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 
 ## Current Position
 
-Phase: 2 of 5 (Multi-Provider AI) ✓ COMPLETE
-Plan: 3/3 complete
-Status: Phase verified, ready for Phase 3
-Last activity: 2026-01-19 — Phase 2 verified and complete
+Phase: 3 of 5 (Disabled AI State)
+Plan: 1/2 complete
+Status: In progress
+Last activity: 2026-01-19 — Completed 03-01-PLAN.md
 
-Progress: [████░░░░░░] 40%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -59,6 +59,11 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - Settings sync on modal close ensures app state matches localStorage
 - Provider passed as prop to child components with onError callback
 
+**v2.0 Phase 3 Decisions:**
+- Single 'Open Settings' action in EnableAIModal (no dismiss button)
+- Lock icon positioned top-right of button for visibility
+- 100ms delay on Settings auto-focus ensures modal animation completes
+
 ### Pending Todos
 
 7 pending - see `.planning/todos/pending/`
@@ -70,10 +75,10 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-19
-Stopped at: Phase 2 complete
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None
-Next: Phase 3 planning (Disabled AI State)
+Next: 03-02-PLAN.md (Extend disabled state to child components)
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-19 — Phase 2 complete and verified*
+*Last updated: 2026-01-19 — Completed 03-01-PLAN.md*
