@@ -6,7 +6,7 @@ This milestone fixes the race condition in Window Management API permission dete
 
 ## Phases
 
-- [ ] **Phase 1: Permission State Loading** - Add loading state to useWindowManagement hook
+- [x] **Phase 1: Permission State Loading** - Add loading state to useWindowManagement hook
 - [ ] **Phase 2: Permission UX** - Update UI to reflect permission state with clear feedback
 
 ## Phase Details
@@ -22,7 +22,7 @@ This milestone fixes the race condition in Window Management API permission dete
 **Plans**: 1 plan
 
 Plans:
-- [ ] 01-01-PLAN.md - Add isLoading state to hook and update consumer
+- [x] 01-01-PLAN.md - Add isLoading state to hook and update consumer
 
 ### Phase 2: Permission UX
 **Goal**: Teacher always knows the current auto-placement capability and can act on it
@@ -45,7 +45,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Permission State Loading | 0/1 | Planned | - |
+| 1. Permission State Loading | 1/1 | ✓ Complete | 2026-01-18 |
 | 2. Permission UX | 0/4 | Not started | - |
 
 ---

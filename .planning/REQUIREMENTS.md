@@ -37,7 +37,7 @@ Requirements for Permission Flow Fix milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PERM-01 | Phase 1 | Pending |
+| PERM-01 | Phase 1 | Complete |
 | PERM-02 | Phase 2 | Pending |
 | PERM-03 | Phase 2 | Pending |
 | PERM-04 | Phase 2 | Pending |
