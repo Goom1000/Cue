@@ -59,7 +59,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 
 ### Pending Todos
 
-6 pending - see `.planning/todos/pending/`
+7 pending - see `.planning/todos/pending/`
 
 ### Blockers/Concerns
 
