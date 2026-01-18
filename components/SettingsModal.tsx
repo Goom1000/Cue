@@ -66,6 +66,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   // Accordion state
   const [instructionsExpanded, setInstructionsExpanded] = useState(false);
 
+  // Provider switch warning state
+  const [pendingProvider, setPendingProvider] = useState<AIProvider | null>(null);
+
   // Load initial values when modal opens
   useEffect(() => {
     setProvider(savedSettings.provider);
@@ -76,11 +79,29 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
     }
   }, [savedSettings]);
 
-  // Reset test status when provider changes
+  // Intercept provider change to show warning if key exists
   const handleProviderChange = (newProvider: AIProvider) => {
-    setProvider(newProvider);
-    setTestStatus({ state: 'idle' });
-    setTestPassed(false);
+    if (newProvider !== provider && apiKey) {
+      // User has existing key - show warning modal
+      setPendingProvider(newProvider);
+    } else {
+      // No existing key or same provider - just change
+      setProvider(newProvider);
+      setApiKey('');
+      setTestStatus({ state: 'idle' });
+      setTestPassed(false);
+    }
+  };
+
+  // Confirm provider switch after warning
+  const confirmProviderSwitch = () => {
+    if (pendingProvider) {
+      setProvider(pendingProvider);
+      setApiKey('');
+      setTestStatus({ state: 'idle' });
+      setTestPassed(false);
+      setPendingProvider(null);
+    }
   };
 
   // Reset test status when key changes
@@ -340,6 +361,39 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             </div>
           </div>
         </div>
+
+        {/* Provider Switch Warning Modal */}
+        {pendingProvider && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md mx-4 shadow-2xl">
+              <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">
+                Switch to {pendingProvider === 'gemini' ? 'Gemini' :
+                           pendingProvider === 'claude' ? 'Claude' : 'OpenAI'}?
+              </h3>
+              <p className="text-slate-600 dark:text-slate-300 mb-4">
+                Switching providers will clear your current API key. You'll need to enter a new key for {pendingProvider === 'gemini' ? 'Google' :
+                           pendingProvider === 'claude' ? 'Anthropic' : 'OpenAI'}.
+              </p>
+              <p className="text-sm text-amber-600 dark:text-amber-400 mb-6">
+                Note: Different AI providers may generate slightly different content for the same lesson.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setPendingProvider(null)}
+                  className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:underline"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmProviderSwitch}
+                  className="px-4 py-2 bg-indigo-600 dark:bg-amber-500 text-white dark:text-slate-900 rounded-lg font-medium hover:opacity-90"
+                >
+                  Switch Provider
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
