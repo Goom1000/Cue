@@ -107,13 +107,13 @@ Deferred to future release.
 | SETT-05 | 1 | Complete |
 | SETT-06 | 1 | Complete |
 | SETT-07 | 1 | Complete |
-| PROV-01 | 2 | Pending |
-| PROV-02 | 2 | Pending |
-| PROV-03 | 2 | Pending |
-| PROV-04 | 2 | Pending |
-| PROV-05 | 2 | Pending |
-| PROV-06 | 2 | Pending |
-| PROV-07 | 2 | Pending |
+| PROV-01 | 2 | Complete |
+| PROV-02 | 2 | Complete |
+| PROV-03 | 2 | Removed (OpenAI has no browser CORS) |
+| PROV-04 | 2 | Complete |
+| PROV-05 | 2 | Complete |
+| PROV-06 | 2 | Complete |
+| PROV-07 | 2 | Complete |
 | DISB-01 | 3 | Pending |
 | DISB-02 | 3 | Pending |
 | DISB-03 | 3 | Pending |
@@ -133,4 +133,4 @@ Deferred to future release.
 
 ---
 *Requirements defined: 2026-01-19*
-*Last updated: 2026-01-19 — Phase 1 requirements complete*
+*Last updated: 2026-01-19 — Phase 2 requirements complete (PROV-03 removed: OpenAI lacks browser CORS)*

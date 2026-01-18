@@ -18,7 +18,7 @@ Transform PiPi from a personal tool into a shareable application colleagues can 
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
 - [x] **Phase 1: Settings & API Key UI** - User can configure AI provider and API key
-- [ ] **Phase 2: Multi-Provider AI** - App works with Gemini or Claude (OpenAI blocked by CORS)
+- [x] **Phase 2: Multi-Provider AI** - App works with Gemini or Claude (OpenAI removed)
 - [ ] **Phase 3: Disabled AI State** - Graceful degradation when no API key configured
 - [ ] **Phase 4: Save/Load System** - Export and import presentations as .pipi files
 - [ ] **Phase 5: GitHub Pages Deployment** - App accessible via public URL
@@ -55,9 +55,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01-PLAN.md - Provider abstraction layer (interface, error types, factory)
-- [ ] 02-02-PLAN.md - Claude provider implementation
-- [ ] 02-03-PLAN.md - Wire provider to app (settings integration, error modal, loading states, provider-switch warning)
+- [x] 02-01-PLAN.md - Provider abstraction layer (interface, error types, factory)
+- [x] 02-02-PLAN.md - Claude provider implementation
+- [x] 02-03-PLAN.md - Wire provider to app (settings integration, error modal, loading states, provider-switch warning)
 
 ### Phase 3: Disabled AI State
 **Goal**: App is fully usable without API key, with clear path to enable AI features
@@ -109,11 +109,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Settings & API Key UI | 2/2 | Complete | 2026-01-19 |
-| 2. Multi-Provider AI | 0/3 | Not started | - |
+| 2. Multi-Provider AI | 3/3 | Complete | 2026-01-19 |
 | 3. Disabled AI State | 0/? | Not started | - |
 | 4. Save/Load System | 0/? | Not started | - |
 | 5. GitHub Pages Deployment | 0/? | Not started | - |
 
 ---
 *Roadmap created: 2026-01-19*
-*Last updated: 2026-01-19 - Phase 2 revised (PROV-03 clarified: OpenAI shows error due to CORS)*
+*Last updated: 2026-01-19 - Phase 2 complete (OpenAI removed entirely, Gemini+Claude working)*
