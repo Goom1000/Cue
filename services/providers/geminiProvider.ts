@@ -16,18 +16,15 @@ import {
 /**
  * GeminiProvider wraps the existing geminiService functions.
  *
- * Note: Current geminiService uses process.env.API_KEY internally.
- * Plan 3 will refactor to pass apiKey to each function.
- * For now, the stored apiKey is not used - this is a transitional implementation.
+ * The apiKey passed to the constructor is forwarded to all geminiService functions.
  */
 export class GeminiProvider implements AIProviderInterface {
-  constructor(private apiKey: string) {
-    // Store API key for future use after Plan 3 refactoring
-  }
+  constructor(private apiKey: string) {}
+
 
   async generateLessonSlides(rawText: string, pageImages?: string[]): Promise<Slide[]> {
     try {
-      return await geminiGenerateLessonSlides(rawText, pageImages || []);
+      return await geminiGenerateLessonSlides(this.apiKey, rawText, pageImages || []);
     } catch (error) {
       throw this.wrapError(error);
     }
@@ -35,7 +32,7 @@ export class GeminiProvider implements AIProviderInterface {
 
   async generateSlideImage(imagePrompt: string, layout?: string): Promise<string | undefined> {
     try {
-      return await geminiGenerateSlideImage(imagePrompt, layout);
+      return await geminiGenerateSlideImage(this.apiKey, imagePrompt, layout);
     } catch (error) {
       throw this.wrapError(error);
     }
@@ -43,7 +40,7 @@ export class GeminiProvider implements AIProviderInterface {
 
   async generateResourceImage(imagePrompt: string): Promise<string | undefined> {
     try {
-      return await geminiGenerateResourceImage(imagePrompt);
+      return await geminiGenerateResourceImage(this.apiKey, imagePrompt);
     } catch (error) {
       throw this.wrapError(error);
     }
@@ -55,7 +52,7 @@ export class GeminiProvider implements AIProviderInterface {
     difficulty: 'Grade C' | 'Grade B' | 'Grade A'
   ): Promise<string> {
     try {
-      return await geminiGenerateQuickQuestion(slideTitle, slideContent, difficulty);
+      return await geminiGenerateQuickQuestion(this.apiKey, slideTitle, slideContent, difficulty);
     } catch (error) {
       throw this.wrapError(error);
     }
@@ -63,7 +60,7 @@ export class GeminiProvider implements AIProviderInterface {
 
   async reviseSlide(slide: Slide, instruction: string): Promise<Partial<Slide>> {
     try {
-      return await geminiReviseSlide(slide, instruction);
+      return await geminiReviseSlide(this.apiKey, slide, instruction);
     } catch (error) {
       throw this.wrapError(error);
     }
@@ -76,7 +73,7 @@ export class GeminiProvider implements AIProviderInterface {
     nextSlide?: Slide
   ): Promise<Slide> {
     try {
-      return await geminiGenerateContextualSlide(lessonTopic, userInstruction, prevSlide, nextSlide);
+      return await geminiGenerateContextualSlide(this.apiKey, lessonTopic, userInstruction, prevSlide, nextSlide);
     } catch (error) {
       throw this.wrapError(error);
     }
@@ -84,7 +81,7 @@ export class GeminiProvider implements AIProviderInterface {
 
   async generateExemplarSlide(lessonTopic: string, prevSlide: Slide): Promise<Slide> {
     try {
-      return await geminiGenerateExemplarSlide(lessonTopic, prevSlide);
+      return await geminiGenerateExemplarSlide(this.apiKey, lessonTopic, prevSlide);
     } catch (error) {
       throw this.wrapError(error);
     }
@@ -92,7 +89,7 @@ export class GeminiProvider implements AIProviderInterface {
 
   async generateLessonResources(lessonText: string, slideContext: string): Promise<LessonResource[]> {
     try {
-      return await geminiGenerateLessonResources(lessonText, slideContext);
+      return await geminiGenerateLessonResources(this.apiKey, lessonText, slideContext);
     } catch (error) {
       throw this.wrapError(error);
     }
@@ -104,7 +101,7 @@ export class GeminiProvider implements AIProviderInterface {
     numQuestions?: number
   ): Promise<QuizQuestion[]> {
     try {
-      return await geminiGenerateImpromptuQuiz(slides, currentIndex, numQuestions);
+      return await geminiGenerateImpromptuQuiz(this.apiKey, slides, currentIndex, numQuestions);
     } catch (error) {
       throw this.wrapError(error);
     }
