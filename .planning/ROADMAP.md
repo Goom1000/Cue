@@ -26,10 +26,10 @@ Transform the fixed-position next slide preview into a fully interactive floatin
   2. Preview window stays above all other UI elements (slides, controls, teleprompter)
   3. Teacher can drag preview corners to resize the window
   4. Preview cannot be resized below minimum readable size (content remains visible)
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 01-01: TBD
+- [ ] 01-01-PLAN.md — Implement drag, resize, float with react-rnd
 
 ### Phase 2: Snap-to-Grid & Persistence
 **Goal**: Preview remembers position and can snap to neat grid positions
@@ -50,7 +50,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Drag, Resize & Float | 0/? | Not started | - |
+| 1. Drag, Resize & Float | 0/1 | Planned | - |
 | 2. Snap-to-Grid & Persistence | 0/? | Not started | - |
 
 ---
