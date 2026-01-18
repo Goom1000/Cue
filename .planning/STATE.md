@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 ## Current Position
 
 Phase: 2 of 5 (Multi-Provider AI)
-Plan: 1 of 4 complete
+Plan: 2 of 4 complete
 Status: In progress
-Last activity: 2026-01-18 — Completed 02-01-PLAN.md (Provider Abstraction Layer)
+Last activity: 2026-01-19 — Completed 02-02-PLAN.md (Claude Provider Implementation)
 
-Progress: [███░░░░░░░] 25%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -23,13 +23,13 @@ Progress: [███░░░░░░░] 25%
 - v1.1: 3 plans, 8 hours
 - v1.2: 5 plans, 1 day
 - v2.0 Phase 1: 2 plans complete
-- v2.0 Phase 2: 1 plan complete
+- v2.0 Phase 2: 2 plans complete
 
 **Project Totals:**
 - Milestones shipped: 3 (v1.0, v1.1, v1.2)
 - Total phases: 7 (v1.0: 3, v1.1: 2, v1.2: 2)
-- Total plans: 17 (14 prior + 3 v2.0)
-- Total LOC: ~5,000 TypeScript
+- Total plans: 18 (14 prior + 4 v2.0)
+- Total LOC: ~5,400 TypeScript
 
 ## Completed Milestones
 
@@ -53,6 +53,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - Strategy pattern with factory for provider abstraction
 - AIProviderError class with error codes for unified error handling
 - OpenAI throws immediately (CORS blocked in browser)
+- Claude uses claude-sonnet-4-5-20250929 model for text generation
+- Claude image methods return undefined (graceful degradation)
+- JSON extraction handles optional markdown code block wrapping
 
 ### Pending Todos
 
@@ -64,11 +67,11 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-18
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-01-19
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None
-Next: 02-02-PLAN.md (Claude Provider Implementation)
+Next: 02-03-PLAN.md (Gemini Service Refactoring)
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-18 — Completed 02-01 Provider Abstraction Layer*
+*Last updated: 2026-01-19 — Completed 02-02 Claude Provider Implementation*
