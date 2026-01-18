@@ -4,6 +4,8 @@
 
 A presentation tool for teachers that transforms PDF lesson plans into interactive slideshows with AI-generated content, a teleprompter script for the teacher, and progressive bullet reveal. Teachers upload their existing lesson plans, select student age/grade level, and the AI creates an engaging presentation with speaker notes that guide the teacher through natural, conversational delivery.
 
+**v1.0 shipped:** Dual-monitor presentation mode where students see only slides on a projector while teachers see slides plus teleprompter on their laptop — works like PowerPoint Presenter View.
+
 ## Core Value
 
 Students see only the presentation; teachers see the presentation plus a teleprompter script that lets them sound knowledgeable and natural without reading slides verbatim.
@@ -22,38 +24,52 @@ Students see only the presentation; teachers see the presentation plus a telepro
 - ✓ PPTX export — existing
 - ✓ Dark mode support — existing
 - ✓ Slide editing capabilities — existing
+- ✓ Student window launches reliably (no popup blocker issues) — v1.0
+- ✓ Teacher/student views perfectly synchronized — v1.0
+- ✓ Student window shows only slides (no controls) — v1.0
+- ✓ Auto projector placement on Chromium — v1.0
+- ✓ Manual placement instructions on Firefox/Safari — v1.0
+- ✓ Presenter remote navigation (Page Up/Down) — v1.0
+- ✓ Next slide preview thumbnail — v1.0
+- ✓ Window recovery (button re-enables on close) — v1.0
+- ✓ Connection status indicator — v1.0
+- ✓ Session persistence (survives refresh) — v1.0
 
 ### Active
 
-- [ ] Rock-solid dual-monitor student view — students see only slides, synced with teacher view, works automatically with extended displays like PowerPoint Presenter View
+- [ ] Elapsed time display showing presentation duration (PRES-03)
+- [ ] Fullscreen recovery (auto re-enter if exited) (PRES-04)
 
 ### Out of Scope
 
 - Real-time student device sync (each student on their own device) — high complexity, not needed for classroom projector setup
 - Cloud storage/authentication — local-first for now
 - Mobile app — web-first
-- Other small feature additions — deferred until student view is complete
+- Annotation tools / laser pointer — scope creep, PiPi is teleprompter-focused
+- Slide transitions / animations — not core to teleprompter value
+- Video embedding — storage/bandwidth concerns
 
 ## Context
 
+### Current State
+
+Shipped v1.0 with 3,803 LOC TypeScript.
+Tech stack: React 19, Vite, Gemini API, Tailwind CSS.
+Client-side only (no backend).
+
+v1.0 delivered rock-solid dual-monitor presentation:
+- BroadcastChannel cross-window sync
+- Window Management API for auto projector placement
+- Heartbeat-based connection monitoring
+- Keyboard navigation for presenter remotes
+
 ### Technical Environment
+
 - React 19 SPA with Vite
 - Gemini API for AI generation
 - Tailwind CSS for styling
 - No backend — client-side only
 - CDN-loaded dependencies (PDF.js, PptxGenJS, html2pdf)
-
-### Current State
-- Core presentation functionality works well
-- Student view exists as a popup window (`StudentWindow` component using `window.open()` + React portals)
-- Student view button triggers popup but it flashes and closes immediately — likely due to Arc browser's aggressive popup blocking or style injection errors
-- Current approach is fragile and requires users to allow popups
-
-### Target State
-- Dual-monitor detection like PowerPoint Presenter View
-- Teacher view stays on laptop, student view automatically goes to projector
-- No popup blockers to configure
-- Perfect sync between views
 
 ## Constraints
 
@@ -65,7 +81,13 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Popup-based student window | Simple implementation using `window.open()` | ⚠️ Revisit — blocked by popup blockers, unreliable |
+| BroadcastChannel for sync | Cross-window messaging without server | ✓ Good — reliable, fast |
+| Hash-based routing | No react-router dependency | ✓ Good — simple, works |
+| Synchronous window.open | Preserve user activation for popup | ✓ Good — bypasses blockers |
+| Fire-and-forget popup | BroadcastChannel handles all sync | ✓ Good — no window tracking needed |
+| Heartbeat for connection | Detect closed windows reliably | ✓ Good — survives refresh |
+| Window Management API | Auto projector placement | ✓ Good — works on Chromium |
+| Escape closes student | Safer than exiting presentation | ✓ Good — prevents accidents |
 
 ---
-*Last updated: 2026-01-18 after initialization*
+*Last updated: 2026-01-18 after v1.0 milestone*
