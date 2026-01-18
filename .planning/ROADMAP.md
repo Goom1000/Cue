@@ -12,7 +12,7 @@ Transform the fixed-position next slide preview into a fully interactive floatin
 
 ## Phases
 
-- [ ] **Phase 1: Drag, Resize & Float** - Core preview window interaction
+- [x] **Phase 1: Drag, Resize & Float** - Core preview window interaction ✓
 - [ ] **Phase 2: Snap-to-Grid & Persistence** - Smart positioning and memory
 
 ## Phase Details
@@ -29,7 +29,7 @@ Transform the fixed-position next slide preview into a fully interactive floatin
 **Plans**: 1 plan
 
 Plans:
-- [ ] 01-01-PLAN.md — Implement drag, resize, float with react-rnd
+- [x] 01-01-PLAN.md — Implement drag, resize, float with react-rnd ✓
 
 ### Phase 2: Snap-to-Grid & Persistence
 **Goal**: Preview remembers position and can snap to neat grid positions
@@ -50,9 +50,9 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Drag, Resize & Float | 0/1 | Planned | - |
+| 1. Drag, Resize & Float | 1/1 | ✓ Complete | 2026-01-18 |
 | 2. Snap-to-Grid & Persistence | 0/? | Not started | - |
 
 ---
 *Roadmap created: 2026-01-18*
-*Last updated: 2026-01-18*
+*Last updated: 2026-01-18 — Phase 1 complete*
