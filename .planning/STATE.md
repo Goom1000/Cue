@@ -50,7 +50,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 
 ### Pending Todos
 
-5 pending - see `.planning/todos/pending/`
+6 pending - see `.planning/todos/pending/`
 
 ### Blockers/Concerns
 
