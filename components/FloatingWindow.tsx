@@ -2,12 +2,12 @@ import React, { useState, useRef, useCallback } from 'react';
 import { Rnd, RndResizeCallback, RndDragCallback } from 'react-rnd';
 import { useViewportBounds } from '../hooks/useViewportBounds';
 
-interface Position {
+export interface Position {
   x: number;
   y: number;
 }
 
-interface Size {
+export interface Size {
   width: number;
   height: number;
 }
@@ -20,6 +20,17 @@ interface FloatingWindowProps {
   minHeight?: number;
   aspectRatio?: number | boolean;
   zIndex?: number;
+  // Controlled mode props (optional - if provided, component is controlled)
+  position?: Position;
+  size?: Size;
+  onPositionChange?: (pos: Position) => void;
+  onSizeChange?: (size: Size) => void;
+  // Snap support props (for Plan 02)
+  snapEnabled?: boolean;
+  onSnapToggle?: () => void;
+  // Drag state callbacks
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
 }
 
 // Edge magnetism threshold in pixels
@@ -97,11 +108,47 @@ const FloatingWindow: React.FC<FloatingWindowProps> = ({
   minHeight = 150,
   aspectRatio = 16 / 9,
   zIndex = 9999,
+  // Controlled mode props
+  position: controlledPosition,
+  size: controlledSize,
+  onPositionChange,
+  onSizeChange,
+  // Snap support props
+  snapEnabled,
+  onSnapToggle,
+  // Drag state callbacks
+  onDragStart,
+  onDragEnd,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const [position, setPosition] = useState<Position>(defaultPosition);
-  const [size, setSize] = useState<Size>(defaultSize);
+  // Internal state for uncontrolled mode
+  const [internalPosition, setInternalPosition] = useState<Position>(defaultPosition);
+  const [internalSize, setInternalSize] = useState<Size>(defaultSize);
+
+  // Determine if we're in controlled mode
+  const isControlled = controlledPosition !== undefined && controlledSize !== undefined;
+
+  // Use controlled values if provided, otherwise use internal state
+  const position = isControlled ? controlledPosition : internalPosition;
+  const size = isControlled ? controlledSize : internalSize;
+
+  // Unified state setters that handle both controlled and uncontrolled modes
+  const setPosition = useCallback((newPos: Position) => {
+    if (isControlled && onPositionChange) {
+      onPositionChange(newPos);
+    } else {
+      setInternalPosition(newPos);
+    }
+  }, [isControlled, onPositionChange]);
+
+  const setSize = useCallback((newSize: Size) => {
+    if (isControlled && onSizeChange) {
+      onSizeChange(newSize);
+    } else {
+      setInternalSize(newSize);
+    }
+  }, [isControlled, onSizeChange]);
 
   // Reference to Rnd component for programmatic position updates
   const rndRef = useRef<Rnd | null>(null);
@@ -109,9 +156,16 @@ const FloatingWindow: React.FC<FloatingWindowProps> = ({
   // Keep element in viewport when browser resizes
   useViewportBounds(position, size, rndRef);
 
+  // Handle drag start
+  const handleDragStart = useCallback(() => {
+    setIsDragging(true);
+    onDragStart?.();
+  }, [onDragStart]);
+
   // Handle drag stop with edge magnetism
   const handleDragStop: RndDragCallback = useCallback((_e, data) => {
     setIsDragging(false);
+    onDragEnd?.();
 
     // Apply edge magnetism
     const magnetizedPos = applyEdgeMagnetism(data.x, data.y, size.width, size.height);
@@ -123,7 +177,7 @@ const FloatingWindow: React.FC<FloatingWindowProps> = ({
     if (magnetizedPos.x !== data.x || magnetizedPos.y !== data.y) {
       rndRef.current?.updatePosition(magnetizedPos);
     }
-  }, [size.width, size.height]);
+  }, [size.width, size.height, onDragEnd, setPosition]);
 
   // Handle resize stop
   const handleResizeStop: RndResizeCallback = useCallback(
@@ -134,7 +188,7 @@ const FloatingWindow: React.FC<FloatingWindowProps> = ({
       });
       setPosition(newPosition);
     },
-    []
+    [setSize, setPosition]
   );
 
   // Resize handle components (only show on hover)
@@ -148,12 +202,16 @@ const FloatingWindow: React.FC<FloatingWindowProps> = ({
   return (
     <Rnd
       ref={rndRef}
+      // Use default for uncontrolled mode, position/size for controlled mode
       default={{
         x: defaultPosition.x,
         y: defaultPosition.y,
         width: defaultSize.width,
         height: defaultSize.height,
       }}
+      // Controlled mode: pass position/size directly
+      position={isControlled ? position : undefined}
+      size={isControlled ? size : undefined}
       minWidth={minWidth}
       minHeight={minHeight}
       lockAspectRatio={aspectRatio}
@@ -175,7 +233,7 @@ const FloatingWindow: React.FC<FloatingWindowProps> = ({
         bottomLeft: { cursor: 'nesw-resize', left: -6, bottom: -6 },
         topLeft: { cursor: 'nwse-resize', left: -6, top: -6 },
       }}
-      onDragStart={() => setIsDragging(true)}
+      onDragStart={handleDragStart}
       onDragStop={handleDragStop}
       onResizeStop={handleResizeStop}
       onMouseEnter={() => setIsHovered(true)}
