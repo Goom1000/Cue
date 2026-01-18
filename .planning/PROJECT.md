@@ -6,6 +6,17 @@ A presentation tool for teachers that transforms PDF lesson plans into interacti
 
 **v1.0 shipped:** Dual-monitor presentation mode where students see only slides on a projector while teachers see slides plus teleprompter on their laptop — works like PowerPoint Presenter View.
 
+## Current Milestone: v1.1 Draggable Preview Window
+
+**Goal:** Make the next slide preview window draggable, resizable, and add snap-to-grid for neat positioning.
+
+**Target features:**
+- Draggable preview window (click center to move anywhere on screen)
+- Resizable preview window (drag corners to adjust size)
+- Snap-to-grid toggle button on the window itself
+- Position/size persistence (remembers settings between sessions)
+- Preview floats over presentation area (teacher-only layer, never visible to students)
+
 ## Core Value
 
 Students see only the presentation; teachers see the presentation plus a teleprompter script that lets them sound knowledgeable and natural without reading slides verbatim.
@@ -37,6 +48,10 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Active
 
+- [ ] Draggable preview window — move anywhere on teacher screen
+- [ ] Resizable preview window — drag corners to adjust
+- [ ] Snap-to-grid toggle — button on window for neat alignment
+- [ ] Preview position/size persistence — remembers settings
 - [ ] Elapsed time display showing presentation duration (PRES-03)
 - [ ] Fullscreen recovery (auto re-enter if exited) (PRES-04)
 
@@ -90,4 +105,4 @@ v1.0 delivered rock-solid dual-monitor presentation:
 | Escape closes student | Safer than exiting presentation | ✓ Good — prevents accidents |
 
 ---
-*Last updated: 2026-01-18 after v1.0 milestone*
+*Last updated: 2026-01-18 after v1.1 milestone started*
