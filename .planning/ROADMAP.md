@@ -18,7 +18,7 @@ Transform PiPi from a personal tool into a shareable application colleagues can 
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
 - [x] **Phase 1: Settings & API Key UI** - User can configure AI provider and API key
-- [ ] **Phase 2: Multi-Provider AI** - App works with Gemini, Claude, or OpenAI
+- [ ] **Phase 2: Multi-Provider AI** - App works with Gemini or Claude (OpenAI blocked by CORS)
 - [ ] **Phase 3: Disabled AI State** - Graceful degradation when no API key configured
 - [ ] **Phase 4: Save/Load System** - Export and import presentations as .pipi files
 - [ ] **Phase 5: GitHub Pages Deployment** - App accessible via public URL
@@ -44,18 +44,20 @@ Plans:
 ### Phase 2: Multi-Provider AI
 **Goal**: AI features work with user's chosen provider and handle errors gracefully
 **Depends on**: Phase 1 (needs API key from settings)
-**Requirements**: PROV-01, PROV-02, PROV-03, PROV-04, PROV-05, PROV-06, PROV-07
+**Requirements**: PROV-01, PROV-02, PROV-04, PROV-05, PROV-06, PROV-07
 **Success Criteria** (what must be TRUE):
-  1. User can generate slides using Gemini, Claude, or OpenAI (whichever they configured)
-  2. User can switch providers in settings without losing their current presentation
-  3. API errors display user-friendly messages explaining what went wrong
-  4. Rate limit and quota errors include specific guidance (wait/retry or check billing)
+  1. User can generate slides using Gemini or Claude (whichever they configured)
+  2. User selecting OpenAI sees a clear error message explaining browser CORS limitations
+  3. User can switch providers in settings without losing their current presentation
+  4. User sees compatibility warning when switching between providers
+  5. API errors display user-friendly messages explaining what went wrong
+  6. Rate limit and quota errors include specific guidance (wait/retry or check billing)
 **Plans**: 3 plans
 
 Plans:
 - [ ] 02-01-PLAN.md - Provider abstraction layer (interface, error types, factory)
 - [ ] 02-02-PLAN.md - Claude provider implementation
-- [ ] 02-03-PLAN.md - Wire provider to app (settings integration, error modal, loading states)
+- [ ] 02-03-PLAN.md - Wire provider to app (settings integration, error modal, loading states, provider-switch warning)
 
 ### Phase 3: Disabled AI State
 **Goal**: App is fully usable without API key, with clear path to enable AI features
@@ -114,4 +116,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 ---
 *Roadmap created: 2026-01-19*
-*Last updated: 2026-01-19 - Phase 2 planned (3 plans)*
+*Last updated: 2026-01-19 - Phase 2 revised (PROV-03 clarified: OpenAI shows error due to CORS)*
