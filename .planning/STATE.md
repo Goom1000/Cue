@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 ## Current Position
 
 Phase: 11 - Class Management UI
-Plan: 1 of 2 complete
-Status: In progress
-Last activity: 2026-01-20 - Completed 11-01-PLAN.md (hook and toast extensions)
+Plan: 2 of 2 complete
+Status: Phase complete
+Last activity: 2026-01-20 - Completed 11-02-PLAN.md (ClassManagementModal)
 
-Progress: [########--] 7/8 v2.2 plans complete
+Progress: [##########] 8/8 v2.2 plans complete
 
 ## Performance Metrics
 
@@ -24,13 +24,13 @@ Progress: [########--] 7/8 v2.2 plans complete
 - v1.2: 5 plans, 1 day
 - v2.0: 11 plans, 1 day
 - v2.1: 2 plans, 4 hours
-- v2.2: In progress (7 plans, ~22 min)
+- v2.2: Complete (8 plans, ~26 min)
 
 **Project Totals:**
 - Milestones shipped: 5 (v1.0, v1.1, v1.2, v2.0, v2.1)
-- Total phases: 16 completed + 2 planned (v2.2)
-- Total plans: 32
-- Total LOC: ~7,400 TypeScript
+- Total phases: 18 completed
+- Total plans: 34
+- Total LOC: ~7,800 TypeScript
 
 ## Completed Milestones
 
@@ -47,7 +47,7 @@ Progress: [########--] 7/8 v2.2 plans complete
 | 8 | Flexible Upload UI | Complete | UPLOAD-01 to UPLOAD-04 |
 | 9 | AI Adaptation Logic | Complete (3 plans) | UPLOAD-05 to UPLOAD-07 |
 | 10 | Class Bank Core | Complete (2 plans) | CLASS-01 to CLASS-04 |
-| 11 | Class Management UI | In progress (1/2 plans) | CLASS-05 to CLASS-08 |
+| 11 | Class Management UI | Complete (2 plans) | CLASS-05 to CLASS-08 |
 
 ## Accumulated Context
 
@@ -59,6 +59,10 @@ Summary of key v2.2 decisions (Phase 11):
 - ToastAction as separate exported interface (clean type reuse)
 - Action button styled with underline hover pattern (fits toast aesthetic)
 - Class update functions use map + spread pattern with savedAt timestamp refresh
+- Backdrop click closes management modal (consistent with other modals)
+- Expand-in-place for student editing rather than nested modal (simpler UX)
+- Active class name sync on rename/delete (keeps indicator accurate)
+- Undo creates new class with same data, new ID (acceptable simplicity tradeoff)
 
 Summary of key v2.2 decisions (Phase 10):
 - CLASS_BANK_KEY constant for localStorage key (consistent with useSettings pattern)
@@ -98,10 +102,10 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-20
-Stopped at: Completed 11-01-PLAN.md (hook and toast extensions)
+Stopped at: Completed 11-02-PLAN.md (ClassManagementModal)
 Resume file: None
-Next: 11-02-PLAN.md (ClassManagementModal)
+Next: v2.2 milestone complete - ready for release
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-20 - Completed 11-01-PLAN.md*
+*Last updated: 2026-01-20 - Completed 11-02-PLAN.md*
