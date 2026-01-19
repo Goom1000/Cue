@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 
 ## Current Position
 
-Phase: 10 - Class Bank Core
-Plan: 2 of 2 complete (Phase complete)
-Status: Phase complete
-Last activity: 2026-01-20 - Completed 10-02-PLAN.md (load dropdown + App.tsx integration)
+Phase: 11 - Class Management UI
+Plan: 1 of 2 complete
+Status: In progress
+Last activity: 2026-01-20 - Completed 11-01-PLAN.md (hook and toast extensions)
 
-Progress: [#######---] 6/7 v2.2 plans complete
+Progress: [########--] 7/8 v2.2 plans complete
 
 ## Performance Metrics
 
@@ -24,7 +24,7 @@ Progress: [#######---] 6/7 v2.2 plans complete
 - v1.2: 5 plans, 1 day
 - v2.0: 11 plans, 1 day
 - v2.1: 2 plans, 4 hours
-- v2.2: In progress (6 plans, ~20 min)
+- v2.2: In progress (7 plans, ~22 min)
 
 **Project Totals:**
 - Milestones shipped: 5 (v1.0, v1.1, v1.2, v2.0, v2.1)
@@ -47,13 +47,18 @@ Progress: [#######---] 6/7 v2.2 plans complete
 | 8 | Flexible Upload UI | Complete | UPLOAD-01 to UPLOAD-04 |
 | 9 | AI Adaptation Logic | Complete (3 plans) | UPLOAD-05 to UPLOAD-07 |
 | 10 | Class Bank Core | Complete (2 plans) | CLASS-01 to CLASS-04 |
-| 11 | Class Management UI | Ready to start | CLASS-05 to CLASS-08 |
+| 11 | Class Management UI | In progress (1/2 plans) | CLASS-05 to CLASS-08 |
 
 ## Accumulated Context
 
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+
+Summary of key v2.2 decisions (Phase 11):
+- ToastAction as separate exported interface (clean type reuse)
+- Action button styled with underline hover pattern (fits toast aesthetic)
+- Class update functions use map + spread pattern with savedAt timestamp refresh
 
 Summary of key v2.2 decisions (Phase 10):
 - CLASS_BANK_KEY constant for localStorage key (consistent with useSettings pattern)
@@ -93,10 +98,10 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-20
-Stopped at: Completed 10-02-PLAN.md (load dropdown + App.tsx integration)
+Stopped at: Completed 11-01-PLAN.md (hook and toast extensions)
 Resume file: None
-Next: Phase 11 - Class Management UI
+Next: 11-02-PLAN.md (ClassManagementModal)
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-20 - Completed Phase 10 (Class Bank Core)*
+*Last updated: 2026-01-20 - Completed 11-01-PLAN.md*
