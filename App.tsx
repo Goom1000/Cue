@@ -521,7 +521,19 @@ function App() {
     <div className="h-screen bg-slate-50 dark:bg-slate-950 font-poppins flex flex-col overflow-hidden text-slate-800 dark:text-slate-200 transition-colors duration-300">
       {/* GLOBAL HEADER */}
       <header className="h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 shrink-0 z-50 shadow-sm relative transition-colors duration-300">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          {/* Whiteboard/Screen Icon */}
+          <svg className="w-7 h-7 text-violet-600 dark:text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            {/* Screen frame */}
+            <rect x="2" y="3" width="20" height="14" rx="2" />
+            {/* Content lines */}
+            <line x1="6" y1="7" x2="10" y2="7" />
+            <line x1="6" y1="10" x2="14" y2="10" />
+            <line x1="6" y1="13" x2="11" y2="13" />
+            {/* Stand */}
+            <line x1="12" y1="17" x2="12" y2="21" />
+            <line x1="8" y1="21" x2="16" y2="21" />
+          </svg>
           <h1 className="font-fredoka text-2xl font-bold text-violet-600 dark:text-amber-400 tracking-tight">PiPi</h1>
         </div>
         
