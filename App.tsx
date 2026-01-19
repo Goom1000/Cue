@@ -522,11 +522,7 @@ function App() {
       {/* GLOBAL HEADER */}
       <header className="h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 shrink-0 z-50 shadow-sm relative transition-colors duration-300">
         <div className="flex items-center gap-3">
-          <img
-            src="/PiPi/logo.png"
-            alt="PiPi"
-            className="h-8 w-auto mix-blend-multiply dark:mix-blend-normal"
-          />
+          <h1 className="font-fredoka text-2xl font-bold text-violet-600 dark:text-amber-400 tracking-tight">PiPi</h1>
         </div>
         
         <div className="flex items-center gap-4">
