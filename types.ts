@@ -82,6 +82,14 @@ export interface PiPiFile {
   content: PiPiFileContent;
 }
 
+// Class Bank - saved student lists
+export interface SavedClass {
+  id: string;           // crypto.randomUUID()
+  name: string;         // User-provided name (trimmed)
+  students: string[];   // Array of student names
+  savedAt: string;      // ISO 8601 timestamp
+}
+
 export enum AppState {
   INPUT = 'INPUT',
   PROCESSING_TEXT = 'PROCESSING_TEXT',
