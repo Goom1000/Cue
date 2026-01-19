@@ -53,18 +53,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LAND-01 | Phase 1 | Pending |
-| LAND-02 | Phase 1 | Pending |
-| LAND-03 | Phase 1 | Pending |
-| BRND-01 | Phase 2 | Pending |
-| BRND-02 | Phase 2 | Pending |
-| BRND-03 | Phase 2 | Pending |
+| LAND-01 | Phase 6 | Pending |
+| LAND-02 | Phase 6 | Pending |
+| LAND-03 | Phase 6 | Pending |
+| BRND-01 | Phase 7 | Pending |
+| BRND-02 | Phase 7 | Pending |
+| BRND-03 | Phase 7 | Pending |
 
 **Coverage:**
 - v2.1 requirements: 6 total
 - Mapped to phases: 6
-- Unmapped: 0 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-19*
-*Last updated: 2026-01-19 after initial definition*
+*Last updated: 2026-01-19 — v2.1 roadmap phase mapping*

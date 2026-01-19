@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-19)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** Planning next milestone
+**Current focus:** v2.1 Landing Page & Branding
 
 ## Current Position
 
-Phase: v2.0 complete
-Plan: N/A
-Status: Milestone shipped - app deployed at https://goom1000.github.io/PiPi/
-Last activity: 2026-01-19 — v2.0 milestone archived
+Phase: 6 of 7 (Landing Page)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-01-19 — v2.1 roadmap created
 
-Progress: Ready for next milestone
+Progress: [##########] v2.0 complete, v2.1 starting
 
 ## Performance Metrics
 
@@ -63,10 +63,10 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-19
-Stopped at: v2.0 milestone complete
+Stopped at: v2.1 roadmap created
 Resume file: None
-Next: /gsd:new-milestone to start next version
+Next: /gsd:plan-phase 6
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-19 — v2.0 milestone archived*
+*Last updated: 2026-01-19 — v2.1 roadmap created*
