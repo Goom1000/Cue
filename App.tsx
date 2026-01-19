@@ -128,7 +128,7 @@ function App() {
   const [lessonTitle, setLessonTitle] = useState('New Lesson');
   const [error, setError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const [showResourceHub, setShowResourceHub] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   
