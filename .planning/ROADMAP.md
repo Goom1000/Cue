@@ -60,7 +60,7 @@ Plans:
 
 ---
 
-## Phase 10: Class Bank Core
+## Phase 10: Class Bank Core ✓
 
 **Goal:** Teachers can save and load student lists that persist across all presentations.
 
@@ -71,8 +71,10 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 10-01-PLAN.md - Types, useClassBank hook, and save modal
-- [ ] 10-02-PLAN.md - Load dropdown, App.tsx integration, and verification
+- [x] 10-01-PLAN.md - Types, useClassBank hook, and save modal
+- [x] 10-02-PLAN.md - Load dropdown, App.tsx integration, and verification
+
+**Completed:** 2026-01-20
 
 **Success Criteria:**
 1. Teacher can save current student list with a custom name (e.g., "Period 1 Math")
@@ -104,9 +106,9 @@ Plans:
 |-------|------|--------|-------|
 | 8 | Flexible Upload UI | ✓ Complete | 1 |
 | 9 | AI Adaptation Logic | ✓ Complete | 3 |
-| 10 | Class Bank Core | Planned | 2 |
+| 10 | Class Bank Core | ✓ Complete | 2 |
 | 11 | Class Management UI | Not Started | 0 |
 
 ---
 *Roadmap created: 2026-01-19*
-*Last updated: 2026-01-20*
+*Last updated: 2026-01-20 - Phase 10 complete*
