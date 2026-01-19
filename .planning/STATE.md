@@ -11,7 +11,7 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 
 Phase: 11 - Class Management UI
 Plan: 2 of 2 complete
-Status: Phase complete
+Status: Milestone complete
 Last activity: 2026-01-20 - Completed 11-02-PLAN.md (ClassManagementModal)
 
 Progress: [##########] 8/8 v2.2 plans complete
@@ -104,8 +104,8 @@ None.
 Last session: 2026-01-20
 Stopped at: Completed 11-02-PLAN.md (ClassManagementModal)
 Resume file: None
-Next: v2.2 milestone complete - ready for release
+Next: /gsd:audit-milestone → /gsd:complete-milestone
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-20 - Completed 11-02-PLAN.md*
+*Last updated: 2026-01-20 - v2.2 milestone complete*

@@ -23,10 +23,10 @@ Requirements for v2.2 Flexible Upload & Class Bank.
 - [x] **CLASS-02**: Teacher can load a saved class to populate student list
 - [x] **CLASS-03**: Saved classes available across all presentations (same device)
 - [x] **CLASS-04**: Class bank stored in localStorage
-- [ ] **CLASS-05**: Teacher can view all saved classes
-- [ ] **CLASS-06**: Teacher can rename a saved class
-- [ ] **CLASS-07**: Teacher can edit students within a saved class
-- [ ] **CLASS-08**: Teacher can delete a saved class
+- [x] **CLASS-05**: Teacher can view all saved classes
+- [x] **CLASS-06**: Teacher can rename a saved class
+- [x] **CLASS-07**: Teacher can edit students within a saved class
+- [x] **CLASS-08**: Teacher can delete a saved class
 
 ## v2 Requirements
 
@@ -63,10 +63,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLASS-02 | Phase 10 | Complete |
 | CLASS-03 | Phase 10 | Complete |
 | CLASS-04 | Phase 10 | Complete |
-| CLASS-05 | Phase 11 | Pending |
-| CLASS-06 | Phase 11 | Pending |
-| CLASS-07 | Phase 11 | Pending |
-| CLASS-08 | Phase 11 | Pending |
+| CLASS-05 | Phase 11 | Complete |
+| CLASS-06 | Phase 11 | Complete |
+| CLASS-07 | Phase 11 | Complete |
+| CLASS-08 | Phase 11 | Complete |
 
 **Coverage:**
 - v1 requirements: 15 total
@@ -75,4 +75,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-19*
-*Last updated: 2026-01-19 after roadmap creation*
+*Last updated: 2026-01-20 - Phase 11 complete (all v2.2 requirements done)*
