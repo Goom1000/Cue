@@ -3,6 +3,17 @@ import { QuizQuestion } from './geminiService';
 import { GeminiProvider } from './providers/geminiProvider';
 import { ClaudeProvider } from './providers/claudeProvider';
 
+// Generation mode types for multi-source slide generation
+export type GenerationMode = 'fresh' | 'refine' | 'blend';
+
+export interface GenerationInput {
+  lessonText: string;
+  lessonImages?: string[];
+  presentationText?: string;
+  presentationImages?: string[];
+  mode: GenerationMode;
+}
+
 // Error codes for unified error handling across all providers
 export type AIErrorCode =
   | 'RATE_LIMIT'           // 429 - too many requests
@@ -43,7 +54,11 @@ export class AIProviderError extends Error {
 
 // Interface all AI providers must implement
 export interface AIProviderInterface {
-  generateLessonSlides(rawText: string, pageImages?: string[]): Promise<Slide[]>;
+  // Accepts either new GenerationInput or old (string, string[]) signature for backward compatibility
+  generateLessonSlides(
+    inputOrText: GenerationInput | string,
+    pageImages?: string[]
+  ): Promise<Slide[]>;
   generateSlideImage(imagePrompt: string, layout?: string): Promise<string | undefined>;
   generateResourceImage(imagePrompt: string): Promise<string | undefined>;
   generateQuickQuestion(
