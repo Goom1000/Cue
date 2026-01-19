@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 ## Current Position
 
 Phase: 10 - Class Bank Core
-Plan: 1 of 2 complete
-Status: In progress
-Last activity: 2026-01-20 - Completed 10-01-PLAN.md (types + hook + save modal)
+Plan: 2 of 2 complete (Phase complete)
+Status: Phase complete
+Last activity: 2026-01-20 - Completed 10-02-PLAN.md (load dropdown + App.tsx integration)
 
-Progress: [######----] 5/7 v2.2 plans complete
+Progress: [#######---] 6/7 v2.2 plans complete
 
 ## Performance Metrics
 
@@ -24,13 +24,13 @@ Progress: [######----] 5/7 v2.2 plans complete
 - v1.2: 5 plans, 1 day
 - v2.0: 11 plans, 1 day
 - v2.1: 2 plans, 4 hours
-- v2.2: In progress (4 plans, ~15 min)
+- v2.2: In progress (6 plans, ~20 min)
 
 **Project Totals:**
 - Milestones shipped: 5 (v1.0, v1.1, v1.2, v2.0, v2.1)
-- Total phases: 15 completed + 3 planned (v2.2)
-- Total plans: 31
-- Total LOC: ~7,200 TypeScript
+- Total phases: 16 completed + 2 planned (v2.2)
+- Total plans: 32
+- Total LOC: ~7,400 TypeScript
 
 ## Completed Milestones
 
@@ -46,8 +46,8 @@ Progress: [######----] 5/7 v2.2 plans complete
 |-------|------|--------|--------------|
 | 8 | Flexible Upload UI | Complete | UPLOAD-01 to UPLOAD-04 |
 | 9 | AI Adaptation Logic | Complete (3 plans) | UPLOAD-05 to UPLOAD-07 |
-| 10 | Class Bank Core | In progress (1/2) | CLASS-01 to CLASS-04 |
-| 11 | Class Management UI | Blocked by 10 | CLASS-05 to CLASS-08 |
+| 10 | Class Bank Core | Complete (2 plans) | CLASS-01 to CLASS-04 |
+| 11 | Class Management UI | Ready to start | CLASS-05 to CLASS-08 |
 
 ## Accumulated Context
 
@@ -59,6 +59,8 @@ Summary of key v2.2 decisions (Phase 10):
 - CLASS_BANK_KEY constant for localStorage key (consistent with useSettings pattern)
 - Type guard validates every student string in array (prevents corrupted data)
 - window.confirm for duplicate class name confirmation (simple, per context)
+- Save/Load buttons placed before student chips (logical grouping)
+- Clear activeClassName on manual student modification (accurate dirty state tracking)
 
 Summary of key v2.2 decisions (Phase 9):
 - Backward compatible signature (string | GenerationInput) for generateLessonSlides
@@ -91,10 +93,10 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-20
-Stopped at: Completed 10-01-PLAN.md (types + hook + save modal)
+Stopped at: Completed 10-02-PLAN.md (load dropdown + App.tsx integration)
 Resume file: None
-Next: Plan 10-02 (load dropdown + App.tsx integration)
+Next: Phase 11 - Class Management UI
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-20 - Completed 10-01 (Class Bank Foundation)*
+*Last updated: 2026-01-20 - Completed Phase 10 (Class Bank Core)*
