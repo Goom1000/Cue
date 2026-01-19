@@ -20,7 +20,7 @@ Transform PiPi from a personal tool into a shareable application colleagues can 
 - [x] **Phase 1: Settings & API Key UI** - User can configure AI provider and API key
 - [x] **Phase 2: Multi-Provider AI** - App works with Gemini or Claude (OpenAI removed)
 - [x] **Phase 3: Disabled AI State** - Graceful degradation when no API key configured
-- [ ] **Phase 4: Save/Load System** - Export and import presentations as .pipi files
+- [x] **Phase 4: Save/Load System** - Export and import presentations as .pipi files
 - [ ] **Phase 5: GitHub Pages Deployment** - App accessible via public URL
 
 ## Phase Details
@@ -86,9 +86,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 04-01-PLAN.md - File format types and save/load services
-- [ ] 04-02-PLAN.md - Toast variants and auto-save with recovery
-- [ ] 04-03-PLAN.md - UI integration (header buttons, drag-drop, wiring)
+- [x] 04-01-PLAN.md - File format types and save/load services
+- [x] 04-02-PLAN.md - Toast variants and auto-save with recovery
+- [x] 04-03-PLAN.md - UI integration (header buttons, drag-drop, wiring)
 
 ### Phase 5: GitHub Pages Deployment
 **Goal**: App accessible via public URL that colleagues can visit
@@ -113,9 +113,9 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 1. Settings & API Key UI | 2/2 | Complete | 2026-01-19 |
 | 2. Multi-Provider AI | 3/3 | Complete | 2026-01-19 |
 | 3. Disabled AI State | 2/2 | Complete | 2026-01-19 |
-| 4. Save/Load System | 0/3 | In Progress | - |
+| 4. Save/Load System | 3/3 | Complete | 2026-01-19 |
 | 5. GitHub Pages Deployment | 0/? | Not started | - |
 
 ---
 *Roadmap created: 2026-01-19*
-*Last updated: 2026-01-19 - Phase 4 planned (Save/Load System)*
+*Last updated: 2026-01-19 - Phase 4 complete (Save/Load System)*

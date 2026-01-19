@@ -9,14 +9,14 @@ Requirements for shareable presentations milestone.
 
 ### Save/Load
 
-- [ ] **SAVE-01**: User can export current presentation to downloadable `.pipi` file
-- [ ] **SAVE-02**: User can import presentation from `.pipi` file via file picker
-- [ ] **SAVE-03**: User can drag-and-drop `.pipi` file onto app to load
-- [ ] **SAVE-04**: App shows success toast after save completes
-- [ ] **SAVE-05**: App shows error toast with explanation if save/load fails
-- [ ] **SAVE-06**: App warns user if presentation exceeds 50MB before saving
-- [ ] **SAVE-07**: App auto-saves to localStorage for crash recovery
-- [ ] **SAVE-08**: Filename auto-suggests from presentation title
+- [x] **SAVE-01**: User can export current presentation to downloadable `.pipi` file
+- [x] **SAVE-02**: User can import presentation from `.pipi` file via file picker
+- [x] **SAVE-03**: User can drag-and-drop `.pipi` file onto app to load
+- [x] **SAVE-04**: App shows success toast after save completes
+- [x] **SAVE-05**: App shows error toast with explanation if save/load fails
+- [x] **SAVE-06**: App warns user if presentation exceeds 50MB before saving
+- [x] **SAVE-07**: App auto-saves to localStorage for crash recovery
+- [x] **SAVE-08**: Filename auto-suggests from presentation title
 
 ### Settings
 
@@ -92,14 +92,14 @@ Deferred to future release.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SAVE-01 | 4 | Pending |
-| SAVE-02 | 4 | Pending |
-| SAVE-03 | 4 | Pending |
-| SAVE-04 | 4 | Pending |
-| SAVE-05 | 4 | Pending |
-| SAVE-06 | 4 | Pending |
-| SAVE-07 | 4 | Pending |
-| SAVE-08 | 4 | Pending |
+| SAVE-01 | 4 | Complete |
+| SAVE-02 | 4 | Complete |
+| SAVE-03 | 4 | Complete |
+| SAVE-04 | 4 | Complete |
+| SAVE-05 | 4 | Complete |
+| SAVE-06 | 4 | Complete |
+| SAVE-07 | 4 | Complete |
+| SAVE-08 | 4 | Complete |
 | SETT-01 | 1 | Complete |
 | SETT-02 | 1 | Complete |
 | SETT-03 | 1 | Complete |
@@ -133,4 +133,4 @@ Deferred to future release.
 
 ---
 *Requirements defined: 2026-01-19*
-*Last updated: 2026-01-19 — Phase 3 requirements complete (DISB-01 through DISB-05)*
+*Last updated: 2026-01-19 — Phase 4 requirements complete (SAVE-01 through SAVE-08)*
