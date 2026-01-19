@@ -12,6 +12,8 @@ interface ClassBankDropdownProps {
   onLoad: (classData: SavedClass) => void;
   /** Callback when dropdown should close (click outside, escape key) */
   onClose: () => void;
+  /** Callback when user clicks "Manage Classes..." */
+  onManage: () => void;
 }
 
 // ============================================================================
@@ -34,6 +36,7 @@ const ClassBankDropdown: React.FC<ClassBankDropdownProps> = ({
   classes,
   onLoad,
   onClose,
+  onManage,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -82,23 +85,50 @@ const ClassBankDropdown: React.FC<ClassBankDropdownProps> = ({
           </p>
         </div>
       ) : (
-        <div className="max-h-64 overflow-y-auto">
-          {classes.map((classData) => (
+        <>
+          <div className="max-h-64 overflow-y-auto">
+            {classes.map((classData) => (
+              <button
+                key={classData.id}
+                onClick={() => onLoad(classData)}
+                className="w-full px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center justify-between group"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-slate-700 dark:text-white truncate">
+                    {classData.name}
+                  </p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">
+                    {classData.students.length} student{classData.students.length !== 1 ? 's' : ''}
+                  </p>
+                </div>
+                <svg
+                  className="w-4 h-4 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 dark:group-hover:text-amber-400 transition-colors shrink-0 ml-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+            ))}
+          </div>
+
+          {/* Manage Classes Footer */}
+          <div className="border-t border-slate-100 dark:border-slate-700">
             <button
-              key={classData.id}
-              onClick={() => onLoad(classData)}
-              className="w-full px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center justify-between group"
+              onClick={() => {
+                onManage();
+                onClose();
+              }}
+              className="w-full px-4 py-2.5 text-left hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2 group"
             >
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-slate-700 dark:text-white truncate">
-                  {classData.name}
-                </p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">
-                  {classData.students.length} student{classData.students.length !== 1 ? 's' : ''}
-                </p>
-              </div>
               <svg
-                className="w-4 h-4 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 dark:group-hover:text-amber-400 transition-colors shrink-0 ml-2"
+                className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-indigo-500 dark:group-hover:text-amber-400 transition-colors"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -107,12 +137,21 @@ const ClassBankDropdown: React.FC<ClassBankDropdownProps> = ({
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M9 5l7 7-7 7"
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.573-1.066z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                 />
               </svg>
+              <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-amber-400 transition-colors">
+                Manage Classes...
+              </span>
             </button>
-          ))}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );
