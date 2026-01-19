@@ -254,12 +254,19 @@ function App() {
       return;
     }
 
-    if (!lessonText.trim() && pageImages.length === 0) return;
+    // Validation: need at least one input source
+    const hasLessonContent = lessonText.trim() || pageImages.length > 0;
+    const hasPptContent = existingPptImages.length > 0;
+
+    if (!hasLessonContent && !hasPptContent) return;
+
     setIsGenerating(true);
     setAppState(AppState.PROCESSING_TEXT);
     setError(null);
 
     try {
+      // Phase 8: Pass existing behavior for lesson content
+      // Phase 9 will differentiate by uploadMode and use existingPptImages/existingPptText
       const generatedSlides = await provider.generateLessonSlides(lessonText, pageImages);
       setSlides(generatedSlides);
       setLessonTitle(generatedSlides[0]?.title || "New Lesson");
