@@ -68,6 +68,12 @@ Plans:
 
 **Requirements:** CLASS-01, CLASS-02, CLASS-03, CLASS-04
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 10-01-PLAN.md - Types, useClassBank hook, and save modal
+- [ ] 10-02-PLAN.md - Load dropdown, App.tsx integration, and verification
+
 **Success Criteria:**
 1. Teacher can save current student list with a custom name (e.g., "Period 1 Math")
 2. Teacher can load a saved class to instantly populate the student list
@@ -98,7 +104,7 @@ Plans:
 |-------|------|--------|-------|
 | 8 | Flexible Upload UI | ✓ Complete | 1 |
 | 9 | AI Adaptation Logic | ✓ Complete | 3 |
-| 10 | Class Bank Core | Ready | 0 |
+| 10 | Class Bank Core | Planned | 2 |
 | 11 | Class Management UI | Not Started | 0 |
 
 ---
