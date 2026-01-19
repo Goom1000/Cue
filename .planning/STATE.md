@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 
 ## Current Position
 
-Phase: 9 - AI Adaptation Logic
-Plan: 3 of 3 complete (Phase 9 COMPLETE)
-Status: Phase 9 complete, ready for Phase 10
-Last activity: 2026-01-20 - Completed 09-03-PLAN.md (App.tsx wiring + prompt fix)
+Phase: 10 - Class Bank Core
+Plan: 1 of 2 complete
+Status: In progress
+Last activity: 2026-01-20 - Completed 10-01-PLAN.md (types + hook + save modal)
 
-Progress: [######----] 4/6 v2.2 plans complete
+Progress: [######----] 5/7 v2.2 plans complete
 
 ## Performance Metrics
 
@@ -46,7 +46,7 @@ Progress: [######----] 4/6 v2.2 plans complete
 |-------|------|--------|--------------|
 | 8 | Flexible Upload UI | Complete | UPLOAD-01 to UPLOAD-04 |
 | 9 | AI Adaptation Logic | Complete (3 plans) | UPLOAD-05 to UPLOAD-07 |
-| 10 | Class Bank Core | Ready | CLASS-01 to CLASS-04 |
+| 10 | Class Bank Core | In progress (1/2) | CLASS-01 to CLASS-04 |
 | 11 | Class Management UI | Blocked by 10 | CLASS-05 to CLASS-08 |
 
 ## Accumulated Context
@@ -54,6 +54,11 @@ Progress: [######----] 4/6 v2.2 plans complete
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+
+Summary of key v2.2 decisions (Phase 10):
+- CLASS_BANK_KEY constant for localStorage key (consistent with useSettings pattern)
+- Type guard validates every student string in array (prevents corrupted data)
+- window.confirm for duplicate class name confirmation (simple, per context)
 
 Summary of key v2.2 decisions (Phase 9):
 - Backward compatible signature (string | GenerationInput) for generateLessonSlides
@@ -86,10 +91,10 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-20
-Stopped at: Completed 09-03-PLAN.md (Phase 9 complete)
+Stopped at: Completed 10-01-PLAN.md (types + hook + save modal)
 Resume file: None
-Next: Phase 10 (Class Bank Core)
+Next: Plan 10-02 (load dropdown + App.tsx integration)
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-20 - Completed Phase 9 (AI Adaptation Logic)*
+*Last updated: 2026-01-20 - Completed 10-01 (Class Bank Foundation)*
