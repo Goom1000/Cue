@@ -19,6 +19,11 @@ This milestone adds two independent feature sets: flexible PDF upload (lesson pl
 
 **Requirements:** UPLOAD-01, UPLOAD-02, UPLOAD-03, UPLOAD-04
 
+**Plans:** 1 plan
+
+Plans:
+- [ ] 08-01-PLAN.md - Dual upload zones, state management, mode indicator
+
 **Success Criteria:**
 1. Landing page shows two upload zones: "Lesson Plan PDF" and "Existing Presentation (PDF)"
 2. Teacher can upload lesson PDF only and proceed to generation (current behavior preserved)
@@ -80,7 +85,7 @@ This milestone adds two independent feature sets: flexible PDF upload (lesson pl
 
 | Phase | Name | Status | Plans |
 |-------|------|--------|-------|
-| 8 | Flexible Upload UI | Not Started | 0 |
+| 8 | Flexible Upload UI | Planned | 1 |
 | 9 | AI Adaptation Logic | Not Started | 0 |
 | 10 | Class Bank Core | Not Started | 0 |
 | 11 | Class Management UI | Not Started | 0 |
