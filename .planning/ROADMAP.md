@@ -92,6 +92,12 @@ Plans:
 
 **Requirements:** CLASS-05, CLASS-06, CLASS-07, CLASS-08
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 11-01-PLAN.md - Hook extension (renameClass, updateClassStudents) and Toast with action button
+- [ ] 11-02-PLAN.md - ClassManagementModal component and App.tsx integration
+
 **Success Criteria:**
 1. Teacher can view a list of all saved classes with student counts
 2. Teacher can rename any saved class
@@ -107,8 +113,8 @@ Plans:
 | 8 | Flexible Upload UI | ✓ Complete | 1 |
 | 9 | AI Adaptation Logic | ✓ Complete | 3 |
 | 10 | Class Bank Core | ✓ Complete | 2 |
-| 11 | Class Management UI | Not Started | 0 |
+| 11 | Class Management UI | Planned | 2 |
 
 ---
 *Roadmap created: 2026-01-19*
-*Last updated: 2026-01-20 - Phase 10 complete*
+*Last updated: 2026-01-20 - Phase 11 planned*
