@@ -41,10 +41,10 @@ Plans:
   1. Header displays PNG logo instead of "L" icon and "LessonLens" text
   2. Browser tab shows "PiPi" as page title
   3. ResourceHub footer/watermark shows "PiPi" instead of "LessonLens"
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 07-01: Replace LessonLens branding with PiPi
+- [ ] 07-01-PLAN.md - Replace LessonLens branding with PiPi identity
 
 ## Progress
 
@@ -54,8 +54,8 @@ Phase 6 -> Phase 7
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 6. Landing Page | v2.1 | 1/1 | Complete | 2026-01-19 |
-| 7. Branding | v2.1 | 0/TBD | Not started | - |
+| 7. Branding | v2.1 | 0/1 | Not started | - |
 
 ---
 *Roadmap created: 2026-01-19*
-*Last updated: 2026-01-19 — Phase 6 complete*
+*Last updated: 2026-01-19 — Phase 7 planned*
