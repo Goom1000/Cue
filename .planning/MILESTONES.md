@@ -1,5 +1,33 @@
 # Project Milestones: PiPi
 
+## v2.1 Landing Page & Branding (Shipped: 2026-01-19)
+
+**Delivered:** Added landing page entry point for existing presentations (Load button + drag-drop) and rebranded the app from LessonLens to PiPi with styled text header, illustrated logo, and dark mode default.
+
+**Phases completed:** 6-7 (2 plans total)
+
+**Key accomplishments:**
+
+- "Load Presentation" button on landing page alongside PDF upload
+- Drag-and-drop .pipi files on landing page for instant loading
+- Styled "PiPi" header branding with whiteboard icon (violet/amber theme)
+- Illustrated landing page logo with whiteboard screen and PiPi text
+- Dark mode as default theme, subtle violet tint in light mode
+- Browser tab title, favicon, and ResourceHub watermark updated to PiPi
+
+**Stats:**
+
+- 18 files created/modified
+- 6,993 lines of TypeScript (project total)
+- 2 phases, 2 plans
+- Same day (2026-01-19, ~4 hours)
+
+**Git range:** `feat(06-01)` → `docs(07)`
+
+**What's next:** TBD with /gsd:new-milestone
+
+---
+
 ## v2.0 Shareable Presentations (Shipped: 2026-01-19)
 
 **Delivered:** Transformed PiPi from a personal tool into a shareable application with save/load functionality, multi-provider AI support (Gemini/Claude), and public deployment to GitHub Pages.

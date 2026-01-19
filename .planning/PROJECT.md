@@ -4,7 +4,7 @@
 
 A presentation tool for teachers that transforms PDF lesson plans into interactive slideshows with AI-generated content, a teleprompter script for the teacher, and progressive bullet reveal. Teachers upload their existing lesson plans, select student age/grade level, and the AI creates an engaging presentation with speaker notes that guide the teacher through natural, conversational delivery.
 
-**v2.0 shipped:** Shareable app deployed to GitHub Pages with save/load functionality and multi-provider AI support (Gemini/Claude). Colleagues can use presentations you create by loading .pipi files and configuring their own API keys.
+**v2.1 shipped:** Added landing page entry point for existing .pipi files (Load button + drag-drop), rebranded from LessonLens to PiPi with styled header, illustrated logo, and dark mode default.
 
 ## Core Value
 
@@ -51,18 +51,16 @@ Students see only the presentation; teachers see the presentation plus a telepro
 - ✓ Provider setup instructions with cost information — v2.0
 - ✓ GitHub Pages deployment (auto-deploy on push) — v2.0
 - ✓ Auto-save to localStorage with crash recovery — v2.0
+- ✓ "Load Presentation" button on landing page alongside PDF upload — v2.1
+- ✓ Drag-and-drop .pipi files on landing page → auto-loads to editor — v2.1
+- ✓ PiPi branding (styled header, browser tab, favicon, watermark) — v2.1
+- ✓ Dark mode as default theme — v2.1
 
 ### Active
 
-**v2.1 Landing Page & Branding**
+(None — ready for next milestone)
 
-- [ ] "Load Presentation" button on landing page alongside PDF upload
-- [ ] Drag-and-drop .pipi files on landing page → auto-loads to editor
-- [ ] Replace LessonLens branding with PiPi logo (PNG)
-- [ ] Update browser tab title to "PiPi"
-- [ ] Update footer/watermark from "LessonLens" to "PiPi"
-
-### Deferred (v2.1+)
+### Deferred (v2.2+)
 
 - [ ] Elapsed time display showing presentation duration
 - [ ] Fullscreen recovery (auto re-enter if exited)
@@ -88,17 +86,18 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Current State
 
-Shipped v2.0 with 6,956 LOC TypeScript.
+Shipped v2.1 with 6,993 LOC TypeScript.
 Tech stack: React 19, Vite, Gemini/Claude API, Tailwind CSS, react-rnd.
 Client-side only (no backend).
 Deployed at: https://goom1000.github.io/PiPi/
 
-v2.0 delivered shareable presentations:
-- Settings panel with provider dropdown, API key management, and setup instructions
-- Multi-provider AI (Gemini + Claude) with strategy pattern abstraction
-- Graceful AI degradation with lock icons and EnableAIModal
-- Save/load system with .pipi files, drag-drop, and auto-save
-- GitHub Pages deployment with automatic CI/CD
+v2.1 delivered Landing Page & Branding:
+- "Load Presentation" button on landing page for existing .pipi files
+- Drag-and-drop .pipi files on landing page → auto-loads
+- Styled "PiPi" header with whiteboard icon (violet/amber theme)
+- Illustrated landing page logo
+- Dark mode as default, subtle violet light mode background
+- Browser tab, favicon, and ResourceHub watermark updated
 
 ### Technical Environment
 
@@ -144,6 +143,9 @@ v2.0 delivered shareable presentations:
 | JSON pretty-print for .pipi | Human-readable file format | ✓ Good — v2.0 |
 | 30s auto-save interval | Balances safety with performance | ✓ Good — v2.0 |
 | GitHub Actions v4 | Stable action version, v6 doesn't exist | ✓ Good — v2.0 |
+| Load button left of Generate | Secondary action left, primary right | ✓ Good — v2.1 |
+| Styled text header branding | Better theming than logo image | ✓ Good — v2.1 |
+| Dark mode default | Better visual experience for new users | ✓ Good — v2.1 |
 
 ---
-*Last updated: 2026-01-19 after v2.1 milestone definition*
+*Last updated: 2026-01-19 after v2.1 milestone*
