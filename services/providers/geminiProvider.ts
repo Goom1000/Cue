@@ -1,4 +1,4 @@
-import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES } from '../aiProvider';
+import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES, GenerationInput } from '../aiProvider';
 import { Slide, LessonResource } from '../../types';
 import {
   QuizQuestion,
@@ -22,9 +22,12 @@ export class GeminiProvider implements AIProviderInterface {
   constructor(private apiKey: string) {}
 
 
-  async generateLessonSlides(rawText: string, pageImages?: string[]): Promise<Slide[]> {
+  async generateLessonSlides(
+    inputOrText: GenerationInput | string,
+    pageImages?: string[]
+  ): Promise<Slide[]> {
     try {
-      return await geminiGenerateLessonSlides(this.apiKey, rawText, pageImages || []);
+      return await geminiGenerateLessonSlides(this.apiKey, inputOrText, pageImages || []);
     } catch (error) {
       throw this.wrapError(error);
     }
