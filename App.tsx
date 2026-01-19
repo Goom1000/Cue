@@ -623,33 +623,16 @@ function App() {
             <div className="max-w-4xl mx-auto">
               {/* Landing Page Logo */}
               <div className="flex flex-col items-center mb-8 animate-fade-in">
-                <svg className="w-48 h-32 text-violet-600 dark:text-amber-400" viewBox="0 0 200 120" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  {/* Tablet (left) */}
-                  <rect x="20" y="15" width="50" height="65" rx="4" />
-                  {/* Tablet screen content - image/mountain */}
-                  <rect x="26" y="22" width="38" height="28" rx="2" strokeWidth="1.5" />
-                  <path d="M26 42 L36 32 L44 40 L52 30 L64 42" strokeWidth="1.5" fill="none" />
-                  <circle cx="56" cy="28" r="3" strokeWidth="1.5" />
-                  {/* Tablet text lines */}
-                  <line x1="26" y1="56" x2="50" y2="56" strokeWidth="1.5" />
-                  <line x1="26" y1="62" x2="44" y2="62" strokeWidth="1.5" />
-                  <line x1="26" y1="68" x2="48" y2="68" strokeWidth="1.5" />
-
-                  {/* Monitor (right) */}
-                  <rect x="90" y="10" width="90" height="60" rx="4" />
-                  {/* Monitor screen content */}
-                  <rect x="98" y="18" width="35" height="22" rx="2" strokeWidth="1.5" />
-                  {/* Play button in video area */}
-                  <polygon points="110,25 110,35 120,30" strokeWidth="1.5" fill="currentColor" />
-                  {/* Monitor text lines */}
-                  <line x1="140" y1="22" x2="170" y2="22" strokeWidth="1.5" />
-                  <line x1="140" y1="28" x2="165" y2="28" strokeWidth="1.5" />
-                  <line x1="140" y1="34" x2="168" y2="34" strokeWidth="1.5" />
-                  <line x1="98" y1="48" x2="170" y2="48" strokeWidth="1.5" />
-                  <line x1="98" y1="56" x2="160" y2="56" strokeWidth="1.5" />
-                  {/* Monitor stand */}
-                  <line x1="135" y1="70" x2="135" y2="82" />
-                  <line x1="115" y1="82" x2="155" y2="82" />
+                <svg className="w-24 h-24 text-violet-600 dark:text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  {/* Screen frame */}
+                  <rect x="2" y="3" width="20" height="14" rx="2" />
+                  {/* Content lines */}
+                  <line x1="6" y1="7" x2="10" y2="7" />
+                  <line x1="6" y1="10" x2="14" y2="10" />
+                  <line x1="6" y1="13" x2="11" y2="13" />
+                  {/* Stand */}
+                  <line x1="12" y1="17" x2="12" y2="21" />
+                  <line x1="8" y1="21" x2="16" y2="21" />
                 </svg>
                 <h2 className="font-fredoka text-4xl font-bold text-violet-600 dark:text-amber-400 mt-2">PiPi</h2>
               </div>
