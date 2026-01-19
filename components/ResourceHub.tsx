@@ -157,7 +157,7 @@ const ResourceHub: React.FC<ResourceHubProps> = ({ lessonText, slideContext, onC
 
              <!-- Footer -->
              <div class="mt-12 pt-6 border-t-2 border-dashed border-slate-200 flex justify-between text-xs text-slate-400 font-bold uppercase tracking-widest">
-                <span>Created with LessonLens</span>
+                <span>Created with PiPi</span>
                 <span>Date: ________________</span>
              </div>
           </div>
@@ -373,7 +373,7 @@ const ResourceHub: React.FC<ResourceHubProps> = ({ lessonText, slideContext, onC
                         {/* Footer */}
                          <div className="mt-16 pt-8 border-t-2 border-dashed border-slate-100 flex justify-between text-[10px] text-slate-400 font-bold uppercase tracking-widest">
                             <span>Teacher Resource • {new Date().getFullYear()}</span>
-                            <span>LessonLens</span>
+                            <span>PiPi</span>
                          </div>
                     </div>
                 ) : (

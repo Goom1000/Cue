@@ -521,9 +521,12 @@ function App() {
     <div className="h-screen bg-slate-50 dark:bg-slate-950 font-poppins flex flex-col overflow-hidden text-slate-800 dark:text-slate-200 transition-colors duration-300">
       {/* GLOBAL HEADER */}
       <header className="h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6 shrink-0 z-50 shadow-sm relative transition-colors duration-300">
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setAppState(AppState.INPUT)}>
-          <div className="w-8 h-8 bg-indigo-600 dark:bg-amber-500 rounded-lg flex items-center justify-center text-white dark:text-slate-900 font-fredoka font-bold text-lg shadow-md shadow-indigo-900/10 dark:shadow-amber-500/20">L</div>
-          <h1 className="font-fredoka text-xl font-bold text-slate-800 dark:text-white tracking-tight">LessonLens</h1>
+        <div className="flex items-center gap-3">
+          <img
+            src="/PiPi/logo.png"
+            alt="PiPi"
+            className="h-8 w-auto mix-blend-multiply dark:mix-blend-normal"
+          />
         </div>
         
         <div className="flex items-center gap-4">
