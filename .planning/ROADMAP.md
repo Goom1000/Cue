@@ -43,6 +43,13 @@ Plans:
 
 **Requirements:** UPLOAD-05, UPLOAD-06, UPLOAD-07
 
+**Plans:** 3 plans
+
+Plans:
+- [ ] 09-01-PLAN.md - Types and Claude provider mode-specific prompts
+- [ ] 09-02-PLAN.md - Gemini service and provider mode-specific prompts
+- [ ] 09-03-PLAN.md - App.tsx integration and end-to-end verification
+
 **Success Criteria:**
 1. When existing presentation only: AI produces less text-dense slides with proper structure (refine mode)
 2. When both files provided: AI uses lesson content to enhance existing slides (blend mode)
@@ -88,7 +95,7 @@ Plans:
 | Phase | Name | Status | Plans |
 |-------|------|--------|-------|
 | 8 | Flexible Upload UI | ✓ Complete | 1 |
-| 9 | AI Adaptation Logic | Not Started | 0 |
+| 9 | AI Adaptation Logic | Ready | 3 |
 | 10 | Class Bank Core | Not Started | 0 |
 | 11 | Class Management UI | Not Started | 0 |
 
