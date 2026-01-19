@@ -11,7 +11,7 @@ This milestone adds two independent feature sets: flexible PDF upload (lesson pl
 
 ---
 
-## Phase 8: Flexible Upload UI
+## Phase 8: Flexible Upload UI ✓
 
 **Goal:** Teachers can upload lesson PDFs, existing presentations (as PDF), or both from the landing page.
 
@@ -22,7 +22,9 @@ This milestone adds two independent feature sets: flexible PDF upload (lesson pl
 **Plans:** 1 plan
 
 Plans:
-- [ ] 08-01-PLAN.md - Dual upload zones, state management, mode indicator
+- [x] 08-01-PLAN.md - Dual upload zones, state management, mode indicator
+
+**Completed:** 2026-01-19
 
 **Success Criteria:**
 1. Landing page shows two upload zones: "Lesson Plan PDF" and "Existing Presentation (PDF)"
@@ -85,7 +87,7 @@ Plans:
 
 | Phase | Name | Status | Plans |
 |-------|------|--------|-------|
-| 8 | Flexible Upload UI | Planned | 1 |
+| 8 | Flexible Upload UI | ✓ Complete | 1 |
 | 9 | AI Adaptation Logic | Not Started | 0 |
 | 10 | Class Bank Core | Not Started | 0 |
 | 11 | Class Management UI | Not Started | 0 |

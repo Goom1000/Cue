@@ -9,10 +9,10 @@ Requirements for v2.2 Flexible Upload & Class Bank.
 
 ### Flexible Upload
 
-- [ ] **UPLOAD-01**: Landing page shows option to upload existing presentation (as PDF)
-- [ ] **UPLOAD-02**: Teacher can upload lesson PDF only (generates fresh slides)
-- [ ] **UPLOAD-03**: Teacher can upload existing PPT (as PDF) only (AI refines it)
-- [ ] **UPLOAD-04**: Teacher can upload both lesson PDF and existing PPT together
+- [x] **UPLOAD-01**: Landing page shows option to upload existing presentation (as PDF)
+- [x] **UPLOAD-02**: Teacher can upload lesson PDF only (generates fresh slides)
+- [x] **UPLOAD-03**: Teacher can upload existing PPT (as PDF) only (AI refines it)
+- [x] **UPLOAD-04**: Teacher can upload both lesson PDF and existing PPT together
 - [ ] **UPLOAD-05**: AI refines existing slides to PiPi format (less text-dense, proper structure)
 - [ ] **UPLOAD-06**: AI uses lesson content to improve existing slides when both provided
 - [ ] **UPLOAD-07**: AI preserves teacher's style/preferences when adapting
@@ -52,10 +52,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UPLOAD-01 | Phase 8 | Pending |
-| UPLOAD-02 | Phase 8 | Pending |
-| UPLOAD-03 | Phase 8 | Pending |
-| UPLOAD-04 | Phase 8 | Pending |
+| UPLOAD-01 | Phase 8 | Complete |
+| UPLOAD-02 | Phase 8 | Complete |
+| UPLOAD-03 | Phase 8 | Complete |
+| UPLOAD-04 | Phase 8 | Complete |
 | UPLOAD-05 | Phase 9 | Pending |
 | UPLOAD-06 | Phase 9 | Pending |
 | UPLOAD-07 | Phase 9 | Pending |
