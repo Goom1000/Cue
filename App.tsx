@@ -1,8 +1,9 @@
 
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { Slide, AppState } from './types';
+import { Slide, AppState, SavedClass } from './types';
 import { createAIProvider, AIProviderError, AIProviderInterface, GenerationInput, GenerationMode } from './services/aiProvider';
 import { useSettings } from './hooks/useSettings';
+import { useClassBank } from './hooks/useClassBank';
 import { exportToPowerPoint } from './services/pptxService';
 import { createPiPiFile, downloadPresentation, checkFileSize } from './services/saveService';
 import { readPiPiFile } from './services/loadService';
@@ -15,6 +16,8 @@ import ResourceHub from './components/ResourceHub';
 import SettingsModal from './components/SettingsModal';
 import EnableAIModal from './components/EnableAIModal';
 import RecoveryModal from './components/RecoveryModal';
+import ClassBankSaveModal from './components/ClassBankSaveModal';
+import ClassBankDropdown from './components/ClassBankDropdown';
 import { useToast, ToastContainer } from './components/Toast';
 import useHashRoute from './hooks/useHashRoute';
 import StudentView from './components/StudentView';
@@ -135,6 +138,12 @@ function App() {
   const [autoGenerateImages, setAutoGenerateImages] = useState(true);
   const [studentNames, setStudentNames] = useState<string[]>([]);
   const [nameInput, setNameInput] = useState('');
+
+  // Class Bank state
+  const { classes, saveClass } = useClassBank();
+  const [showSaveClassModal, setShowSaveClassModal] = useState(false);
+  const [showLoadDropdown, setShowLoadDropdown] = useState(false);
+  const [activeClassName, setActiveClassName] = useState<string | null>(null);
 
   // PDF handling state - Lesson Plan
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -400,6 +409,31 @@ function App() {
     const names = nameInput.split(/[,|\n]/).map(n => n.trim()).filter(n => n !== '');
     setStudentNames(prev => Array.from(new Set([...prev, ...names])));
     setNameInput('');
+    setActiveClassName(null); // Clear active class when manually modifying students
+  };
+
+  // ============================================================================
+  // Class Bank handlers
+  // ============================================================================
+
+  const handleSaveClassBank = (name: string) => {
+    saveClass(name, studentNames);
+    setShowSaveClassModal(false);
+    addToast('Class saved!', 3000, 'success');
+  };
+
+  const handleLoadClassBank = (classData: SavedClass) => {
+    // Check if current students are "dirty" (not from a loaded class)
+    const hasUnsavedStudents = studentNames.length > 0 && activeClassName === null;
+    if (hasUnsavedStudents) {
+      if (!window.confirm('You have students not saved. Load anyway?')) {
+        return;
+      }
+    }
+    setStudentNames(classData.students);
+    setActiveClassName(classData.name);
+    setShowLoadDropdown(false);
+    addToast(`Loaded ${classData.name}`, 3000, 'success');
   };
 
   const startPresentation = (fromIndex: number) => {
@@ -943,12 +977,68 @@ function App() {
 
                 <div className="h-8 w-px bg-slate-100 dark:bg-slate-800 shrink-0"></div>
 
+                {/* Class Bank Controls */}
+                <div className="flex items-center gap-1 shrink-0 relative">
+                  {/* Save Button */}
+                  <button
+                    onClick={() => setShowSaveClassModal(true)}
+                    disabled={studentNames.length === 0}
+                    title={studentNames.length === 0 ? 'Add students first' : 'Save class'}
+                    className="p-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors text-slate-600 dark:text-slate-400"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                    </svg>
+                  </button>
+
+                  {/* Load Button */}
+                  <button
+                    onClick={() => setShowLoadDropdown(!showLoadDropdown)}
+                    disabled={classes.length === 0}
+                    title={classes.length === 0 ? 'No saved classes' : 'Load class'}
+                    className="p-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors text-slate-600 dark:text-slate-400"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
+                    </svg>
+                  </button>
+
+                  {/* Load Dropdown */}
+                  {showLoadDropdown && (
+                    <ClassBankDropdown
+                      classes={classes}
+                      onLoad={handleLoadClassBank}
+                      onClose={() => setShowLoadDropdown(false)}
+                    />
+                  )}
+                </div>
+
+                <div className="h-8 w-px bg-slate-100 dark:bg-slate-800 shrink-0"></div>
+
+                {/* Active Class Indicator */}
+                {activeClassName && (
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="text-[10px] bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full font-medium">
+                      {activeClassName}
+                    </span>
+                    <button
+                      onClick={() => setActiveClassName(null)}
+                      className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                      title="Clear active class"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-2 overflow-x-auto py-2 no-scrollbar">
                     {studentNames.map(name => (
                         <div key={name} className="flex items-center gap-2 bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-amber-400 px-3 py-1 rounded-lg text-[10px] font-bold border border-indigo-100 dark:border-amber-500/20 whitespace-nowrap group">
                             {name}
-                            <button 
-                                onClick={() => setStudentNames(prev => prev.filter(n => n !== name))}
+                            <button
+                                onClick={() => { setStudentNames(prev => prev.filter(n => n !== name)); setActiveClassName(null); }}
                                 className="text-indigo-300 dark:text-amber-600 hover:text-red-500 transition-colors"
                             >
                                 <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -1161,6 +1251,15 @@ function App() {
           savedTimestamp={recoveryTimestamp}
           onRestore={handleRecoveryRestore}
           onDiscard={handleRecoveryDiscard}
+        />
+      )}
+
+      {/* Class Bank Save Modal */}
+      {showSaveClassModal && (
+        <ClassBankSaveModal
+          onSave={handleSaveClassBank}
+          onClose={() => setShowSaveClassModal(false)}
+          existingNames={classes.map(c => c.name)}
         />
       )}
 
