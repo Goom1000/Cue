@@ -14,7 +14,7 @@ v2.1 adds two user-facing improvements: a landing page that accepts .pipi files 
 
 ## Phases
 
-- [ ] **Phase 6: Landing Page** - Load existing presentations from the landing page
+- [x] **Phase 6: Landing Page** - Load existing presentations from the landing page
 - [ ] **Phase 7: Branding** - Replace LessonLens branding with PiPi identity
 
 ## Phase Details
@@ -31,7 +31,7 @@ v2.1 adds two user-facing improvements: a landing page that accepts .pipi files 
 **Plans**: 1 plan
 
 Plans:
-- [ ] 06-01-PLAN.md - Add Load button and drag-drop hint to landing page
+- [x] 06-01-PLAN.md - Add Load button and drag-drop hint to landing page
 
 ### Phase 7: Branding
 **Goal**: App displays PiPi branding consistently throughout all UI elements
@@ -53,9 +53,9 @@ Phase 6 -> Phase 7
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 6. Landing Page | v2.1 | 0/1 | Planned | - |
+| 6. Landing Page | v2.1 | 1/1 | Complete | 2026-01-19 |
 | 7. Branding | v2.1 | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-01-19*
-*Last updated: 2026-01-19*
+*Last updated: 2026-01-19 — Phase 6 complete*

@@ -9,9 +9,9 @@ Requirements for v2.1 Landing Page & Branding milestone.
 
 ### Landing Page
 
-- [ ] **LAND-01**: User can click "Load Presentation" button on landing page to open .pipi file
-- [ ] **LAND-02**: User can drag .pipi file onto landing page to auto-load presentation
-- [ ] **LAND-03**: Loading a .pipi file from landing page transitions directly to editor
+- [x] **LAND-01**: User can click "Load Presentation" button on landing page to open .pipi file
+- [x] **LAND-02**: User can drag .pipi file onto landing page to auto-load presentation
+- [x] **LAND-03**: Loading a .pipi file from landing page transitions directly to editor
 
 ### Branding
 
@@ -53,9 +53,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LAND-01 | Phase 6 | Pending |
-| LAND-02 | Phase 6 | Pending |
-| LAND-03 | Phase 6 | Pending |
+| LAND-01 | Phase 6 | Complete |
+| LAND-02 | Phase 6 | Complete |
+| LAND-03 | Phase 6 | Complete |
 | BRND-01 | Phase 7 | Pending |
 | BRND-02 | Phase 7 | Pending |
 | BRND-03 | Phase 7 | Pending |
@@ -67,4 +67,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-19*
-*Last updated: 2026-01-19 — v2.1 roadmap phase mapping*
+*Last updated: 2026-01-19 — Phase 6 complete*
