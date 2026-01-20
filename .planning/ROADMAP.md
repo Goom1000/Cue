@@ -43,10 +43,10 @@ Plans:
   1. When AI service fails (network error, rate limit), user sees friendly error message instead of app crash
   2. When AI returns malformed JSON, user sees parse error message with option to retry
   3. Error messages are specific enough for user to understand what went wrong
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 13-01: TBD
+- [ ] 13-01-PLAN.md — Add error handling to reviseSlide with retry logic and toast notifications
 
 ### Phase 14: Game Sync
 **Goal**: Students see game activity when teacher opens quiz/game mode
@@ -67,7 +67,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 12. CSS Layout Fixes | v2.3 | 1/1 | Complete | 2026-01-20 |
-| 13. AI Error Handling | v2.3 | 0/TBD | Not started | - |
+| 13. AI Error Handling | v2.3 | 0/1 | Planned | - |
 | 14. Game Sync | v2.3 | 0/TBD | Not started | - |
 
 ---
