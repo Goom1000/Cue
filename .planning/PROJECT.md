@@ -6,6 +6,18 @@ A presentation tool for teachers that transforms PDF lesson plans into interacti
 
 **v2.3 shipped:** Fixed critical bugs affecting presentation experience: flowchart layout, teacher view slide display, AI revision error handling, and game activity syncing to student view.
 
+## Current Milestone: v2.4 Targeted Questioning
+
+**Goal:** Enable teachers to call on specific students by ability level with AI-generated questions that show answers in the teleprompter.
+
+**Target features:**
+- Answer display in teleprompter (question + expected answer)
+- Student grade assignment (A/B/C/D/E levels) stored in class bank
+- 5 difficulty buttons (A through E) in teleprompter
+- Manual vs Targeted mode toggle
+- Student cycling with randomized order (overlay banner on student view)
+- Infinite cycling with reshuffle when all students at level have been asked
+
 ## Core Value
 
 Students see only the presentation; teachers see the presentation plus a teleprompter script that lets them sound knowledgeable and natural without reading slides verbatim.
@@ -70,7 +82,13 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Active
 
-(None — planning next milestone)
+- [ ] Question + answer display in teleprompter
+- [ ] Student grade level assignment (A/B/C/D/E) in class bank
+- [ ] 5 difficulty buttons (A through E) in teleprompter
+- [ ] Manual vs Targeted questioning mode toggle
+- [ ] Student cycling with randomized order per grade level
+- [ ] Student name overlay banner on student view
+- [ ] Infinite randomized cycling (reshuffle when all asked)
 
 ### Deferred (v2.4+)
 
@@ -174,4 +192,4 @@ v2.3 delivered Bug Fixes:
 | Ref-based game tracking | Prevent spurious GAME_CLOSE on mount when gameState is initially null | ✓ Good — v2.3 |
 
 ---
-*Last updated: 2026-01-21 after v2.3 milestone*
+*Last updated: 2026-01-21 after v2.4 milestone start*
