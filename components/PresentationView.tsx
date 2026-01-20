@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Slide, PresentationMessage, BROADCAST_CHANNEL_NAME } from '../types';
+import { Slide, PresentationMessage, BROADCAST_CHANNEL_NAME, GameSyncState } from '../types';
 import Button from './Button';
 import { MarkdownText, SlideContentRenderer } from './SlideRenderers';
 import { QuizQuestion } from '../services/geminiService';
@@ -22,12 +22,31 @@ const QuizOverlay: React.FC<{
     provider: AIProviderInterface | null;
     onError: (title: string, message: string) => void;
     onRequestAI: (featureName: string) => void;
-}> = ({ slides, currentIndex, onClose, provider, onError, onRequestAI }) => {
+    onGameStateChange: (state: GameSyncState | null) => void;
+}> = ({ slides, currentIndex, onClose, provider, onError, onRequestAI, onGameStateChange }) => {
     const [mode, setMode] = useState<'setup' | 'loading' | 'play' | 'summary'>('setup');
     const [numQuestions, setNumQuestions] = useState(4);
     const [questions, setQuestions] = useState<QuizQuestion[]>([]);
     const [qIndex, setQIndex] = useState(0);
     const [reveal, setReveal] = useState(false);
+
+    // Report game state changes to parent for broadcast
+    useEffect(() => {
+        // Only report syncable modes (not 'setup' which is teacher-only)
+        if (mode === 'loading' || mode === 'play' || mode === 'summary') {
+            onGameStateChange({
+                mode,
+                questions,
+                currentQuestionIndex: qIndex,
+                isAnswerRevealed: reveal
+            });
+        }
+    }, [mode, questions, qIndex, reveal, onGameStateChange]);
+
+    // Report null when closing (cleanup)
+    useEffect(() => {
+        return () => onGameStateChange(null);
+    }, [onGameStateChange]);
 
     const handleStart = async () => {
         if (!provider) {
@@ -224,6 +243,8 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
 
   // Game/Quiz State
   const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
+  const [gameState, setGameState] = useState<GameSyncState | null>(null);
+  const gameWasOpenRef = useRef(false);
 
   // Question Generation State
   const [quickQuestion, setQuickQuestion] = useState<{text: string, level: string} | null>(null);
@@ -275,8 +296,15 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
         type: 'STATE_UPDATE',
         payload: { currentIndex, visibleBullets, slides }
       });
+      // If game is active, also send game state
+      if (gameState) {
+        postMessage({
+          type: 'GAME_STATE_UPDATE',
+          payload: gameState
+        });
+      }
     }
-  }, [lastMessage, currentIndex, visibleBullets, slides, postMessage]);
+  }, [lastMessage, currentIndex, visibleBullets, slides, postMessage, gameState]);
 
   // Broadcast state changes to student window
   useEffect(() => {
@@ -285,6 +313,20 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
       payload: { currentIndex, visibleBullets, slides }
     });
   }, [currentIndex, visibleBullets, slides, postMessage]);
+
+  // Broadcast game state changes to student window
+  useEffect(() => {
+    if (gameState) {
+      gameWasOpenRef.current = true;
+      postMessage({
+        type: 'GAME_STATE_UPDATE',
+        payload: gameState
+      });
+    } else if (gameWasOpenRef.current) {
+      postMessage({ type: 'GAME_CLOSE' });
+      gameWasOpenRef.current = false;
+    }
+  }, [gameState, postMessage]);
 
   // Track connection state for potential future use
   const prevConnectedRef = useRef<boolean | null>(null);
@@ -614,6 +656,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
               provider={provider}
               onError={onError}
               onRequestAI={onRequestAI}
+              onGameStateChange={setGameState}
           />,
           document.body
       )}
