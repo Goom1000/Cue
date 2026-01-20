@@ -16,7 +16,7 @@ Fix critical bugs affecting presentation experience: flowchart layout issues wit
 
 ## Phases
 
-- [ ] **Phase 12: CSS Layout Fixes** - Fix flowchart arrows, box spacing, and slide preview cutoff
+- [x] **Phase 12: CSS Layout Fixes** - Fix flowchart arrows, box spacing, and slide preview cutoff
 - [ ] **Phase 13: AI Error Handling** - Add user-friendly error messages for AI revision failures
 - [ ] **Phase 14: Game Sync** - Display game activity in student view with real-time state sync
 
@@ -33,7 +33,7 @@ Fix critical bugs affecting presentation experience: flowchart layout issues wit
 **Plans**: 1 plan
 
 Plans:
-- [ ] 12-01-PLAN.md — Fix flowchart layout and teacher view slide scaling
+- [x] 12-01-PLAN.md — Fix flowchart layout and teacher view slide scaling
 
 ### Phase 13: AI Error Handling
 **Goal**: AI slide revision fails gracefully with clear user feedback
@@ -66,7 +66,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 12. CSS Layout Fixes | v2.3 | 0/1 | Planned | - |
+| 12. CSS Layout Fixes | v2.3 | 1/1 | Complete | 2026-01-20 |
 | 13. AI Error Handling | v2.3 | 0/TBD | Not started | - |
 | 14. Game Sync | v2.3 | 0/TBD | Not started | - |
 

@@ -9,9 +9,9 @@ Requirements for bug fix milestone. All are high-priority fixes for broken funct
 
 ### Layout Fixes
 
-- [ ] **LAYOUT-01**: Flowchart arrows are vertically centered with adjacent boxes
-- [ ] **LAYOUT-02**: Flowchart boxes fill available vertical space without large gaps below
-- [ ] **LAYOUT-03**: Slide preview in teacher view shows complete content (no cutoff)
+- [x] **LAYOUT-01**: Flowchart arrows are vertically centered with adjacent boxes
+- [x] **LAYOUT-02**: Flowchart boxes fill available vertical space without large gaps below
+- [x] **LAYOUT-03**: Slide preview in teacher view shows complete content (no cutoff)
 
 ### Sync Fixes
 
@@ -56,9 +56,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LAYOUT-01 | Phase 12 | Pending |
-| LAYOUT-02 | Phase 12 | Pending |
-| LAYOUT-03 | Phase 12 | Pending |
+| LAYOUT-01 | Phase 12 | Complete |
+| LAYOUT-02 | Phase 12 | Complete |
+| LAYOUT-03 | Phase 12 | Complete |
 | SYNC-01 | Phase 14 | Pending |
 | SYNC-02 | Phase 14 | Pending |
 | SYNC-03 | Phase 14 | Pending |
