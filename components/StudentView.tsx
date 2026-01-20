@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Slide, PresentationMessage, BROADCAST_CHANNEL_NAME } from '../types';
+import { Slide, PresentationMessage, BROADCAST_CHANNEL_NAME, GameSyncState } from '../types';
 import useBroadcastSync from '../hooks/useBroadcastSync';
 import { SlideContentRenderer } from './SlideRenderers';
+import StudentGameView from './StudentGameView';
 
 /**
  * Standalone student view component.
@@ -13,6 +14,7 @@ const StudentView: React.FC = () => {
   const [visibleBullets, setVisibleBullets] = useState(0);
   const [slides, setSlides] = useState<Slide[]>([]);
   const [connected, setConnected] = useState(false);
+  const [gameState, setGameState] = useState<GameSyncState | null>(null);
 
   const { lastMessage, postMessage } = useBroadcastSync<PresentationMessage>(BROADCAST_CHANNEL_NAME);
 
@@ -30,6 +32,16 @@ const StudentView: React.FC = () => {
       setVisibleBullets(lastMessage.payload.visibleBullets);
       setSlides(lastMessage.payload.slides);
       setConnected(true);
+    }
+
+    // Handle game state updates
+    if (lastMessage.type === 'GAME_STATE_UPDATE') {
+      setGameState(lastMessage.payload);
+    }
+
+    // Handle game close
+    if (lastMessage.type === 'GAME_CLOSE') {
+      setGameState(null);
     }
 
     // Respond to heartbeat from teacher view
@@ -58,7 +70,12 @@ const StudentView: React.FC = () => {
     );
   }
 
-  // Render slide content only - no controls
+  // Game mode - show game display instead of slide
+  if (gameState) {
+    return <StudentGameView gameState={gameState} />;
+  }
+
+  // Normal slide mode - render slide content only
   return (
     <div className="h-screen w-screen bg-black flex items-center justify-center overflow-hidden">
       <div className="w-full h-full max-w-[1920px] max-h-[1080px] aspect-video bg-white">
