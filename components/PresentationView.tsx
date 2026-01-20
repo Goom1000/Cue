@@ -237,9 +237,6 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
   const [popupBlocked, setPopupBlocked] = useState(false);
   const [showRecoveryModal, setShowRecoveryModal] = useState(false);
 
-  // Slide scaling for teacher view
-  const slideContainerRef = useRef<HTMLDivElement>(null);
-  const [slideScale, setSlideScale] = useState(1);
 
   // Toast notifications for reconnection feedback
   const { toasts, removeToast } = useToast();
@@ -295,28 +292,6 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
     prevConnectedRef.current = isConnected;
   }, [isConnected]);
 
-  // Scale slide to fit container
-  useEffect(() => {
-    const updateScale = () => {
-      if (!slideContainerRef.current) return;
-      const container = slideContainerRef.current;
-      // Subtract padding (p-4 = 1rem = 16px each side = 32px total)
-      const availableWidth = container.clientWidth - 32;
-      const availableHeight = container.clientHeight - 32;
-      // Fixed slide dimensions (16:9) - match student view for consistent rendering
-      const slideWidth = 1920;
-      const slideHeight = 1080;
-      // Scale to fit while preserving aspect ratio (never scale above 1)
-      const scaleX = availableWidth / slideWidth;
-      const scaleY = availableHeight / slideHeight;
-      setSlideScale(Math.min(scaleX, scaleY, 1));
-    };
-
-    updateScale();
-    const observer = new ResizeObserver(updateScale);
-    if (slideContainerRef.current) observer.observe(slideContainerRef.current);
-    return () => observer.disconnect();
-  }, []);
 
   // Calculate next slide for preview
   const nextSlide = slides[currentIndex + 1] || null;
@@ -644,18 +619,8 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
       )}
 
       <div className={`flex-1 flex overflow-hidden min-h-0 ${layoutMode === 'col' ? 'flex-col' : 'flex-row'}`}>
-          <div ref={slideContainerRef} className="flex-1 bg-black relative flex items-center justify-center p-4 min-w-0 min-h-0 overflow-hidden">
-               <div
-                  className="bg-white rounded-lg overflow-hidden shadow-2xl"
-                  style={{
-                    width: 1920,
-                    height: 1080,
-                    transform: `scale(${slideScale})`,
-                    transformOrigin: 'center center'
-                  }}
-               >
-                  <SlideContentRenderer slide={currentSlide} visibleBullets={visibleBullets} />
-               </div>
+          <div className="flex-1 min-w-0 min-h-0 overflow-hidden">
+               <SlideContentRenderer slide={currentSlide} visibleBullets={visibleBullets} />
           </div>
 
           <div className={`bg-slate-900 border-slate-700 flex flex-col shadow-2xl z-40 shrink-0 transition-all duration-300 ${layoutMode === 'col' ? 'h-80 border-t w-full' : 'w-96 border-l h-full'}`}>
