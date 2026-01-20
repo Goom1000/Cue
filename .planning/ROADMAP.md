@@ -30,10 +30,10 @@ Fix critical bugs affecting presentation experience: flowchart layout issues wit
   1. Flowchart arrows are vertically centered with their adjacent boxes
   2. Flowchart boxes fill available vertical space without large gaps below content
   3. Next slide preview in teacher view shows complete slide content (no cutoff at bottom or sides)
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 12-01: TBD
+- [ ] 12-01-PLAN.md — Fix flowchart layout and teacher view slide scaling
 
 ### Phase 13: AI Error Handling
 **Goal**: AI slide revision fails gracefully with clear user feedback
@@ -66,7 +66,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 12. CSS Layout Fixes | v2.3 | 0/TBD | Not started | - |
+| 12. CSS Layout Fixes | v2.3 | 0/1 | Planned | - |
 | 13. AI Error Handling | v2.3 | 0/TBD | Not started | - |
 | 14. Game Sync | v2.3 | 0/TBD | Not started | - |
 
