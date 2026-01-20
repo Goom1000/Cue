@@ -1,7 +1,7 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 import { Slide, LessonResource } from "../types";
-import { GenerationInput, GenerationMode } from './aiProvider';
+import { GenerationInput, GenerationMode, AIProviderError, USER_ERROR_MESSAGES } from './aiProvider';
 
 // Shared teleprompter rules used across all generation modes
 const TELEPROMPTER_RULES = `
@@ -298,13 +298,22 @@ export const reviseSlide = async (apiKey: string, slide: Slide, instruction: str
     Return ONLY JSON with updated fields.
   `;
 
-  const response = await ai.models.generateContent({
-    model,
-    contents: prompt,
-    config: { responseMimeType: "application/json" }
-  });
+  let response;
+  try {
+    response = await ai.models.generateContent({
+      model,
+      contents: prompt,
+      config: { responseMimeType: "application/json" }
+    });
+  } catch (error: any) {
+    throw new AIProviderError(USER_ERROR_MESSAGES.NETWORK_ERROR, 'NETWORK_ERROR', error);
+  }
 
-  return JSON.parse(response.text || "{}");
+  try {
+    return JSON.parse(response.text || "{}");
+  } catch (parseError) {
+    throw new AIProviderError(USER_ERROR_MESSAGES.PARSE_ERROR, 'PARSE_ERROR', parseError);
+  }
 };
 
 export const generateContextualSlide = async (apiKey: string, lessonTopic: string, userInstruction: string, prevSlide?: Slide, nextSlide?: Slide): Promise<Slide> => {
