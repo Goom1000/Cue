@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Slide, AppState, SavedClass } from './types';
-import { createAIProvider, AIProviderError, AIProviderInterface, GenerationInput, GenerationMode } from './services/aiProvider';
+import { createAIProvider, AIProviderError, AIProviderInterface, GenerationInput, GenerationMode, AIErrorCode } from './services/aiProvider';
 import { useSettings } from './hooks/useSettings';
 import { useClassBank } from './hooks/useClassBank';
 import { exportToPowerPoint } from './services/pptxService';
@@ -333,19 +333,43 @@ function App() {
     const target = slides.find(s => s.id === id);
     if (!target) return;
     handleUpdateSlide(id, { isGeneratingImage: true });
-    try {
-      const updates = await provider.reviseSlide(target, instruction);
-      handleUpdateSlide(id, { ...updates, isGeneratingImage: false });
 
-      if (updates.imagePrompt && updates.imagePrompt !== target.imagePrompt && autoGenerateImages) {
+    const retryableErrors: AIErrorCode[] = ['NETWORK_ERROR', 'RATE_LIMIT', 'SERVER_ERROR'];
+    const maxRetries = 2;
+    let lastError: AIProviderError | null = null;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const updates = await provider.reviseSlide(target, instruction);
+        handleUpdateSlide(id, { ...updates, isGeneratingImage: false });
+
+        // Image regeneration if imagePrompt changed
+        if (updates.imagePrompt && updates.imagePrompt !== target.imagePrompt && autoGenerateImages) {
           const img = await provider.generateSlideImage(updates.imagePrompt, updates.layout || target.layout);
           handleUpdateSlide(id, { imageUrl: img });
+        }
+        return; // Success - exit function
+      } catch (err) {
+        if (err instanceof AIProviderError) {
+          lastError = err;
+          if (retryableErrors.includes(err.code) && attempt < maxRetries) {
+            await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+            continue;
+          }
+        }
+        break; // Non-retryable error or retries exhausted
       }
-    } catch (err) {
-      handleUpdateSlide(id, { isGeneratingImage: false });
-      if (err instanceof AIProviderError) {
-        setErrorModal({ title: 'Revision Failed', message: err.userMessage });
-      }
+    }
+
+    // All retries failed or non-retryable error
+    handleUpdateSlide(id, { isGeneratingImage: false });
+    if (lastError) {
+      addToast(
+        lastError.userMessage,
+        5000,
+        'error',
+        { label: 'Retry', onClick: () => handleReviseSlide(id, instruction) }
+      );
     }
   };
 
