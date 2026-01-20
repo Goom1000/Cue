@@ -1,5 +1,33 @@
 # Project Milestones: PiPi
 
+## v2.3 Bug Fixes (Shipped: 2026-01-21)
+
+**Delivered:** Fixed critical UI/sync bugs affecting presentation experience: flowchart layout, teacher view slide display, AI revision error handling, and game activity not syncing to student view.
+
+**Phases completed:** 12-14 (4 plans total)
+
+**Key accomplishments:**
+
+- Fixed flowchart layout with centered arrows and equal-height boxes
+- Fixed teacher view slide display (no more cutoff/cropping)
+- Added graceful AI error handling with retry logic and toast notifications
+- Real-time game sync from teacher to student view via BroadcastChannel
+- Created StudentGameView component for read-only quiz display
+- 100% requirement coverage (8/8) with no tech debt
+
+**Stats:**
+
+- 28 files created/modified
+- ~8,000 lines of TypeScript (project total)
+- 3 phases, 4 plans
+- 2 days (2026-01-20 → 2026-01-21)
+
+**Git range:** `fix(12-01)` → `test(14)`
+
+**What's next:** TBD with /gsd:new-milestone
+
+---
+
 ## v2.2 Flexible Upload & Class Bank (Shipped: 2026-01-20)
 
 **Delivered:** Added flexible PDF upload (lesson plans, existing presentations, or both) with AI adaptation modes, plus a class bank for saving/loading student lists across presentations.

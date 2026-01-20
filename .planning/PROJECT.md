@@ -4,7 +4,7 @@
 
 A presentation tool for teachers that transforms PDF lesson plans into interactive slideshows with AI-generated content, a teleprompter script for the teacher, and progressive bullet reveal. Teachers upload their existing lesson plans, select student age/grade level, and the AI creates an engaging presentation with speaker notes that guide the teacher through natural, conversational delivery.
 
-**v2.2 shipped:** Added flexible PDF upload (lesson plans, existing presentations, or both) with AI adaptation modes (Fresh/Refine/Blend), plus a class bank for saving/loading student lists across presentations.
+**v2.3 shipped:** Fixed critical bugs affecting presentation experience: flowchart layout, teacher view slide display, AI revision error handling, and game activity syncing to student view.
 
 ## Core Value
 
@@ -63,16 +63,16 @@ Students see only the presentation; teachers see the presentation plus a telepro
 - ✓ Load saved class into any presentation — v2.2
 - ✓ Class bank localStorage persistence — v2.2
 - ✓ Class management (view, rename, edit students, delete with undo) — v2.2
+- ✓ Game activity displays in student view during presentation — v2.3
+- ✓ Slide preview fits correctly in teacher view (no cutoff) — v2.3
+- ✓ AI slide revision feature works without errors — v2.3
+- ✓ Flowchart layout has centered arrows and fills whitespace — v2.3
 
 ### Active
 
-**v2.3 Bug Fixes** — Fix critical UI/sync bugs:
-- [ ] Game activity displays in student view during presentation
-- [ ] Slide preview fits correctly in teacher view (no cutoff)
-- [ ] AI slide revision feature works without errors
-- [ ] Flowchart layout has centered arrows and fills whitespace
+(None — planning next milestone)
 
-### Deferred (v2.3+)
+### Deferred (v2.4+)
 
 - [ ] Elapsed time display showing presentation duration
 - [ ] Fullscreen recovery (auto re-enter if exited)
@@ -98,17 +98,17 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Current State
 
-Shipped v2.2 with ~7,800 LOC TypeScript.
+Shipped v2.3 with ~8,000 LOC TypeScript.
 Tech stack: React 19, Vite, Gemini/Claude API, Tailwind CSS, react-rnd.
 Client-side only (no backend).
 Deployed at: https://goom1000.github.io/PiPi/
 
-v2.2 delivered Flexible Upload & Class Bank:
-- Dual PDF upload zones (lesson plan + existing presentation)
-- Three AI generation modes: Fresh, Refine, Blend
-- Content preservation in Refine mode (restructures without omitting)
-- Class bank with save/load for student lists
-- Full class management (rename, edit students, delete with undo)
+v2.3 delivered Bug Fixes:
+- Flowchart layout fixed (centered arrows, equal-height boxes)
+- Teacher view slide display fixed (no more cutoff/cropping)
+- AI revision graceful error handling with retry logic and toast notifications
+- Real-time game sync from teacher to student view via BroadcastChannel
+- StudentGameView component for read-only quiz display on student screen
 
 ### Technical Environment
 
@@ -167,6 +167,11 @@ v2.2 delivered Flexible Upload & Class Bank:
 | Inline edit for class rename | Click-to-edit with blur/Enter save | ✓ Good — v2.2 |
 | Expand-in-place student editing | Avoids modal-within-modal complexity | ✓ Good — v2.2 |
 | Toast undo for class delete | Reversible destructive operation | ✓ Good — v2.2 |
+| Flexbox fill for slide layout | Remove transform scale; let slides fill space naturally | ✓ Good — v2.3 |
+| Transient error retry only | Retry NETWORK_ERROR, RATE_LIMIT, SERVER_ERROR (not AUTH_ERROR, PARSE_ERROR) | ✓ Good — v2.3 |
+| Exponential backoff 1s/2s | Max 2 retries with increasing delay before toast | ✓ Good — v2.3 |
+| Exclude 'setup' mode from sync | Setup is teacher-only config screen with no content for students | ✓ Good — v2.3 |
+| Ref-based game tracking | Prevent spurious GAME_CLOSE on mount when gameState is initially null | ✓ Good — v2.3 |
 
 ---
-*Last updated: 2026-01-20 after starting v2.3 milestone*
+*Last updated: 2026-01-21 after v2.3 milestone*
