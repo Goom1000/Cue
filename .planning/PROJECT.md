@@ -66,7 +66,11 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Active
 
-None — planning next milestone.
+**v2.3 Bug Fixes** — Fix critical UI/sync bugs:
+- [ ] Game activity displays in student view during presentation
+- [ ] Slide preview fits correctly in teacher view (no cutoff)
+- [ ] AI slide revision feature works without errors
+- [ ] Flowchart layout has centered arrows and fills whitespace
 
 ### Deferred (v2.3+)
 
@@ -165,4 +169,4 @@ v2.2 delivered Flexible Upload & Class Bank:
 | Toast undo for class delete | Reversible destructive operation | ✓ Good — v2.2 |
 
 ---
-*Last updated: 2026-01-20 after v2.2 milestone*
+*Last updated: 2026-01-20 after starting v2.3 milestone*

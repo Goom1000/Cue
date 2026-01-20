@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-20)
 
 ## Current Position
 
-Phase: Ready for next milestone
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-01-20 — v2.2 milestone complete
+Phase: Not started (defining requirements)
+Plan: —
+Status: Researching bugs
+Last activity: 2026-01-20 — Milestone v2.3 started
 
-Progress: [##########] v2.2 complete
+Progress: [░░░░░░░░░░] v2.3 starting
 
 ## Performance Metrics
 
@@ -60,8 +60,8 @@ None.
 Last session: 2026-01-20
 Stopped at: v2.2 milestone complete
 Resume file: None
-Next: /gsd:new-milestone
+Next: Research then requirements
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-20 - v2.2 milestone archived*
+*Last updated: 2026-01-20 - v2.3 milestone started*
