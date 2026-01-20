@@ -96,7 +96,7 @@ useEffect(() => {
   // Listen for messages (for recovery/reconnection)
   channel.current.onmessage = (event) => {
     if (event.data.type === 'STUDENT_READY') {
-      // Student window reconnected, send current state
+      // Student connected, send current state
       channel.current?.postMessage({
         type: 'STATE_SYNC',
         payload: { currentIndex, visibleBullets }
@@ -534,1130 +534,458 @@ The fix requires introducing an explicit loading state that gates user interacti
 +-------------------------------------------------------------------------+
 ```
 
-## Component Structure
+---
 
-### Option A: Gated Loading in Hook (Recommended)
+# Bug Fix Architecture Analysis (v2.3)
 
-**Modify `useWindowManagement` hook to expose loading state.**
+**Milestone:** v2.3 Bug Fixes
+**Researched:** 2026-01-20
+**Scope:** Integration points and component relationships for 4 bugs
 
-```typescript
-export interface UseWindowManagementResult {
-  isSupported: boolean;
-  hasMultipleScreens: boolean;
-  isLoading: boolean;  // NEW: true until permission query completes
-  permissionState: 'prompt' | 'granted' | 'denied' | null;  // null = unknown
-  secondaryScreen: ScreenTarget | null;
-  requestPermission: () => Promise<boolean>;
+## Bug Overview
+
+| Bug | Category | Complexity |
+|-----|----------|------------|
+| Game activity not showing in student view | BroadcastChannel sync | Medium |
+| Slide preview cutoff in teacher view | CSS scaling | Low |
+| AI slide revision error | API handler flow | Medium |
+| Flowchart layout issues | CSS flexbox | Low |
+
+---
+
+## Bug 1: Game Activity Not Showing in Student View
+
+### Problem Analysis
+
+The QuizOverlay (game activity) renders as a portal in PresentationView but is NOT synchronized to StudentView via BroadcastChannel. The student window only receives `STATE_UPDATE` messages containing `{ currentIndex, visibleBullets, slides }`.
+
+### Integration Points
+
+```
+PresentationView.tsx
+    |
+    +-- QuizOverlay (portal to document.body)
+    |       |
+    |       +-- isQuizModalOpen state (local to teacher)
+    |       +-- questions, qIndex, reveal (local quiz state)
+    |
+    +-- useBroadcastSync hook
+            |
+            +-- posts: STATE_UPDATE, HEARTBEAT, CLOSE_STUDENT
+            +-- receives: STATE_REQUEST, HEARTBEAT_ACK
+```
+
+### Files Involved
+
+| File | Role | Changes Needed |
+|------|------|----------------|
+| `/types.ts` | Message type definitions | Add game state message types |
+| `/hooks/useBroadcastSync.ts` | Channel communication | No changes (generic) |
+| `/components/PresentationView.tsx` | Teacher view with QuizOverlay | Broadcast game state changes |
+| `/components/StudentView.tsx` | Student display | Render QuizOverlay based on received state |
+
+### Data Flow (Current)
+
+```
+Teacher                          Student
+[QuizOverlay]                    [Nothing]
+     |                                |
+     +-- isQuizModalOpen=true         |
+     |                                |
+     +-- STATE_UPDATE                 |
+         { currentIndex,      ------> (no game info)
+           visibleBullets,            |
+           slides }                   |
+```
+
+### Data Flow (Required)
+
+```
+Teacher                          Student
+[QuizOverlay]                    [QuizOverlay]
+     |                                |
+     +-- GAME_STATE_UPDATE    ------> |
+         { isPlaying: true,           +-- renders game UI
+           mode: 'play',              +-- display only (no controls)
+           questions,                 |
+           currentQuestion,           |
+           reveal }                   |
+```
+
+### Key Considerations
+
+1. **One-way sync:** Student view is display-only. Teacher controls quiz progression.
+2. **Message types to add:**
+   - `GAME_START` - Opens quiz overlay in student view
+   - `GAME_UPDATE` - Updates question index, reveal state
+   - `GAME_END` - Closes quiz overlay
+3. **QuizOverlay refactor:** Extract display-only version for student (no buttons except maybe visual feedback)
+
+### Estimated Complexity
+
+MEDIUM - Requires:
+- New message type definitions
+- State sync logic in PresentationView
+- Message handling in StudentView
+- Possibly a separate `QuizStudentView` component (simplified QuizOverlay)
+
+---
+
+## Bug 2: Slide Preview Cutoff in Teacher View
+
+### Problem Analysis
+
+In PresentationView, the slide preview on the left side uses a container that doesn't properly scale the slide content to fit. The `SlideContentRenderer` renders at full slide dimensions but the container clips overflow.
+
+### Integration Points
+
+```
+PresentationView.tsx (line 619-624)
+    |
+    +-- flex container (flex-1 bg-black)
+            |
+            +-- div (w-full h-full max-w-[1600px] aspect-video)
+                    |
+                    +-- SlideContentRenderer
+                            |
+                            +-- DefaultLayout, FlowchartLayout, etc.
+                            +-- These layouts assume FULL viewport
+```
+
+### Files Involved
+
+| File | Role | Changes Needed |
+|------|------|----------------|
+| `/components/PresentationView.tsx` | Teacher view layout | Add scaling wrapper for preview |
+| `/components/SlideRenderers.tsx` | Slide layouts | Potentially no changes (already responsive) |
+
+### Current CSS Structure (PresentationView lines 619-624)
+
+```tsx
+<div className="flex-1 bg-black relative flex items-center justify-center p-4 min-w-0 min-h-0">
+  <div className="w-full h-full max-w-[1600px] aspect-video bg-white rounded-lg overflow-hidden shadow-2xl relative">
+    <SlideContentRenderer slide={currentSlide} visibleBullets={visibleBullets} />
+  </div>
+</div>
+```
+
+### Problem
+
+- `aspect-video` maintains 16:9 ratio
+- But if parent container is shorter than aspect-video height, content overflows
+- `overflow-hidden` clips the overflow, causing cutoff
+- No CSS transform scaling to fit content within bounds
+
+### Solution Approach
+
+Add CSS scaling (transform: scale) or use a container query approach:
+
+```css
+/* Option 1: CSS transform scaling */
+.slide-preview-wrapper {
+  transform: scale(var(--scale-factor));
+  transform-origin: center;
 }
+
+/* Option 2: object-fit analogy for divs */
+/* Calculate scale based on container vs content dimensions */
 ```
 
-**Advantages:**
-- Single source of truth for permission state
-- Encapsulates async complexity in the hook
-- Consumers don't need to understand the async timing
+### Estimated Complexity
 
-**Hook internal changes:**
+LOW - CSS-only fix:
+- Calculate available space
+- Apply transform: scale() to fit content
+- No component logic changes needed
 
-```typescript
-function useWindowManagement(): UseWindowManagementResult {
-  const [isSupported] = useState(() => 'getScreenDetails' in window);
-  const [hasMultipleScreens, setHasMultipleScreens] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);  // Start loading
-  const [permissionState, setPermissionState] =
-    useState<'prompt' | 'granted' | 'denied' | null>(null);  // null = unknown
+---
 
-  // ... existing screen detection logic ...
+## Bug 3: AI Slide Revision Error
 
-  useEffect(() => {
-    if (!isSupported) {
-      setIsLoading(false);
-      setPermissionState(null);  // null indicates "not applicable"
-      return;
-    }
+### Problem Analysis
 
-    if (!hasMultipleScreens) {
-      setIsLoading(false);
-      setPermissionState(null);
-      return;
-    }
+The "revise slide using AI" feature in SlideCard triggers an error. Need to trace the data flow from button click through provider to API call.
 
-    // Query permission state
-    const checkPermission = async () => {
-      try {
-        const status = await navigator.permissions.query({
-          name: 'window-management' as PermissionName
-        });
-
-        if (!mountedRef.current) return;
-
-        setPermissionState(status.state as 'prompt' | 'granted' | 'denied');
-        setIsLoading(false);  // Loading complete
-
-        // Listen for changes
-        status.addEventListener('change', () => {
-          if (mountedRef.current) {
-            setPermissionState(status.state as 'prompt' | 'granted' | 'denied');
-          }
-        });
-      } catch {
-        if (mountedRef.current) {
-          setPermissionState('prompt');  // Assume prompt if query fails
-          setIsLoading(false);
-        }
-      }
-    };
-
-    checkPermission();
-  }, [isSupported, hasMultipleScreens]);
-
-  // ...
-}
-```
-
-### Option B: Derived Loading State in Component
-
-**Keep hook unchanged, derive loading state in PresentationView.**
-
-```typescript
-// In PresentationView
-const { isSupported, hasMultipleScreens, permissionState, ... } = useWindowManagement();
-
-// Derive "is still initializing"
-const permissionIsLoading = isSupported &&
-                            hasMultipleScreens &&
-                            permissionState === 'unavailable';
-```
-
-**Disadvantages:**
-- Requires consumer to understand internal timing
-- `'unavailable'` is overloaded (means both "not applicable" and "still loading")
-- Less explicit, more error-prone
-
-**Recommendation: Option A is strongly preferred.**
-
-## State Flow Diagram
+### Integration Points
 
 ```
-+----------------------------------------------------------------------------+
-|                         STATE FLOW DIAGRAM                                  |
-+----------------------------------------------------------------------------+
-|                                                                             |
-|  MOUNT                                                                      |
-|    |                                                                        |
-|    v                                                                        |
-|  +-----------------------------------------------------------+             |
-|  | isLoading: true                                            |             |
-|  | permissionState: null                                      |             |
-|  | hasMultipleScreens: false                                  |             |
-|  +-----------------------------------------------------------+             |
-|    |                                                                        |
-|    | screen.isExtended check (sync)                                         |
-|    v                                                                        |
-|  +------------------------+    +--------------------------------+           |
-|  | Single Screen          |    | Multiple Screens               |           |
-|  |                        |    |                                |           |
-|  | isLoading: false       |    | isLoading: true (still)        |           |
-|  | permissionState: null  |    | permissionState: null          |           |
-|  | hasMultipleScreens:    |    | hasMultipleScreens: true       |           |
-|  |   false                |    |                                |           |
-|  |                        |    | ---> Query permissions         |           |
-|  | ---> DONE              |    +----------------+---------------+           |
-|  +------------------------+                     |                           |
-|                                   navigator.permissions.query()             |
-|                                                 |                           |
-|                   +-----------------------------+------------------------+  |
-|                   |                             |                        |  |
-|                   v                             v                        v  |
-|  +-------------------+   +---------------------+   +--------------------+   |
-|  | PROMPT            |   | GRANTED             |   | DENIED             |   |
-|  |                   |   |                     |   |                    |   |
-|  | isLoading: false  |   | isLoading: false    |   | isLoading: false   |   |
-|  | state: 'prompt'   |   | state: 'granted'    |   | state: 'denied'    |   |
-|  |                   |   |                     |   |                    |   |
-|  | Show Explainer UI |   | Fetch screen coords |   | Show Manual        |   |
-|  | Gate "Launch" btn |   | Enable "Launch"     |   | Placement Guide    |   |
-|  +-------------------+   +---------------------+   +--------------------+   |
-|                                                                             |
-+----------------------------------------------------------------------------+
+SlideCard.tsx (line 42-52)
+    |
+    +-- handleMagicEdit()
+            |
+            +-- onRevise(slide.id, revisionInput)  // prop from App.tsx
+                    |
+App.tsx (line 328-350)
+    |
+    +-- handleReviseSlide(id, instruction)
+            |
+            +-- provider.reviseSlide(target, instruction)
+                    |
+GeminiProvider / ClaudeProvider
+    |
+    +-- reviseSlide() implementation
+            |
+            +-- API call to Gemini/Claude
 ```
 
-## UI Gating Strategy
+### Files Involved
 
-### Before Permission Status Known (isLoading = true)
+| File | Role | Potential Issue |
+|------|------|-----------------|
+| `/components/SlideCard.tsx` | UI trigger | Error state not shown to user |
+| `/App.tsx` | Handler orchestration | Error handling may swallow details |
+| `/services/providers/geminiProvider.ts` | Gemini wrapper | Wraps error as UNKNOWN_ERROR |
+| `/services/providers/claudeProvider.ts` | Claude implementation | JSON extraction may fail |
+| `/services/geminiService.ts` | Raw Gemini call | JSON parsing may fail on partial response |
 
-| Element | State | Reason |
-|---------|-------|--------|
-| "Launch Student" button | Disabled OR Shows "Checking..." | Prevents user action before we know if we should prompt |
-| PermissionExplainer | Hidden | Don't know if needed yet |
-| ManualPlacementGuide | Hidden | Don't know if needed yet |
+### Current Flow Analysis
 
-### After Permission Status Known (isLoading = false)
-
-| permissionState | Launch Button | PermissionExplainer | ManualPlacementGuide |
-|-----------------|---------------|---------------------|----------------------|
-| null (single screen) | Enabled, normal text | Hidden | Hidden |
-| 'prompt' | Enabled, shows target | **Visible** | Hidden |
-| 'granted' | Enabled, shows screen name | Hidden | Hidden |
-| 'denied' | Enabled, normal text | Hidden | **Visible** |
-
-## Inline vs Upfront Permission Request
-
-### Option 1: Upfront Permission (Current Approach)
-- Show PermissionExplainer as soon as multi-screen detected + state is 'prompt'
-- User grants/denies before clicking "Launch Student"
-
-**Pros:**
-- User understands what will happen before action
-- Permission is cached for future launches
-- No surprise browser dialogs mid-action
-
-**Cons:**
-- Requires extra user interaction
-- User might skip, then get confused
-
-### Option 2: Inline Permission (On Button Click)
-- Don't show PermissionExplainer automatically
-- When user clicks "Launch Student", call `getScreenDetails()` which triggers prompt
-- Handle result in the same click handler
-
-**Pros:**
-- Fewer steps for user
-- Permission request tied to specific action
-
-**Cons:**
-- Browser might block popup if permission prompt is async
-- User might be surprised by permission dialog
-- Current button handler is synchronous (critical for popup blocker avoidance)
-
-### Recommendation: Upfront with Improved Gating
-
-Keep the upfront approach but fix the race condition:
-
-1. Gate the "Launch Student" button while `isLoading` is true
-2. Show PermissionExplainer reliably when `!isLoading && permissionState === 'prompt'`
-3. Allow user to skip (they can still launch, just won't auto-place on secondary screen)
-
-This preserves the current user-friendly flow while eliminating the race condition.
-
-## Implementation Checklist
-
-### Hook Changes (`useWindowManagement.ts`)
-
-- [ ] Add `isLoading` state, initialize to `true`
-- [ ] Change `permissionState` initial value from `'unavailable'` to `null`
-- [ ] Set `isLoading = false` after:
-  - API not supported (immediately)
-  - Single screen detected (immediately)
-  - Permission query completes (after async)
-  - Permission query fails (catch block)
-- [ ] Return `isLoading` in hook result
-
-### Component Changes (`PresentationView.tsx`)
-
-- [ ] Destructure `isLoading` from `useWindowManagement()`
-- [ ] Update PermissionExplainer condition:
-  ```typescript
-  {!isLoading && isSupported && hasMultipleScreens && permissionState === 'prompt' && (
-    <PermissionExplainer ... />
-  )}
-  ```
-- [ ] Consider disabling "Launch Student" while `isLoading`:
-  ```typescript
-  disabled={isLoading || isConnected}
-  ```
-- [ ] Update button text to show loading state:
-  ```typescript
-  {isLoading ? 'Checking displays...' : secondaryScreen ? `Launch on ${secondaryScreen.label}` : ...}
-  ```
-
-### Remove Race Condition useEffect
-
-The current useEffect that shows PermissionExplainer based on state changes is unnecessary once the hook properly gates loading state. The conditional render directly in JSX is sufficient:
-
-```typescript
-// REMOVE this useEffect:
-useEffect(() => {
-  if (isSupported && hasMultipleScreens && permissionState === 'prompt') {
-    setShowPermissionExplainer(true);
+**SlideCard.tsx:**
+```tsx
+const handleMagicEdit = async () => {
+  if (!revisionInput.trim()) return;
+  if (!isAIAvailable) {
+    onRequestAI('refine this slide with AI');
+    return;
   }
-}, [isSupported, hasMultipleScreens, permissionState]);
-
-// REPLACE with direct conditional render:
-{!isLoading && isSupported && hasMultipleScreens && permissionState === 'prompt' && !showPermissionExplainerDismissed && (
-  <PermissionExplainer ... />
-)}
+  setIsRevising(true);
+  await onRevise(slide.id, revisionInput);  // Errors not caught here!
+  setRevisionInput('');
+  setIsRevising(false);
+};
 ```
 
-Note: You'll need a `showPermissionExplainerDismissed` state to track if user clicked "Skip".
+**App.tsx:**
+```tsx
+const handleReviseSlide = async (id: string, instruction: string) => {
+  // ... provider check ...
+  handleUpdateSlide(id, { isGeneratingImage: true });  // Uses wrong flag name
+  try {
+    const updates = await provider.reviseSlide(target, instruction);
+    handleUpdateSlide(id, { ...updates, isGeneratingImage: false });
+    // ... image regen logic ...
+  } catch (err) {
+    handleUpdateSlide(id, { isGeneratingImage: false });
+    if (err instanceof AIProviderError) {
+      setErrorModal({ title: 'Revision Failed', message: err.userMessage });
+    }
+    // Note: non-AIProviderError errors are silently swallowed!
+  }
+};
+```
 
-## Anti-Patterns to Avoid (Permission Flow)
+**Gemini reviseSlide (geminiService.ts):**
+```typescript
+export const reviseSlide = async (apiKey: string, slide: Slide, instruction: string): Promise<Partial<Slide>> => {
+  const ai = new GoogleGenAI({ apiKey });
+  const model = "gemini-3-flash-preview";
 
-### 1. Checking `permissionState === 'unavailable'` as Loading Indicator
+  const prompt = `
+    Current Slide: ${JSON.stringify(slide)}
+    Edit Instruction: "${instruction}"
+    Return ONLY JSON with updated fields.
+  `;
 
-**Why bad:** Overloads meaning. Can't distinguish "still loading" from "API not supported".
+  const response = await ai.models.generateContent({
+    model,
+    contents: prompt,
+    config: { responseMimeType: "application/json" }
+  });
 
-### 2. Using `setTimeout` to "Wait for State"
+  return JSON.parse(response.text || "{}");  // No error handling!
+};
+```
 
-**Why bad:** Arbitrary timing, doesn't work reliably across devices/networks.
+### Likely Issues
 
-### 3. Multiple useEffects with Cascading State Updates
+1. **No responseSchema:** Unlike `generateLessonSlides`, `reviseSlide` doesn't use a schema, so Gemini may return malformed JSON
+2. **No try-catch in geminiService:** Raw JSON.parse can throw on invalid response
+3. **Silent error swallowing:** Non-AIProviderError errors in App.tsx aren't displayed
+4. **Wrong loading indicator:** Uses `isGeneratingImage` instead of a revision-specific flag
 
-**Why bad:** Creates race conditions and makes flow hard to reason about.
+### Estimated Complexity
 
-### 4. Triggering Permission in Async Handler Before `window.open`
+MEDIUM - Requires:
+- Add responseSchema to reviseSlide in geminiService
+- Wrap JSON.parse in try-catch with proper error
+- Ensure all errors bubble up as AIProviderError
+- Possibly add revision-specific loading state
 
-**Why bad:** Breaks popup blocker exception (user activation consumed by permission dialog).
+---
 
-## Sources (v1.2)
+## Bug 4: Flowchart Layout Issues
+
+### Problem Analysis
+
+The FlowchartLayout has two visual issues:
+1. Arrows align to bottom of boxes instead of center
+2. Whitespace not filled - boxes don't expand vertically
+
+### Integration Points
+
+```
+SlideRenderers.tsx
+    |
+    +-- FlowchartLayout (line 113-164)
+            |
+            +-- Container div (flex, items-start)
+            |       |
+            |       +-- Arrow SVG divs (flex, items-center, pb-20)
+            |       +-- Card divs (flex-1, aspect-[4/3])
+            |
+            +-- Arrows and cards in horizontal flex row
+```
+
+### Files Involved
+
+| File | Role | Changes Needed |
+|------|------|----------------|
+| `/components/SlideRenderers.tsx` | FlowchartLayout component | CSS adjustments |
+
+### Current CSS Structure (FlowchartLayout)
+
+```tsx
+// Container
+<div className="flex w-full px-4 gap-4 md:gap-6 flex-1 items-start justify-center">
+
+// Arrow
+<div className="... flex items-center justify-center h-full pb-20 px-2 ...">
+  <svg className="w-8 h-8 md:w-16 md:h-16" .../>
+</div>
+
+// Card
+<div className="flex-1 min-w-0 ...">
+  <div className="aspect-[4/3] rounded-3xl p-4 md:p-8 flex items-center justify-center ...">
+    ...
+  </div>
+</div>
+```
+
+### Problem Analysis
+
+1. **Arrow alignment:** `pb-20` (padding-bottom: 5rem) pushes arrow up, but this is a static offset that doesn't center the arrow on the card. The `h-full` on the arrow container depends on flex parent height.
+
+2. **Whitespace:** `items-start` on container aligns children to top. Cards have `aspect-[4/3]` which constrains height. No mechanism to fill remaining vertical space.
+
+### Solution Approach
+
+1. **Center arrows:** Remove `pb-20`, use `items-center` on both container and arrow wrapper
+2. **Fill whitespace:** Consider removing `aspect-[4/3]` constraint or using grid layout instead of flex
+
+```tsx
+// Potential fix
+<div className="flex w-full px-4 gap-4 md:gap-6 flex-1 items-center justify-center">
+  // Arrow - no pb-20, already h-full and items-center
+  <div className="... flex items-center justify-center h-full px-2 ...">
+
+  // Card - consider flex-1 on both wrapper and inner, remove aspect ratio
+  <div className="flex-1 min-w-0 h-full flex flex-col">
+    <div className="flex-1 rounded-3xl p-4 md:p-8 flex items-center justify-center ...">
+```
+
+### Estimated Complexity
+
+LOW - CSS-only fix:
+- Change `items-start` to `items-center` on container
+- Remove `pb-20` from arrow
+- Adjust card height constraints to fill space
+
+---
+
+## Dependency Analysis
+
+### No Cross-Bug Dependencies
+
+Each bug is independent:
+- Bug 1 (Game sync) - BroadcastChannel layer
+- Bug 2 (Preview cutoff) - CSS in PresentationView
+- Bug 3 (AI revision) - API handler layer
+- Bug 4 (Flowchart) - CSS in SlideRenderers
+
+### Recommended Fix Order
+
+1. **Bug 4 (Flowchart)** - Simplest, CSS only, low risk
+2. **Bug 2 (Preview cutoff)** - CSS only, low risk
+3. **Bug 3 (AI revision)** - API layer, medium risk, needs testing
+4. **Bug 1 (Game sync)** - Most complex, requires new message types and component changes
+
+---
+
+## Component Relationship Diagram
+
+```
+App.tsx
+  |
+  +-- Settings/Provider management
+  |
+  +-- handleReviseSlide() -----> provider.reviseSlide() [Bug 3]
+  |
+  +-- PresentationView
+        |
+        +-- Slide Preview Container [Bug 2]
+        |     |
+        |     +-- SlideContentRenderer
+        |           |
+        |           +-- FlowchartLayout [Bug 4]
+        |
+        +-- QuizOverlay (teacher only) [Bug 1]
+        |
+        +-- useBroadcastSync
+              |
+              +-- STATE_UPDATE ---> StudentView
+                                      |
+                                      +-- (No game state) [Bug 1]
+```
+
+---
+
+## File Quick Reference
+
+| Bug | Primary Files | Secondary Files |
+|-----|---------------|-----------------|
+| 1 | `StudentView.tsx`, `PresentationView.tsx` | `types.ts`, `useBroadcastSync.ts` |
+| 2 | `PresentationView.tsx` | None |
+| 3 | `geminiService.ts`, `App.tsx` | `geminiProvider.ts`, `claudeProvider.ts`, `SlideCard.tsx` |
+| 4 | `SlideRenderers.tsx` | None |
+
+---
+
+## Testing Considerations
+
+### Bug 1 (Game Sync)
+- Open teacher view, launch student window
+- Start quiz game, verify it appears in student view
+- Progress through questions, verify sync
+- End quiz, verify student view returns to slide
+
+### Bug 2 (Preview Cutoff)
+- Create slide with 4+ bullet points
+- Enter presentation mode
+- Verify all content visible in left preview
+
+### Bug 3 (AI Revision)
+- Edit a slide, enter revision instruction
+- Click Revise, observe result
+- Test with both Gemini and Claude providers
+- Test edge cases: empty instruction, invalid API key
+
+### Bug 4 (Flowchart)
+- Create/load slide with flowchart layout
+- Verify arrows centered on boxes
+- Verify boxes fill vertical space
+- Test with 2, 3, 4 content items
+
+---
+
+## Sources (v1.0-v2.0)
 
 ### HIGH Confidence (Official Documentation)
 - [BroadcastChannel API - MDN](https://developer.mozilla.org/en-US/docs/Web/API/BroadcastChannel)
 - [Window Management API - MDN](https://developer.mozilla.org/en-US/docs/Web/API/Window_Management_API)
 - [createPortal - React](https://react.dev/reference/react-dom/createPortal)
 - [Window Management - Chrome Developers](https://developer.chrome.com/docs/capabilities/web-apis/window-management)
-- [MDN: Using the Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API/Using_the_Permissions_API) - Official pattern for querying and listening to permission state changes
+- [MDN: Using the Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API/Using_the_Permissions_API)
 
 ### MEDIUM Confidence (Browser Support Data)
 - [BroadcastChannel - Can I Use](https://caniuse.com/broadcastchannel) - 95.8% global support
 - [getScreenDetails - Can I Use](https://caniuse.com/mdn-api_window_getscreendetails) - 80.11% global support (Chromium only)
-
-### MEDIUM Confidence (Community Patterns)
-- [Popout Windows in React - Scott Logic](https://blog.scottlogic.com/2019/10/29/popout-windows-in-react.html)
-- [react-new-window - GitHub](https://github.com/rmariuzzo/react-new-window)
-- [How to Manage State Across Multiple Tabs](https://blog.pixelfreestudio.com/how-to-manage-state-across-multiple-tabs-and-windows/)
-- [Fixing Race Conditions in React with useEffect](https://maxrozen.com/race-conditions-fetching-data-react-with-useeffect) - Boolean flag pattern for preventing stale state updates
-- [Race conditions in useEffect with async: modern patterns for ReactJS 2025](https://medium.com/@sureshdotariya/race-conditions-in-useeffect-with-async-modern-patterns-for-reactjs-2025-9efe12d727b0) - Modern patterns including AbortController
-- [UI best practices for loading, error, and empty states in React](https://blog.logrocket.com/ui-design-best-practices-loading-error-empty-state-react/) - Loading state patterns for async operations
-- [Handling API request race conditions in React](https://sebastienlorber.com/handling-api-request-race-conditions-in-react) - Comprehensive overview of race condition issues and solutions
-
-### LOW Confidence (Needs Validation)
-- CSS-in-JS injection patterns may vary by library (current PiPi uses Tailwind CDN)
-- React 18+ portal behavior in new windows may have undocumented quirks
-
----
-
-# Architecture Research: v2.0 Shareable Presentations
-
-**Project:** PiPi (LessonLens)
-**Researched:** 2026-01-19
-**Overall Confidence:** HIGH (patterns verified with official documentation)
-
----
-
-## Executive Summary
-
-The v2.0 architecture integrates four major systems: a ZIP-based `.pipi` file format using JSZip, a provider-agnostic AI abstraction layer using the Vercel AI SDK pattern, a React Context-based settings architecture with localStorage persistence, and GitHub Pages deployment via Vite base path configuration. These systems are largely independent and can be built in parallel after establishing shared types. The recommended build order prioritizes the settings/configuration layer first (enables all other features), then file format (enables save/load), then AI abstraction (enables provider switching), with GitHub Pages deployment as a final infrastructure concern.
-
----
-
-## File Format Design (.pipi)
-
-### Recommended Approach: ZIP Archive with Custom Extension
-
-Use JSZip to create ZIP archives with a `.pipi` extension. This approach is proven, well-supported, and handles the core requirement of bundling JSON metadata with binary assets (images).
-
-**Confidence:** HIGH (JSZip is mature, well-documented, actively maintained)
-
-### File Structure
-
-```
-presentation.pipi (ZIP archive)
-|-- manifest.json          # Version, metadata, file index
-|-- slides.json            # Slide data (title, content, speakerNotes, layout, etc.)
-|-- settings.json          # User preferences captured at save time
-|-- assets/
-    |-- slide-0-image.jpg  # Binary image files
-    |-- slide-1-image.png
-    |-- ...
-```
-
-### manifest.json Schema
-
-```typescript
-interface PiPiManifest {
-  version: "1.0.0";                    // Semantic versioning for format
-  formatVersion: 1;                     // Integer for migration logic
-  createdAt: string;                    // ISO timestamp
-  modifiedAt: string;
-  appVersion: string;                   // PiPi version that created file
-  title: string;
-  slideCount: number;
-  hasAssets: boolean;
-}
-```
-
-### Forward Compatibility Strategy
-
-1. **Format version number**: Integer `formatVersion` enables migration logic
-2. **Graceful degradation**: Unknown fields ignored, missing optional fields get defaults
-3. **Asset references**: Slides reference assets by filename, not embedded base64
-4. **Migration function**: `migrateManifest(oldVersion, newVersion)` handles upgrades
-
-### Save Implementation
-
-```typescript
-import JSZip from 'jszip';
-import { saveAs } from 'file-saver';
-
-async function savePiPi(slides: Slide[], settings: Settings, title: string): Promise<void> {
-  const zip = new JSZip();
-
-  // Create manifest
-  const manifest: PiPiManifest = {
-    version: "1.0.0",
-    formatVersion: 1,
-    createdAt: new Date().toISOString(),
-    modifiedAt: new Date().toISOString(),
-    appVersion: APP_VERSION,
-    title,
-    slideCount: slides.length,
-    hasAssets: slides.some(s => s.imageUrl)
-  };
-
-  zip.file("manifest.json", JSON.stringify(manifest, null, 2));
-
-  // Process slides - extract images to assets folder
-  const assetsFolder = zip.folder("assets");
-  const processedSlides = slides.map((slide, index) => {
-    if (slide.imageUrl?.startsWith('data:')) {
-      const filename = `slide-${index}-image.${getExtension(slide.imageUrl)}`;
-      const base64Data = slide.imageUrl.split(',')[1];
-      assetsFolder?.file(filename, base64Data, { base64: true });
-      return { ...slide, imageUrl: `assets/${filename}` };
-    }
-    return slide;
-  });
-
-  zip.file("slides.json", JSON.stringify(processedSlides, null, 2));
-  zip.file("settings.json", JSON.stringify(settings, null, 2));
-
-  const blob = await zip.generateAsync({ type: "blob" });
-  saveAs(blob, `${sanitizeFilename(title)}.pipi`);
-}
-```
-
-### Load Implementation
-
-```typescript
-async function loadPiPi(file: File): Promise<LoadedPresentation> {
-  const zip = await JSZip.loadAsync(file);
-
-  // Read and validate manifest
-  const manifestJson = await zip.file("manifest.json")?.async("string");
-  if (!manifestJson) throw new Error("Invalid .pipi file: missing manifest");
-  const manifest: PiPiManifest = JSON.parse(manifestJson);
-
-  // Version migration if needed
-  if (manifest.formatVersion < CURRENT_FORMAT_VERSION) {
-    // Run migration logic
-  }
-
-  // Load slides
-  const slidesJson = await zip.file("slides.json")?.async("string");
-  let slides: Slide[] = JSON.parse(slidesJson || "[]");
-
-  // Restore image data from assets
-  slides = await Promise.all(slides.map(async (slide) => {
-    if (slide.imageUrl?.startsWith('assets/')) {
-      const assetFile = zip.file(slide.imageUrl);
-      if (assetFile) {
-        const base64 = await assetFile.async("base64");
-        const ext = slide.imageUrl.split('.').pop();
-        slide.imageUrl = `data:image/${ext};base64,${base64}`;
-      }
-    }
-    return slide;
-  }));
-
-  // Load settings (optional)
-  const settingsJson = await zip.file("settings.json")?.async("string");
-  const settings = settingsJson ? JSON.parse(settingsJson) : null;
-
-  return { manifest, slides, settings };
-}
-```
-
-### Component Boundaries
-
-```
-services/
-  fileService.ts          # savePiPi(), loadPiPi(), validateManifest()
-
-types.ts                  # PiPiManifest, LoadedPresentation interfaces
-```
-
-### Dependencies
-
-```bash
-npm install jszip file-saver
-npm install -D @types/file-saver
-```
-
----
-
-## AI Provider Abstraction
-
-### Recommended Approach: Vercel AI SDK Pattern (Custom Implementation)
-
-The Vercel AI SDK demonstrates the ideal pattern: a unified interface where switching providers requires only changing the model parameter. For PiPi's specific needs (Gemini's image generation, structured JSON output), implement a custom abstraction following the same pattern.
-
-**Confidence:** HIGH (Vercel AI SDK pattern is industry-proven, adopted by major companies)
-
-### Why Custom Over Vercel AI SDK Directly
-
-1. **Current Gemini integration uses `@google/genai`** - already working, tested
-2. **Image generation specifics** - Gemini's image API has unique parameters (aspectRatio)
-3. **Structured output schemas** - already defined in geminiService.ts
-4. **Incremental migration** - can refactor without breaking existing functionality
-
-### Provider Interface Design
-
-```typescript
-// services/ai/types.ts
-export interface AIProviderConfig {
-  apiKey: string;
-  model?: string;
-}
-
-export interface GenerateTextOptions {
-  systemPrompt?: string;
-  prompt: string;
-  responseFormat?: 'text' | 'json';
-  schema?: object;  // JSON schema for structured output
-}
-
-export interface GenerateImageOptions {
-  prompt: string;
-  aspectRatio?: '4:3' | '16:9' | '3:4' | '1:1';
-  style?: string;
-}
-
-export interface AIProvider {
-  readonly name: string;
-  readonly supportsImageGeneration: boolean;
-  readonly supportsStructuredOutput: boolean;
-
-  generateText(options: GenerateTextOptions): Promise<string>;
-  generateStructuredOutput<T>(options: GenerateTextOptions): Promise<T>;
-  generateImage?(options: GenerateImageOptions): Promise<string | undefined>;
-}
-```
-
-### Provider Implementations
-
-```typescript
-// services/ai/providers/gemini.ts
-import { GoogleGenAI, Type } from "@google/genai";
-
-export class GeminiProvider implements AIProvider {
-  readonly name = 'gemini';
-  readonly supportsImageGeneration = true;
-  readonly supportsStructuredOutput = true;
-
-  private ai: GoogleGenAI;
-  private textModel: string;
-  private imageModel: string;
-
-  constructor(config: AIProviderConfig) {
-    this.ai = new GoogleGenAI({ apiKey: config.apiKey });
-    this.textModel = config.model || "gemini-3-flash-preview";
-    this.imageModel = "gemini-2.5-flash-image";
-  }
-
-  async generateText(options: GenerateTextOptions): Promise<string> {
-    const response = await this.ai.models.generateContent({
-      model: this.textModel,
-      contents: options.prompt,
-      config: {
-        systemInstruction: options.systemPrompt,
-        responseMimeType: options.responseFormat === 'json'
-          ? "application/json"
-          : "text/plain"
-      }
-    });
-    return response.text || "";
-  }
-
-  async generateStructuredOutput<T>(options: GenerateTextOptions): Promise<T> {
-    const response = await this.ai.models.generateContent({
-      model: this.textModel,
-      contents: options.prompt,
-      config: {
-        systemInstruction: options.systemPrompt,
-        responseMimeType: "application/json",
-        responseSchema: options.schema
-      }
-    });
-    return JSON.parse(response.text || "{}");
-  }
-
-  async generateImage(options: GenerateImageOptions): Promise<string | undefined> {
-    const response = await this.ai.models.generateContent({
-      model: this.imageModel,
-      contents: options.prompt,
-      config: {
-        imageConfig: { aspectRatio: options.aspectRatio as any }
-      }
-    });
-
-    for (const part of response.candidates?.[0]?.content?.parts || []) {
-      if (part.inlineData) {
-        return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-      }
-    }
-    return undefined;
-  }
-}
-```
-
-```typescript
-// services/ai/providers/anthropic.ts (future)
-export class AnthropicProvider implements AIProvider {
-  readonly name = 'anthropic';
-  readonly supportsImageGeneration = false;  // Claude doesn't generate images
-  readonly supportsStructuredOutput = true;
-
-  // Implementation using @anthropic-ai/sdk
-}
-
-// services/ai/providers/openai.ts (future)
-export class OpenAIProvider implements AIProvider {
-  readonly name = 'openai';
-  readonly supportsImageGeneration = true;   // DALL-E
-  readonly supportsStructuredOutput = true;
-
-  // Implementation using openai SDK
-}
-```
-
-### Provider Factory
-
-```typescript
-// services/ai/index.ts
-import { GeminiProvider } from './providers/gemini';
-import type { AIProvider, AIProviderConfig } from './types';
-
-export type ProviderName = 'gemini' | 'anthropic' | 'openai';
-
-const providers: Record<ProviderName, new (config: AIProviderConfig) => AIProvider> = {
-  gemini: GeminiProvider,
-  // anthropic: AnthropicProvider,  // Add when implemented
-  // openai: OpenAIProvider,
-};
-
-export function createAIProvider(name: ProviderName, config: AIProviderConfig): AIProvider {
-  const Provider = providers[name];
-  if (!Provider) {
-    throw new Error(`Unknown AI provider: ${name}`);
-  }
-  return new Provider(config);
-}
-
-// Singleton for app-wide use
-let activeProvider: AIProvider | null = null;
-
-export function getAIProvider(): AIProvider {
-  if (!activeProvider) {
-    throw new Error("AI provider not initialized. Call initializeAIProvider first.");
-  }
-  return activeProvider;
-}
-
-export function initializeAIProvider(name: ProviderName, config: AIProviderConfig): void {
-  activeProvider = createAIProvider(name, config);
-}
-```
-
-### Migration Strategy for Existing Code
-
-**Phase 1:** Create abstraction layer alongside existing geminiService.ts
-**Phase 2:** Update geminiService.ts functions to use abstraction internally
-**Phase 3:** Update App.tsx to use new initialization pattern
-**Phase 4:** Remove direct `@google/genai` imports from service functions
-
-### Component Boundaries
-
-```
-services/
-  ai/
-    types.ts              # AIProvider interface, options types
-    index.ts              # Factory, singleton management
-    providers/
-      gemini.ts           # GeminiProvider class
-      anthropic.ts        # Future: AnthropicProvider
-      openai.ts           # Future: OpenAIProvider
-  geminiService.ts        # Refactored to use ai/index.ts internally
-```
-
----
-
-## Settings Architecture
-
-### Recommended Approach: React Context + localStorage Sync
-
-Use a dedicated SettingsContext with automatic localStorage persistence. This pattern is well-established in React applications and avoids the overhead of external state management libraries for a client-side app.
-
-**Confidence:** HIGH (standard React pattern, well-documented)
-
-### Settings Interface
-
-```typescript
-// types/settings.ts
-export interface AppSettings {
-  // AI Provider
-  aiProvider: 'gemini' | 'anthropic' | 'openai';
-  aiApiKey: string;
-  aiModel?: string;
-
-  // Generation Preferences
-  autoGenerateImages: boolean;
-  defaultSlideLayout: 'split' | 'full-image' | 'center-text';
-  defaultTheme: 'default' | 'purple' | 'blue' | 'green' | 'warm';
-
-  // UI Preferences
-  darkMode: boolean;
-
-  // Class Management (persisted separately?)
-  studentNames: string[];
-}
-
-export const DEFAULT_SETTINGS: AppSettings = {
-  aiProvider: 'gemini',
-  aiApiKey: '',
-  aiModel: undefined,
-  autoGenerateImages: true,
-  defaultSlideLayout: 'split',
-  defaultTheme: 'default',
-  darkMode: false,
-  studentNames: [],
-};
-```
-
-### Context Implementation
-
-```typescript
-// contexts/SettingsContext.tsx
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { AppSettings, DEFAULT_SETTINGS } from '../types/settings';
-
-const STORAGE_KEY = 'pipi-settings';
-
-interface SettingsContextValue {
-  settings: AppSettings;
-  updateSettings: (partial: Partial<AppSettings>) => void;
-  resetSettings: () => void;
-  isLoaded: boolean;
-}
-
-const SettingsContext = createContext<SettingsContextValue | null>(null);
-
-export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        // Merge with defaults to handle new settings added in updates
-        setSettings({ ...DEFAULT_SETTINGS, ...parsed });
-      }
-    } catch (e) {
-      console.warn('Failed to load settings:', e);
-    }
-    setIsLoaded(true);
-  }, []);
-
-  // Save to localStorage on change (after initial load)
-  useEffect(() => {
-    if (isLoaded) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-      } catch (e) {
-        console.warn('Failed to save settings:', e);
-      }
-    }
-  }, [settings, isLoaded]);
-
-  const updateSettings = useCallback((partial: Partial<AppSettings>) => {
-    setSettings(prev => ({ ...prev, ...partial }));
-  }, []);
-
-  const resetSettings = useCallback(() => {
-    setSettings(DEFAULT_SETTINGS);
-  }, []);
-
-  return (
-    <SettingsContext.Provider value={{ settings, updateSettings, resetSettings, isLoaded }}>
-      {children}
-    </SettingsContext.Provider>
-  );
-}
-
-export function useSettings(): SettingsContextValue {
-  const context = useContext(SettingsContext);
-  if (!context) {
-    throw new Error('useSettings must be used within SettingsProvider');
-  }
-  return context;
-}
-```
-
-### Integration with AI Provider
-
-```typescript
-// App.tsx or dedicated initialization
-import { useSettings } from './contexts/SettingsContext';
-import { initializeAIProvider } from './services/ai';
-
-function AppInitializer({ children }: { children: React.ReactNode }) {
-  const { settings, isLoaded } = useSettings();
-  const [aiReady, setAiReady] = useState(false);
-
-  useEffect(() => {
-    if (isLoaded && settings.aiApiKey) {
-      initializeAIProvider(settings.aiProvider, {
-        apiKey: settings.aiApiKey,
-        model: settings.aiModel
-      });
-      setAiReady(true);
-    }
-  }, [isLoaded, settings.aiProvider, settings.aiApiKey, settings.aiModel]);
-
-  if (!isLoaded) return <LoadingScreen />;
-  if (!settings.aiApiKey) return <SetupScreen />;
-  if (!aiReady) return <LoadingScreen />;
-
-  return <>{children}</>;
-}
-```
-
-### Settings UI Component
-
-```typescript
-// components/SettingsPanel.tsx
-export function SettingsPanel({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const { settings, updateSettings } = useSettings();
-
-  return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <h2>Settings</h2>
-
-      <section>
-        <h3>AI Provider</h3>
-        <select
-          value={settings.aiProvider}
-          onChange={e => updateSettings({ aiProvider: e.target.value as any })}
-        >
-          <option value="gemini">Google Gemini</option>
-          <option value="anthropic" disabled>Anthropic Claude (coming soon)</option>
-          <option value="openai" disabled>OpenAI GPT (coming soon)</option>
-        </select>
-
-        <input
-          type="password"
-          value={settings.aiApiKey}
-          onChange={e => updateSettings({ aiApiKey: e.target.value })}
-          placeholder="API Key"
-        />
-      </section>
-
-      {/* More settings sections... */}
-    </Modal>
-  );
-}
-```
-
-### API Key Security Note
-
-For a client-side only app, API keys are stored in localStorage and visible to users. This is acceptable because:
-1. Users provide their own API keys
-2. Keys are only used from the user's browser
-3. Alternative would require a backend (out of scope for v2.0)
-
-Future enhancement: Support for a proxy backend that holds keys server-side.
-
-### Component Boundaries
-
-```
-contexts/
-  SettingsContext.tsx     # Provider, hook, localStorage sync
-
-components/
-  SettingsPanel.tsx       # Settings UI modal
-
-types/
-  settings.ts             # AppSettings interface, defaults
-```
-
----
-
-## Build/Deploy Configuration
-
-### GitHub Pages with Vite
-
-**Confidence:** HIGH (official Vite documentation)
-
-### vite.config.ts Updates
-
-```typescript
-import path from 'path';
-import { defineConfig, loadEnv } from 'vite';
-import react from '@vitejs/plugin-react';
-
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, '.', '');
-
-  // Determine base path: '/' for local dev, '/repo-name/' for GitHub Pages
-  const isGitHubPages = process.env.GITHUB_ACTIONS === 'true';
-  const base = isGitHubPages ? '/DEV - PiPi/' : '/';
-  // Note: If repo name has spaces, use URL encoding or rename repo
-
-  return {
-    base,
-    server: {
-      port: 3000,
-      host: '0.0.0.0',
-    },
-    plugins: [react()],
-    define: {
-      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      'import.meta.env.APP_VERSION': JSON.stringify(process.env.npm_package_version || '2.0.0'),
-    },
-    resolve: {
-      alias: {
-        '@': path.resolve(__dirname, '.'),
-      }
-    },
-    build: {
-      outDir: 'dist',
-      sourcemap: false,  // Disable for production
-    }
-  };
-});
-```
-
-### GitHub Actions Workflow
-
-```yaml
-# .github/workflows/deploy.yml
-name: Deploy to GitHub Pages
-
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-        env:
-          GITHUB_ACTIONS: 'true'
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: 'dist'
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-```
-
-### Repository Settings
-
-1. Go to Settings > Pages
-2. Set Source to "GitHub Actions"
-3. No need for gh-pages branch
-
-### Important: Repository Name
-
-The current repo name "DEV - PiPi" contains spaces, which can cause issues with URL paths. Consider:
-- Renaming to `pipi` or `lesson-lens`
-- Using URL-encoded path: `/DEV%20-%20PiPi/`
-
----
-
-## v2.0 Data Flow Diagram
-
-```
-                            +-----------------+
-                            |  SettingsContext |
-                            |  (localStorage)  |
-                            +--------+--------+
-                                     |
-                 +-------------------+-------------------+
-                 |                   |                   |
-                 v                   v                   v
-        +--------+-------+  +--------+-------+  +--------+-------+
-        |  AI Provider   |  |  File Service  |  |  UI Components |
-        |  (services/ai) |  | (services/file)|  |  (components/) |
-        +--------+-------+  +--------+-------+  +--------+-------+
-                 |                   |                   |
-                 v                   v                   v
-        +--------+-------+  +--------+-------+  +--------+-------+
-        | Gemini/Claude/ |  |   JSZip        |  |  Presentation  |
-        | OpenAI APIs    |  |   .pipi files  |  |  State (App)   |
-        +----------------+  +----------------+  +----------------+
-```
-
-### State Ownership
-
-| State | Owner | Persistence |
-|-------|-------|-------------|
-| App settings (API keys, preferences) | SettingsContext | localStorage |
-| Current slides | App.tsx (useState) | None (session) |
-| Lesson title | App.tsx (useState) | None (session) |
-| Student names | SettingsContext | localStorage |
-| Dark mode | SettingsContext | localStorage |
-| Active AI provider | AI service singleton | Derived from settings |
-
----
-
-## v2.0 Suggested Build Order
-
-### Phase 1: Foundation (Week 1)
-**Build first:** Settings architecture
-
-| Component | Dependency | Rationale |
-|-----------|------------|-----------|
-| `types/settings.ts` | None | Defines interfaces for all other components |
-| `contexts/SettingsContext.tsx` | types/settings | Enables API key storage for AI, preferences for UI |
-| `components/SettingsPanel.tsx` | SettingsContext | User can configure app |
-
-**Why first:** Every other feature depends on settings - AI provider needs API key, file save needs settings to include, UI needs preferences.
-
-### Phase 2: AI Abstraction (Week 2)
-**Build second:** Provider abstraction layer
-
-| Component | Dependency | Rationale |
-|-----------|------------|-----------|
-| `services/ai/types.ts` | None | Interface definitions |
-| `services/ai/providers/gemini.ts` | types | Wrap existing Gemini code |
-| `services/ai/index.ts` | providers | Factory and singleton |
-| Refactor `geminiService.ts` | ai/index | Use abstraction |
-
-**Why second:** Settings provides API keys; this enables refactoring without breaking existing functionality.
-
-### Phase 3: File Format (Week 2-3)
-**Build third:** .pipi save/load
-
-| Component | Dependency | Rationale |
-|-----------|------------|-----------|
-| `services/fileService.ts` | JSZip, types | Core save/load logic |
-| Update `App.tsx` | fileService | Add Save/Open buttons |
-| File open handler | fileService | Load .pipi on drag-drop or file picker |
-
-**Why third:** Independent of AI abstraction; can be built in parallel if resources allow.
-
-### Phase 4: Infrastructure (Week 3)
-**Build last:** GitHub Pages deployment
-
-| Component | Dependency | Rationale |
-|-----------|------------|-----------|
-| Update `vite.config.ts` | None | Add base path configuration |
-| `.github/workflows/deploy.yml` | vite config | Automate deployment |
-| Test deployment | All above | Verify everything works on GH Pages |
-
-**Why last:** Pure infrastructure concern; doesn't affect feature development.
-
-### Parallelization Opportunities
-
-```
-Week 1:     [Settings Architecture]
-                    |
-Week 2:     [AI Abstraction] ---+--- [File Format: types]
-                    |                      |
-Week 3:     [Refactor existing]    [File Format: implementation]
-                    |                      |
-Week 3-4:   [-------- GitHub Pages Deployment --------]
-```
-
----
-
-## v2.0 Anti-Patterns to Avoid
-
-### 1. Embedding Binary Data in JSON
-**Don't:** Store base64 images directly in slides.json
-**Do:** Store images as separate files in assets/, reference by filename
-**Why:** JSON files become huge, parsing becomes slow, editing is impractical
-
-### 2. Provider-Specific Code Scattered Through App
-**Don't:** Import `@google/genai` in multiple components
-**Do:** All AI calls go through services/ai/index.ts
-**Why:** Makes provider switching impossible, increases coupling
-
-### 3. API Keys in Environment Variables for Client-Side
-**Don't:** Rely on build-time env vars for API keys
-**Do:** Store in localStorage, load at runtime
-**Why:** Keys need to be user-configurable, build-time keys are baked in
-
-### 4. localStorage Reads on Every Render
-**Don't:** Read localStorage directly in components
-**Do:** Use SettingsContext which reads once and syncs
-**Why:** localStorage is synchronous and slow; excessive reads hurt performance
-
-### 5. Mixing Presentation State with Settings
-**Don't:** Store current slides in the same context as settings
-**Do:** Keep settings (persistent) separate from session state (transient)
-**Why:** Settings sync to localStorage; slides shouldn't auto-persist on every edit
-
----
-
-## v2.0 Sources
-
-### File Format (JSZip)
-- [JSZip Official Documentation](https://stuk.github.io/jszip/) - HIGH confidence
-- [JSZip GitHub Repository](https://github.com/Stuk/jszip) - HIGH confidence
-- [JSZip Examples](https://stuk.github.io/jszip/documentation/examples.html) - HIGH confidence
-
-### AI Provider Abstraction
-- [Vercel AI SDK Documentation](https://ai-sdk.dev/docs/introduction) - HIGH confidence
-- [Vercel AI SDK GitHub](https://github.com/vercel/ai) - HIGH confidence
-- [Codecademy Guide to Vercel AI SDK](https://www.codecademy.com/article/guide-to-vercels-ai-sdk) - MEDIUM confidence
-- [LogRocket: Building Unified AI Interfaces](https://blog.logrocket.com/unified-ai-interfaces-vercel-sdk/) - MEDIUM confidence
-
-### Settings Architecture
-- [React State Management in 2025](https://www.developerway.com/posts/react-state-management-2025) - MEDIUM confidence
-- [React Context API Guide](https://generalistprogrammer.com/tutorials/react-context-api-complete-guide) - MEDIUM confidence
-- [Context + localStorage Pattern](https://gist.github.com/jimode/c1d2d4c1ab33ba1b7be8be8c50d64555) - MEDIUM confidence
-
-### GitHub Pages Deployment
-- [Vite Official Static Deployment Guide](https://vite.dev/guide/static-deploy) - HIGH confidence
-- [GitHub Pages with Vite Demo](https://github.com/sitek94/vite-deploy-demo) - MEDIUM confidence
