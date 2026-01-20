@@ -4,7 +4,7 @@
 
 A presentation tool for teachers that transforms PDF lesson plans into interactive slideshows with AI-generated content, a teleprompter script for the teacher, and progressive bullet reveal. Teachers upload their existing lesson plans, select student age/grade level, and the AI creates an engaging presentation with speaker notes that guide the teacher through natural, conversational delivery.
 
-**v2.1 shipped:** Added landing page entry point for existing .pipi files (Load button + drag-drop), rebranded from LessonLens to PiPi with styled header, illustrated logo, and dark mode default.
+**v2.2 shipped:** Added flexible PDF upload (lesson plans, existing presentations, or both) with AI adaptation modes (Fresh/Refine/Blend), plus a class bank for saving/loading student lists across presentations.
 
 ## Core Value
 
@@ -55,24 +55,20 @@ Students see only the presentation; teachers see the presentation plus a telepro
 - ✓ Drag-and-drop .pipi files on landing page → auto-loads to editor — v2.1
 - ✓ PiPi branding (styled header, browser tab, favicon, watermark) — v2.1
 - ✓ Dark mode as default theme — v2.1
+- ✓ Dual PDF upload zones (lesson plan + existing presentation) — v2.2
+- ✓ AI Fresh mode (lesson PDF only generates slides) — v2.2
+- ✓ AI Refine mode (adapts existing PPT to PiPi format with content preservation) — v2.2
+- ✓ AI Blend mode (combines lesson content with existing slides) — v2.2
+- ✓ Save student list as named class — v2.2
+- ✓ Load saved class into any presentation — v2.2
+- ✓ Class bank localStorage persistence — v2.2
+- ✓ Class management (view, rename, edit students, delete with undo) — v2.2
 
 ### Active
 
-**v2.2 Flexible Upload & Class Bank**
+None — planning next milestone.
 
-Flexible Upload:
-- [ ] Landing page accepts lesson PDF, existing PPT (as PDF), or both
-- [ ] AI generates fresh slides from lesson PDF only (current behavior)
-- [ ] AI refines/adapts existing PPT to PiPi format (less text-dense, proper structure)
-- [ ] AI uses lesson content to improve existing slides when both provided
-
-Class Bank:
-- [ ] Save current student list as a named class
-- [ ] Load saved class into any presentation
-- [ ] Class bank stored in localStorage (persists across presentations)
-- [ ] Full class management: view all, rename, edit students, delete
-
-### Deferred (v2.2+)
+### Deferred (v2.3+)
 
 - [ ] Elapsed time display showing presentation duration
 - [ ] Fullscreen recovery (auto re-enter if exited)
@@ -98,18 +94,17 @@ Class Bank:
 
 ### Current State
 
-Shipped v2.1 with 6,993 LOC TypeScript.
+Shipped v2.2 with ~7,800 LOC TypeScript.
 Tech stack: React 19, Vite, Gemini/Claude API, Tailwind CSS, react-rnd.
 Client-side only (no backend).
 Deployed at: https://goom1000.github.io/PiPi/
 
-v2.1 delivered Landing Page & Branding:
-- "Load Presentation" button on landing page for existing .pipi files
-- Drag-and-drop .pipi files on landing page → auto-loads
-- Styled "PiPi" header with whiteboard icon (violet/amber theme)
-- Illustrated landing page logo
-- Dark mode as default, subtle violet light mode background
-- Browser tab, favicon, and ResourceHub watermark updated
+v2.2 delivered Flexible Upload & Class Bank:
+- Dual PDF upload zones (lesson plan + existing presentation)
+- Three AI generation modes: Fresh, Refine, Blend
+- Content preservation in Refine mode (restructures without omitting)
+- Class bank with save/load for student lists
+- Full class management (rename, edit students, delete with undo)
 
 ### Technical Environment
 
@@ -158,6 +153,16 @@ v2.1 delivered Landing Page & Branding:
 | Load button left of Generate | Secondary action left, primary right | ✓ Good — v2.1 |
 | Styled text header branding | Better theming than logo image | ✓ Good — v2.1 |
 | Dark mode default | Better visual experience for new users | ✓ Good — v2.1 |
+| Upload mode via useMemo | Automatic detection based on files present | ✓ Good — v2.2 |
+| Green/Blue upload zones | Visual distinction (green=lesson, blue=presentation) | ✓ Good — v2.2 |
+| Backward compatible GenerationInput | string \| GenerationInput signature for providers | ✓ Good — v2.2 |
+| Content preservation in Refine | AI restructures but never omits content | ✓ Good — v2.2 |
+| Blend mode 5 images per source | Token safety (10 total images max) | ✓ Good — v2.2 |
+| CLASS_BANK_KEY constant | Consistent localStorage key pattern | ✓ Good — v2.2 |
+| Type guard for saved classes | Validates student array on load | ✓ Good — v2.2 |
+| Inline edit for class rename | Click-to-edit with blur/Enter save | ✓ Good — v2.2 |
+| Expand-in-place student editing | Avoids modal-within-modal complexity | ✓ Good — v2.2 |
+| Toast undo for class delete | Reversible destructive operation | ✓ Good — v2.2 |
 
 ---
-*Last updated: 2026-01-19 after starting v2.2 milestone*
+*Last updated: 2026-01-20 after v2.2 milestone*

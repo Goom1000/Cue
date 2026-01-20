@@ -1,5 +1,32 @@
 # Project Milestones: PiPi
 
+## v2.2 Flexible Upload & Class Bank (Shipped: 2026-01-20)
+
+**Delivered:** Added flexible PDF upload (lesson plans, existing presentations, or both) with AI adaptation modes, plus a class bank for saving/loading student lists across presentations.
+
+**Phases completed:** 8-11 (8 plans total)
+
+**Key accomplishments:**
+
+- Dual PDF upload zones with automatic mode detection (Fresh/Refine/Blend)
+- AI adaptation logic with mode-specific prompts for Claude and Gemini
+- Content preservation in refine mode (restructures without omitting)
+- Class bank with save/load functionality persisting in localStorage
+- Full class management UI with inline rename, student editing, delete with undo
+
+**Stats:**
+
+- 49 files created/modified
+- ~7,800 lines of TypeScript (project total)
+- 4 phases, 8 plans
+- 1 day (2026-01-19 → 2026-01-20)
+
+**Git range:** `feat(08-01)` → `feat(11-02)`
+
+**What's next:** TBD with /gsd:new-milestone
+
+---
+
 ## v2.1 Landing Page & Branding (Shipped: 2026-01-19)
 
 **Delivered:** Added landing page entry point for existing presentations (Load button + drag-drop) and rebranded the app from LessonLens to PiPi with styled text header, illustrated logo, and dark mode default.

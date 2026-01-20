@@ -2,19 +2,19 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-01-19)
+See: .planning/PROJECT.md (updated 2026-01-20)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** v2.2 Flexible Upload & Class Bank
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 11 - Class Management UI
-Plan: 2 of 2 complete
-Status: Milestone complete
-Last activity: 2026-01-20 - Completed 11-02-PLAN.md (ClassManagementModal)
+Phase: Ready for next milestone
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-01-20 — v2.2 milestone complete
 
-Progress: [##########] 8/8 v2.2 plans complete
+Progress: [##########] v2.2 complete
 
 ## Performance Metrics
 
@@ -24,72 +24,28 @@ Progress: [##########] 8/8 v2.2 plans complete
 - v1.2: 5 plans, 1 day
 - v2.0: 11 plans, 1 day
 - v2.1: 2 plans, 4 hours
-- v2.2: Complete (8 plans, ~26 min)
+- v2.2: 8 plans, 1 day
 
 **Project Totals:**
-- Milestones shipped: 5 (v1.0, v1.1, v1.2, v2.0, v2.1)
-- Total phases: 18 completed
-- Total plans: 34
+- Milestones shipped: 6 (v1.0, v1.1, v1.2, v2.0, v2.1, v2.2)
+- Total phases: 22 completed
+- Total plans: 42
 - Total LOC: ~7,800 TypeScript
 
 ## Completed Milestones
 
+- v2.2 Flexible Upload & Class Bank (2026-01-20) - 4 phases, 8 plans
 - v2.1 Landing Page & Branding (2026-01-19) - 2 phases, 2 plans
 - v2.0 Shareable Presentations (2026-01-19) - 5 phases, 11 plans
 - v1.2 Permission Flow Fix (2026-01-18) - 2 phases, 5 plans
 - v1.1 Draggable Preview Window (2026-01-18) - 2 phases, 3 plans
 - v1.0 Dual-Monitor Student View (2026-01-18) - 3 phases, 6 plans
 
-## v2.2 Milestone Progress
-
-| Phase | Name | Status | Requirements |
-|-------|------|--------|--------------|
-| 8 | Flexible Upload UI | Complete | UPLOAD-01 to UPLOAD-04 |
-| 9 | AI Adaptation Logic | Complete (3 plans) | UPLOAD-05 to UPLOAD-07 |
-| 10 | Class Bank Core | Complete (2 plans) | CLASS-01 to CLASS-04 |
-| 11 | Class Management UI | Complete (2 plans) | CLASS-05 to CLASS-08 |
-
 ## Accumulated Context
 
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
-
-Summary of key v2.2 decisions (Phase 11):
-- ToastAction as separate exported interface (clean type reuse)
-- Action button styled with underline hover pattern (fits toast aesthetic)
-- Class update functions use map + spread pattern with savedAt timestamp refresh
-- Backdrop click closes management modal (consistent with other modals)
-- Expand-in-place for student editing rather than nested modal (simpler UX)
-- Active class name sync on rename/delete (keeps indicator accurate)
-- Undo creates new class with same data, new ID (acceptable simplicity tradeoff)
-
-Summary of key v2.2 decisions (Phase 10):
-- CLASS_BANK_KEY constant for localStorage key (consistent with useSettings pattern)
-- Type guard validates every student string in array (prevents corrupted data)
-- window.confirm for duplicate class name confirmation (simple, per context)
-- Save/Load buttons placed before student chips (logical grouping)
-- Clear activeClassName on manual student modification (accurate dirty state tracking)
-
-Summary of key v2.2 decisions (Phase 9):
-- Backward compatible signature (string | GenerationInput) for generateLessonSlides
-- Shared prompt constants (TELEPROMPTER_RULES, JSON_OUTPUT_FORMAT) for consistency
-- Blend mode limited to 5 images per source (10 total) for token safety
-- GeminiProvider mirrors Claude prompt structure for consistent behavior
-- Refine mode must preserve ALL content (restructure, don't omit) - user decides what to remove
-
-Summary of key v2.2 decisions (Phase 8):
-- Green theme for lesson PDF upload zone (existing pattern)
-- Blue theme for existing presentation PDF upload zone (new)
-- Mode derivation via useMemo (fresh/refine/blend/none)
-- Shared processPdf helper with callbacks for code reuse
-- Dynamic button labels based on upload mode
-
-Summary of key v2.1 decisions:
-- Load button placed left of Generate button (secondary action left, primary right)
-- Styled text header branding with whiteboard icon (better theming than logo image)
-- Dark mode as default theme (better visual experience)
-- Subtle violet light mode background (consistent brand theming)
 
 ### Pending Todos
 
@@ -102,10 +58,10 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-20
-Stopped at: Completed 11-02-PLAN.md (ClassManagementModal)
+Stopped at: v2.2 milestone complete
 Resume file: None
-Next: /gsd:audit-milestone → /gsd:complete-milestone
+Next: /gsd:new-milestone
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-20 - v2.2 milestone complete*
+*Last updated: 2026-01-20 - v2.2 milestone archived*
