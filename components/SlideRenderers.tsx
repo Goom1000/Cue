@@ -228,7 +228,7 @@ export const GridLayout: React.FC<{ slide: Slide, visibleBullets: number }> = ({
                 {slide.title}
             </h2>
             
-            <div className="flex-1 grid grid-cols-2 gap-8 max-w-7xl mx-auto w-full z-10 relative items-center justify-center content-center">
+            <div className="flex-1 grid grid-cols-2 auto-rows-fr gap-8 max-w-7xl mx-auto w-full z-10 relative">
                 {slide.content.map((point, idx) => {
                     // If it's the last item and the total is odd, make it span 2 columns
                     const isLast = idx === slide.content.length - 1;
