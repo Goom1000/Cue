@@ -8,7 +8,7 @@
 - [x] **v2.0 Shareable Presentations** - Phases 8-9 (shipped 2026-01-19)
 - [x] **v2.1 Landing Page & Branding** - Phases 9.1-9.2 (shipped 2026-01-19)
 - [x] **v2.2 Flexible Upload & Class Bank** - Phases 10-11 (shipped 2026-01-20)
-- [ ] **v2.3 Bug Fixes** - Phases 12-14 (in progress)
+- [x] **v2.3 Bug Fixes** - Phases 12-14 (shipped 2026-01-21)
 
 ## Overview
 
@@ -18,7 +18,7 @@ Fix critical bugs affecting presentation experience: flowchart layout issues wit
 
 - [x] **Phase 12: CSS Layout Fixes** - Fix flowchart arrows, box spacing, and slide preview cutoff
 - [x] **Phase 13: AI Error Handling** - Add user-friendly error messages for AI revision failures
-- [ ] **Phase 14: Game Sync** - Display game activity in student view with real-time state sync
+- [x] **Phase 14: Game Sync** - Display game activity in student view with real-time state sync
 
 ## Phase Details
 
@@ -60,8 +60,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 14-01-PLAN.md — Add game sync types and broadcast game state from teacher view
-- [ ] 14-02-PLAN.md — Receive game state in student view and render synchronized game display
+- [x] 14-01-PLAN.md — Add game sync types and broadcast game state from teacher view
+- [x] 14-02-PLAN.md — Receive game state in student view and render synchronized game display
 
 ## Progress
 
@@ -69,8 +69,8 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 12. CSS Layout Fixes | v2.3 | 1/1 | Complete | 2026-01-20 |
 | 13. AI Error Handling | v2.3 | 1/1 | Complete | 2026-01-20 |
-| 14. Game Sync | v2.3 | 0/2 | Not started | - |
+| 14. Game Sync | v2.3 | 2/2 | Complete | 2026-01-21 |
 
 ---
 *Roadmap created: 2026-01-20*
-*Last updated: 2026-01-20*
+*Last updated: 2026-01-21*
