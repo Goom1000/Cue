@@ -258,24 +258,24 @@ export const generateQuickQuestion = async (
   ): Promise<string> => {
       const ai = new GoogleGenAI({ apiKey });
       const model = "gemini-3-flash-preview";
-  
+
       const systemInstruction = `
-        You are a teaching assistant helper for a Year 6 (10-11 year old) class. 
+        You are a teaching assistant helper for a Year 6 (10-11 year old) class.
         Generate a single, short, oral question that the teacher can ask the class to check understanding of the current slide.
-        
+
         DIFFICULTY LEVELS:
         - Grade C: Basic recall, simple observation, or "What is" questions. Easy confidence builder.
         - Grade B: Understanding, explaining in own words, or "How" questions. Moderate challenge.
         - Grade A: Critical thinking, prediction, synthesis, or "Why" questions. High challenge.
-        
+
         OUTPUT RULES:
-        - Output ONLY the question text. 
+        - Output ONLY the question text.
         - Keep it conversational.
         - Do not include "Here is a question:" prefixes.
       `;
-  
+
       const prompt = `Topic: ${slideTitle}\nKey Points on Slide: ${slideContent.join('; ')}\n\nGenerate a ${difficulty} question.`;
-      
+
       try {
         const response = await ai.models.generateContent({
           model,
@@ -286,6 +286,71 @@ export const generateQuickQuestion = async (
       } catch (e) {
         return "Network error. Try again.";
       }
+};
+
+export const generateQuestionWithAnswer = async (
+  apiKey: string,
+  slideTitle: string,
+  slideContent: string[],
+  difficulty: 'A' | 'B' | 'C' | 'D' | 'E'
+): Promise<QuestionWithAnswer> => {
+  const ai = new GoogleGenAI({ apiKey });
+  const model = "gemini-3-flash-preview";
+
+  const systemInstruction = `
+    You are a teaching assistant helper for a Year 6 (10-11 year old) class.
+    Generate a single oral question with an expected answer that the teacher can use as a teleprompter guide.
+
+    BLOOM'S TAXONOMY DIFFICULTY MAPPING:
+    - Grade E (Recall): "What is...", "Name the...", "List the..." - Pure factual recall.
+    - Grade D (Comprehension): "Give an example of...", "Which one shows..." - Basic understanding.
+    - Grade C (Understanding): "Describe in your own words", "What does X mean?" - Deeper understanding.
+    - Grade B (Application): "How would you use...", "Explain how..." - Apply concepts.
+    - Grade A (Analysis/Synthesis): "Why does X affect Y?", "What would happen if..." - Critical thinking.
+
+    ANSWER FORMAT RULES:
+    - Write a sample answer a good student would give.
+    - Use **bold** around KEY POINTS the teacher should listen for.
+    - Length:
+      - Grade E/D: 1-2 sentences
+      - Grade C: 2-3 sentences
+      - Grade B/A: 2-3 sentences with deeper reasoning
+    - Example: "The water cycle includes **evaporation**, **condensation**, and **precipitation**."
+
+    OUTPUT RULES:
+    - Question should be conversational and age-appropriate.
+    - Answer should be natural, not robotic.
+    - Bold the 2-4 most important key terms or concepts.
+  `;
+
+  const prompt = `Topic: ${slideTitle}\nKey Points on Slide: ${slideContent.join('; ')}\n\nGenerate a Grade ${difficulty} question with expected answer.`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model,
+      contents: prompt,
+      config: {
+        systemInstruction,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            question: { type: Type.STRING },
+            answer: { type: Type.STRING, description: "Sample answer with **key points** bolded" }
+          },
+          required: ['question', 'answer']
+        }
+      }
+    });
+
+    const data = JSON.parse(response.text || "{}");
+    return data as QuestionWithAnswer;
+  } catch (e) {
+    return {
+      question: "Could not generate question",
+      answer: "Please try again"
+    };
+  }
 };
 
 export const reviseSlide = async (apiKey: string, slide: Slide, instruction: string): Promise<Partial<Slide>> => {
@@ -464,6 +529,11 @@ export interface QuizQuestion {
     options: string[]; // Array of 4 strings
     correctAnswerIndex: number; // 0-3
     explanation: string;
+}
+
+export interface QuestionWithAnswer {
+  question: string;
+  answer: string;  // Markdown with **bold** for key points
 }
 
 export const generateImpromptuQuiz = async (
