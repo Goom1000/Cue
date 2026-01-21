@@ -569,8 +569,12 @@ function App() {
   // ============================================================================
 
   const handleSaveClick = useCallback(() => {
+    // Look up active class's grade data
+    const activeClass = activeClassName ? classes.find(c => c.name === activeClassName) : null;
+    const studentGrades = activeClass?.studentData;
+
     // Check file size first
-    const file = createPiPiFile(lessonTitle, slides, studentNames, lessonText);
+    const file = createPiPiFile(lessonTitle, slides, studentNames, lessonText, undefined, studentGrades);
     const sizeInfo = checkFileSize(file);
 
     if (sizeInfo.exceeds50MB) {
@@ -580,16 +584,20 @@ function App() {
     // Open filename prompt with lesson title as default
     setPendingSaveFilename(lessonTitle || 'New Lesson');
     setShowFilenamePrompt(true);
-  }, [lessonTitle, slides, studentNames, lessonText, addToast]);
+  }, [lessonTitle, slides, studentNames, lessonText, addToast, classes, activeClassName]);
 
   const handleSaveConfirm = useCallback(() => {
-    const file = createPiPiFile(lessonTitle, slides, studentNames, lessonText);
+    // Look up active class's grade data
+    const activeClass = activeClassName ? classes.find(c => c.name === activeClassName) : null;
+    const studentGrades = activeClass?.studentData;
+
+    const file = createPiPiFile(lessonTitle, slides, studentNames, lessonText, undefined, studentGrades);
     downloadPresentation(file, pendingSaveFilename);
     addToast('Presentation saved successfully!', 3000, 'success');
     setHasUnsavedChanges(false);
     setShowFilenamePrompt(false);
     setPendingSaveFilename('');
-  }, [lessonTitle, slides, studentNames, lessonText, pendingSaveFilename, addToast]);
+  }, [lessonTitle, slides, studentNames, lessonText, pendingSaveFilename, addToast, classes, activeClassName]);
 
   const handleSaveCancel = useCallback(() => {
     setShowFilenamePrompt(false);
