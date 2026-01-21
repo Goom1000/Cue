@@ -98,8 +98,18 @@ export interface PiPiFile {
 export interface SavedClass {
   id: string;           // crypto.randomUUID()
   name: string;         // User-provided name (trimmed)
-  students: string[];   // Array of student names
+  students: string[];   // Array of student names (kept for backward compatibility)
+  studentData?: StudentWithGrade[]; // Grade assignments (optional for migration)
   savedAt: string;      // ISO 8601 timestamp
+}
+
+// Student grade levels for targeted questioning
+export type GradeLevel = 'A' | 'B' | 'C' | 'D' | 'E';
+
+// Student with optional grade assignment
+export interface StudentWithGrade {
+  name: string;
+  grade: GradeLevel | null;
 }
 
 export enum AppState {
