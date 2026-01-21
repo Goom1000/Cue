@@ -9,9 +9,9 @@ Requirements for targeted questioning milestone. Each maps to roadmap phases.
 
 ### Question Generation
 
-- [ ] **QGEN-01**: AI generates question + expected answer for teleprompter
-- [ ] **QGEN-02**: Five difficulty levels (A/B/C/D/E) available as buttons
-- [ ] **QGEN-03**: Question difficulty matches selected grade level
+- [x] **QGEN-01**: AI generates question + expected answer for teleprompter
+- [x] **QGEN-02**: Five difficulty levels (A/B/C/D/E) available as buttons
+- [x] **QGEN-03**: Question difficulty matches selected grade level
 
 ### Student Grades
 
@@ -75,9 +75,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| QGEN-01 | Phase 16 | Pending |
-| QGEN-02 | Phase 16 | Pending |
-| QGEN-03 | Phase 16 | Pending |
+| QGEN-01 | Phase 16 | Complete |
+| QGEN-02 | Phase 16 | Complete |
+| QGEN-03 | Phase 16 | Complete |
 | GRAD-01 | Phase 15 | Complete |
 | GRAD-02 | Phase 15 | Complete |
 | GRAD-03 | Phase 15 | Complete |
@@ -99,4 +99,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-21*
-*Last updated: 2026-01-21 after roadmap creation*
+*Last updated: 2026-01-22 after Phase 16 complete*
