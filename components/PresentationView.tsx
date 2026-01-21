@@ -714,51 +714,83 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
                    </button>
                    
                    {/* Differentiated Question Buttons - HIGHLIGHTED IF FLAGGED */}
-                   <div className={`grid grid-cols-3 gap-2 mt-3 p-2 rounded-xl transition-all ${currentSlide.hasQuestionFlag ? 'bg-amber-500/10 ring-1 ring-amber-500/30' : ''}`}>
+                   <div className={`grid grid-cols-5 gap-2 mt-3 p-2 rounded-xl transition-all ${currentSlide.hasQuestionFlag ? 'bg-amber-500/10 ring-1 ring-amber-500/30' : ''}`}>
                        {currentSlide.hasQuestionFlag && (
-                           <div className="col-span-3 text-[10px] font-bold text-amber-500 uppercase tracking-widest text-center mb-1">
+                           <div className="col-span-5 text-[10px] font-bold text-amber-500 uppercase tracking-widest text-center mb-1">
                                ⚡ Question Time ⚡
                            </div>
                        )}
                        <div className="relative">
                          <button
-                           onClick={() => handleGenerateQuestion('Grade C')}
-                           className={`w-full bg-emerald-800/50 hover:bg-emerald-700 text-emerald-200 border border-emerald-700/50 rounded-lg py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${!isAIAvailable ? 'opacity-50' : ''}`}
-                           title={!isAIAvailable ? 'Add API key in Settings to enable' : undefined}
-                         >
-                           Grade C ?
-                         </button>
-                         {!isAIAvailable && (
-                           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-slate-500 rounded-full flex items-center justify-center">
-                             <svg className="w-2 h-2 text-white" viewBox="0 0 20 20" fill="currentColor">
-                               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                             </svg>
-                           </span>
-                         )}
-                       </div>
-                       <div className="relative">
-                         <button
-                           onClick={() => handleGenerateQuestion('Grade B')}
-                           className={`w-full bg-amber-800/50 hover:bg-amber-700 text-amber-200 border border-amber-700/50 rounded-lg py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${!isAIAvailable ? 'opacity-50' : ''}`}
-                           title={!isAIAvailable ? 'Add API key in Settings to enable' : undefined}
-                         >
-                           Grade B ?
-                         </button>
-                         {!isAIAvailable && (
-                           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-slate-500 rounded-full flex items-center justify-center">
-                             <svg className="w-2 h-2 text-white" viewBox="0 0 20 20" fill="currentColor">
-                               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                             </svg>
-                           </span>
-                         )}
-                       </div>
-                       <div className="relative">
-                         <button
-                           onClick={() => handleGenerateQuestion('Grade A')}
+                           onClick={() => handleGenerateQuestion('A')}
                            className={`w-full bg-rose-800/50 hover:bg-rose-700 text-rose-200 border border-rose-700/50 rounded-lg py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${!isAIAvailable ? 'opacity-50' : ''}`}
                            title={!isAIAvailable ? 'Add API key in Settings to enable' : undefined}
                          >
-                           Grade A ?
+                           A
+                         </button>
+                         {!isAIAvailable && (
+                           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-slate-500 rounded-full flex items-center justify-center">
+                             <svg className="w-2 h-2 text-white" viewBox="0 0 20 20" fill="currentColor">
+                               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                             </svg>
+                           </span>
+                         )}
+                       </div>
+                       <div className="relative">
+                         <button
+                           onClick={() => handleGenerateQuestion('B')}
+                           className={`w-full bg-orange-800/50 hover:bg-orange-700 text-orange-200 border border-orange-700/50 rounded-lg py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${!isAIAvailable ? 'opacity-50' : ''}`}
+                           title={!isAIAvailable ? 'Add API key in Settings to enable' : undefined}
+                         >
+                           B
+                         </button>
+                         {!isAIAvailable && (
+                           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-slate-500 rounded-full flex items-center justify-center">
+                             <svg className="w-2 h-2 text-white" viewBox="0 0 20 20" fill="currentColor">
+                               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                             </svg>
+                           </span>
+                         )}
+                       </div>
+                       <div className="relative">
+                         <button
+                           onClick={() => handleGenerateQuestion('C')}
+                           className={`w-full bg-amber-800/50 hover:bg-amber-700 text-amber-200 border border-amber-700/50 rounded-lg py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${!isAIAvailable ? 'opacity-50' : ''}`}
+                           title={!isAIAvailable ? 'Add API key in Settings to enable' : undefined}
+                         >
+                           C
+                         </button>
+                         {!isAIAvailable && (
+                           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-slate-500 rounded-full flex items-center justify-center">
+                             <svg className="w-2 h-2 text-white" viewBox="0 0 20 20" fill="currentColor">
+                               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                             </svg>
+                           </span>
+                         )}
+                       </div>
+                       <div className="relative">
+                         <button
+                           onClick={() => handleGenerateQuestion('D')}
+                           className={`w-full bg-green-800/50 hover:bg-green-700 text-green-200 border border-green-700/50 rounded-lg py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${!isAIAvailable ? 'opacity-50' : ''}`}
+                           title={!isAIAvailable ? 'Add API key in Settings to enable' : undefined}
+                         >
+                           D
+                         </button>
+                         {!isAIAvailable && (
+                           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-slate-500 rounded-full flex items-center justify-center">
+                             <svg className="w-2 h-2 text-white" viewBox="0 0 20 20" fill="currentColor">
+                               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                             </svg>
+                           </span>
+                         )}
+                       </div>
+                       <div className="relative">
+                         <button
+                           onClick={() => handleGenerateQuestion('E')}
+                           className={`w-full bg-emerald-800/50 hover:bg-emerald-700 text-emerald-200 border border-emerald-700/50 rounded-lg py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${!isAIAvailable ? 'opacity-50' : ''}`}
+                           title={!isAIAvailable ? 'Add API key in Settings to enable' : undefined}
+                         >
+                           E
                          </button>
                          {!isAIAvailable && (
                            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-slate-500 rounded-full flex items-center justify-center">
@@ -781,15 +813,39 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
                    {quickQuestion && (
                         <div className="mt-3 bg-slate-700 rounded-xl p-3 border border-slate-600 shadow-lg animate-fade-in relative group">
                             <div className="flex justify-between items-start mb-1">
-                                <span className={`text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded ${
-                                    quickQuestion.level === 'Grade C' ? 'bg-emerald-900 text-emerald-300' :
-                                    quickQuestion.level === 'Grade B' ? 'bg-amber-900 text-amber-300' : 'bg-rose-900 text-rose-300'
-                                }`}>{quickQuestion.level}</span>
+                                {(() => {
+                                  const levelColors: Record<string, string> = {
+                                    'Grade A': 'bg-rose-900 text-rose-300',
+                                    'Grade B': 'bg-orange-900 text-orange-300',
+                                    'Grade C': 'bg-amber-900 text-amber-300',
+                                    'Grade D': 'bg-green-900 text-green-300',
+                                    'Grade E': 'bg-emerald-900 text-emerald-300',
+                                  };
+                                  return (
+                                    <span className={`text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded ${levelColors[quickQuestion.level] || 'bg-slate-700 text-slate-300'}`}>
+                                      {quickQuestion.level}
+                                    </span>
+                                  );
+                                })()}
                                 <button onClick={() => setQuickQuestion(null)} className="text-slate-400 hover:text-white">
                                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                                 </button>
                             </div>
-                            <p className="text-sm font-medium text-white leading-relaxed mt-1">"{quickQuestion.text}"</p>
+
+                            {/* Question */}
+                            <p className="text-sm font-medium text-white leading-relaxed">
+                              Q: "{quickQuestion.question}"
+                            </p>
+
+                            {/* Expected Answer - Teacher Only */}
+                            <div className="border-t border-slate-600 pt-2 mt-2">
+                              <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest block mb-1">
+                                Expected Answer
+                              </span>
+                              <p className="text-sm text-slate-300 leading-relaxed">
+                                <MarkdownText text={quickQuestion.answer} />
+                              </p>
+                            </div>
                         </div>
                    )}
 
