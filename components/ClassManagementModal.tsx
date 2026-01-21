@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { SavedClass } from '../types';
+import { SavedClass, GradeLevel } from '../types';
 
 // ============================================================================
 // Types
@@ -16,6 +16,8 @@ interface ClassManagementModalProps {
   onUpdateStudents: (classId: string, students: string[]) => void;
   /** Callback when user deletes a class */
   onDelete: (classId: string, className: string) => void;
+  /** Callback when user updates a student's grade */
+  onUpdateGrade: (classId: string, studentName: string, grade: GradeLevel | null) => void;
   /** Currently loaded class name (for active indicator) */
   activeClassName: string | null;
 }
@@ -46,6 +48,7 @@ const ClassManagementModal: React.FC<ClassManagementModalProps> = ({
   onRename,
   onUpdateStudents,
   onDelete,
+  onUpdateGrade,
   activeClassName,
 }) => {
   // Search/filter state
@@ -194,6 +197,14 @@ const ClassManagementModal: React.FC<ClassManagementModalProps> = ({
   };
 
   // ============================================================================
+  // Grade Helper
+  // ============================================================================
+
+  const getStudentGrade = (classData: SavedClass, studentName: string): GradeLevel | null => {
+    return classData.studentData?.find(s => s.name === studentName)?.grade ?? null;
+  };
+
+  // ============================================================================
   // Render
   // ============================================================================
 
@@ -303,6 +314,11 @@ const ClassManagementModal: React.FC<ClassManagementModalProps> = ({
                         )}
                         <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                           {classData.students.length} student{classData.students.length !== 1 ? 's' : ''}
+                          {classData.studentData && classData.studentData.some(s => s.grade) && (
+                            <span className="ml-2 text-[9px] text-indigo-500 dark:text-amber-400">
+                              ({classData.studentData.filter(s => s.grade).length} graded)
+                            </span>
+                          )}
                         </p>
                       </div>
 
@@ -356,22 +372,39 @@ const ClassManagementModal: React.FC<ClassManagementModalProps> = ({
                               No students in this class
                             </span>
                           ) : (
-                            classData.students.map((student) => (
-                              <div
-                                key={student}
-                                className="flex items-center gap-1.5 bg-indigo-50 dark:bg-slate-700 text-indigo-700 dark:text-amber-400 px-2.5 py-1 rounded-lg text-[10px] font-bold border border-indigo-100 dark:border-amber-500/20"
-                              >
-                                {student}
-                                <button
-                                  onClick={() => handleRemoveStudent(classData.id, classData.students, student)}
-                                  className="text-indigo-300 dark:text-amber-600 hover:text-red-500 transition-colors"
+                            classData.students.map((student) => {
+                              const currentGrade = getStudentGrade(classData, student);
+                              return (
+                                <div
+                                  key={student}
+                                  className="flex items-center gap-1.5 bg-indigo-50 dark:bg-slate-700 text-indigo-700 dark:text-amber-400 px-2.5 py-1 rounded-lg text-[10px] font-bold border border-indigo-100 dark:border-amber-500/20"
                                 >
-                                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
-                                  </svg>
-                                </button>
-                              </div>
-                            ))
+                                  {student}
+                                  {/* Grade Select */}
+                                  <select
+                                    value={currentGrade || ''}
+                                    onChange={(e) => onUpdateGrade(classData.id, student, (e.target.value || null) as GradeLevel | null)}
+                                    className="ml-1 px-1 py-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded text-[9px] text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-amber-500"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <option value="">-</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                    <option value="D">D</option>
+                                    <option value="E">E</option>
+                                  </select>
+                                  <button
+                                    onClick={() => handleRemoveStudent(classData.id, classData.students, student)}
+                                    className="text-indigo-300 dark:text-amber-600 hover:text-red-500 transition-colors"
+                                  >
+                                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              );
+                            })
                           )}
                         </div>
 
