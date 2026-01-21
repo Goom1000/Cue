@@ -14,6 +14,12 @@ Enable teachers to call on specific students by ability level. Grade assignments
 
 **Dependencies:** None (foundation phase)
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 15-01-PLAN.md - Type and hook extension for grade data
+- [ ] 15-02-PLAN.md - UI integration and export/import preservation
+
 **Requirements:**
 - GRAD-01: Teacher can assign grade level (A/B/C/D/E) to each student in class bank
 - GRAD-02: Grade assignments persist in localStorage with class data
@@ -97,7 +103,7 @@ Enable teachers to call on specific students by ability level. Grade assignments
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 15 | Student Grades | GRAD-01, GRAD-02, GRAD-03 | Pending |
+| 15 | Student Grades | GRAD-01, GRAD-02, GRAD-03 | Planned |
 | 16 | Question Enhancement | QGEN-01, QGEN-02, QGEN-03 | Pending |
 | 17 | Targeting Mode | TARG-01, TARG-02, TARG-03, CYCL-01, CYCL-02, CYCL-03, CYCL-04 | Pending |
 | 18 | Student Display | DISP-01, DISP-02, DISP-03 | Pending |
@@ -106,3 +112,4 @@ Enable teachers to call on specific students by ability level. Grade assignments
 
 ---
 *Roadmap created: 2026-01-21*
+*Phase 15 planned: 2026-01-21*
