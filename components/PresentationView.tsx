@@ -247,7 +247,11 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
   const gameWasOpenRef = useRef(false);
 
   // Question Generation State
-  const [quickQuestion, setQuickQuestion] = useState<{text: string, level: string} | null>(null);
+  const [quickQuestion, setQuickQuestion] = useState<{
+    question: string;
+    answer: string;
+    level: string;
+  } | null>(null);
   const [isGeneratingQuestion, setIsGeneratingQuestion] = useState(false);
 
   // BroadcastChannel sync with heartbeat enabled for connection monitoring
@@ -343,15 +347,15 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
     postMessage({ type: 'CLOSE_STUDENT' });
   }, [postMessage]);
 
-  const handleGenerateQuestion = async (level: 'Grade C' | 'Grade B' | 'Grade A') => {
+  const handleGenerateQuestion = async (level: 'A' | 'B' | 'C' | 'D' | 'E') => {
       if (!provider) {
-          onRequestAI(`generate a ${level} question`);
+          onRequestAI(`generate a Grade ${level} question`);
           return;
       }
       setIsGeneratingQuestion(true);
       try {
-          const q = await provider.generateQuickQuestion(currentSlide.title, currentSlide.content, level);
-          setQuickQuestion({ text: q, level });
+          const result = await provider.generateQuestionWithAnswer(currentSlide.title, currentSlide.content, level);
+          setQuickQuestion({ question: result.question, answer: result.answer, level: `Grade ${level}` });
       } catch (err) {
           if (err instanceof AIProviderError) {
               onError('Question Generation Failed', err.userMessage);
