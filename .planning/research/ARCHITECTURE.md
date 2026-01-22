@@ -1,991 +1,1314 @@
-# Architecture Patterns: Browser-Based Dual-Monitor Presentation System
+# Architecture Patterns: Quiz Game Show Integration
 
-**Domain:** Multi-window state synchronization for presentation apps
-**Researched:** 2026-01-18
-**Confidence:** HIGH (BroadcastChannel, React Portals) | MEDIUM (Window Management API - experimental)
+**Domain:** Educational quiz game formats for classroom presentation apps
+**Researched:** 2026-01-22
+**Confidence:** HIGH (Integration patterns, React architecture) | MEDIUM (Game mechanics simplification for classroom)
 
 ## Executive Summary
 
-Building a dual-monitor presentation system in a browser-based React app requires solving three core problems: (1) state synchronization between teacher and student windows, (2) window lifecycle management, and (3) cross-window styling. The current PiPi implementation uses `window.open()` + `createPortal()` which provides shared state but has CSS injection issues and no display targeting. The recommended architecture uses **BroadcastChannel for state sync** with the existing portal pattern, plus graceful enhancement with the **Window Management API** for display placement.
+Adding The Chase, Beat the Chaser, and Who Wants to Be a Millionaire quiz games to the existing Cue presentation app requires a modular game architecture that reuses existing sync patterns (BroadcastChannel), AI question generation, and teacher/student view separation. The recommended approach introduces a **Game Selection Menu** that launches individual game components, each following the established QuizOverlay pattern for state management and synchronization.
+
+**Key architectural decision:** Use a **shared game framework** with game-specific UI components rather than duplicating the entire game infrastructure for each format. This maximizes code reuse while allowing each game show format to maintain its unique gameplay mechanics and visual identity.
+
+---
 
 ## Current Architecture Analysis
 
-### What PiPi Has Today
-
-```
-App.tsx (centralized state)
-    |
-    +-- PresentationView.tsx
-            |
-            +-- Teacher View (main window)
-            |       - Slide preview
-            |       - Speaker notes
-            |       - Controls
-            |
-            +-- StudentWindow (createPortal to window.open)
-                    - SlideContentRenderer
-                    - Shares state via React tree
-```
-
-**Strengths:**
-- State is already centralized in PresentationView
-- `createPortal` means child window IS part of React tree - props flow naturally
-- `currentIndex` and `visibleBullets` already control both views
-
-**Weaknesses:**
-1. CSS injection is manual and fragile (copying stylesheets in useEffect)
-2. No awareness of which monitor to place student window on
-3. Window positioning uses hardcoded `width=800,height=600,left=200,top=200`
-4. If student window is opened before styles load, rendering breaks
-5. No recovery if student window is accidentally closed and reopened
-
-## Recommended Architecture
-
-### Component Boundaries
-
-```
-+------------------------------------------+
-|              App.tsx                      |
-|  (Global state: slides, lessonTitle)     |
-+------------------------------------------+
-              |
-              v
-+------------------------------------------+
-|       PresentationController.tsx         |  <-- NEW: Orchestrates presentation
-|  - Owns: currentIndex, visibleBullets    |
-|  - Owns: BroadcastChannel                |
-|  - Owns: Window lifecycle                |
-+------------------------------------------+
-       |                    |
-       v                    v
-+----------------+  +------------------------+
-| TeacherView    |  | StudentWindowManager   |  <-- NEW: Window lifecycle
-|  (same window) |  |  - Opens/manages window|
-|  - Controls    |  |  - Injects styles      |
-|  - Notes       |  |  - Handles close/reopen|
-+----------------+  +------------------------+
-                              |
-                              v (createPortal)
-                    +------------------------+
-                    | StudentView            |
-                    |  - SlideContentRenderer|
-                    |  - Pure presentation   |
-                    +------------------------+
-```
-
-### State Synchronization: BroadcastChannel
-
-**Why BroadcastChannel over alternatives:**
-
-| Option | Pros | Cons | Verdict |
-|--------|------|------|---------|
-| React Portal (current) | Shared state automatically | CSS issues, tight coupling | Keep for rendering |
-| BroadcastChannel | 95.8% browser support, simple API, real-time | No state persistence | **Use for sync** |
-| SharedWorker | Centralized state, WebSocket sharing | No Safari iOS, complex | Overkill for this |
-| localStorage events | Universal support | Disk I/O, hacky, not real-time | Fallback only |
-
-**Recommended Pattern: Portal + BroadcastChannel hybrid**
-
-```typescript
-// PresentationController.tsx
-const channel = useRef<BroadcastChannel | null>(null);
-
-useEffect(() => {
-  channel.current = new BroadcastChannel('pipi-presentation');
-
-  // Listen for messages (for recovery/reconnection)
-  channel.current.onmessage = (event) => {
-    if (event.data.type === 'STUDENT_READY') {
-      // Student connected, send current state
-      channel.current?.postMessage({
-        type: 'STATE_SYNC',
-        payload: { currentIndex, visibleBullets }
-      });
-    }
-  };
-
-  return () => channel.current?.close();
-}, []);
-
-// Broadcast state changes
-useEffect(() => {
-  channel.current?.postMessage({
-    type: 'STATE_UPDATE',
-    payload: { currentIndex, visibleBullets }
-  });
-}, [currentIndex, visibleBullets]);
-```
-
-**Why keep createPortal too:**
-- Portal gives you automatic React tree benefits (context, event bubbling)
-- BroadcastChannel provides recovery when window reopens
-- Belt-and-suspenders approach: Portal for normal operation, BroadcastChannel for resilience
-
-### Window Management: Display Detection
-
-**Browser Support Reality:**
-- Window Management API (`getScreenDetails`): 80% support (Chromium only - no Firefox, no Safari)
-- Fallback to basic `window.open()` with user-positioned window
-
-**Recommended: Progressive Enhancement**
-
-```typescript
-// StudentWindowManager.tsx
-interface ScreenPlacement {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-}
-
-async function getStudentWindowPlacement(): Promise<ScreenPlacement> {
-  // Feature detect
-  if ('getScreenDetails' in window) {
-    try {
-      const screenDetails = await window.getScreenDetails();
-
-      // Find non-primary screen (external monitor)
-      const externalScreen = screenDetails.screens.find(s => !s.isPrimary);
-
-      if (externalScreen) {
-        return {
-          left: externalScreen.left,
-          top: externalScreen.top,
-          width: externalScreen.availWidth,
-          height: externalScreen.availHeight
-        };
-      }
-    } catch (err) {
-      console.warn('Window Management permission denied:', err);
-    }
-  }
-
-  // Fallback: position to the right of current window
-  return {
-    left: window.screenX + window.outerWidth + 50,
-    top: window.screenY,
-    width: 1280,
-    height: 720
-  };
-}
-```
-
-### CSS Injection Strategy
-
-**Current Problem:** StyleSheets are copied once at window open, but:
-1. Tailwind CDN may not be loaded yet
-2. Dynamic styles (CSS-in-JS, Tailwind JIT) aren't captured
-3. No mechanism to update styles after initial copy
-
-**Recommended: Style Observer Pattern**
-
-```typescript
-// StudentWindowManager.tsx
-function useStyleSync(externalWindow: Window | null) {
-  useEffect(() => {
-    if (!externalWindow) return;
-
-    // 1. Copy existing styles
-    copyStylesToWindow(externalWindow);
-
-    // 2. Watch for new style additions
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeName === 'STYLE' || node.nodeName === 'LINK') {
-            copyNodeToWindow(node, externalWindow);
-          }
-        });
-      });
-    });
-
-    observer.observe(document.head, { childList: true });
-
-    return () => observer.disconnect();
-  }, [externalWindow]);
-}
-
-function copyStylesToWindow(targetWindow: Window) {
-  // Copy link tags (external stylesheets)
-  document.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
-    const clone = targetWindow.document.createElement('link');
-    clone.rel = 'stylesheet';
-    clone.href = (link as HTMLLinkElement).href;
-    targetWindow.document.head.appendChild(clone);
-  });
-
-  // Copy inline style tags
-  document.querySelectorAll('style').forEach(style => {
-    const clone = targetWindow.document.createElement('style');
-    clone.textContent = style.textContent;
-    targetWindow.document.head.appendChild(clone);
-  });
-
-  // Inject Tailwind CDN explicitly
-  const tailwind = targetWindow.document.createElement('script');
-  tailwind.src = 'https://cdn.tailwindcss.com';
-  targetWindow.document.head.appendChild(tailwind);
-}
-```
-
-## Data Flow Diagram
-
-```
-User Input (keyboard/click)
-        |
-        v
-+-------------------+
-| PresentationController |
-|   currentIndex    |-----> BroadcastChannel.postMessage()
-|   visibleBullets  |              |
-+-------------------+              |
-   |          |                    |
-   |          |                    v
-   |          |         +-------------------+
-   |          |         | StudentWindow     |
-   |          |         | (reconnection     |
-   |          |         |  recovery only)   |
-   |          |         +-------------------+
-   |          |
-   v          v (createPortal)
-+-------+  +-------------+
-|Teacher|  | Student     |
-| View  |  | View        |
-+-------+  +-------------+
-```
-
-**Normal flow:** State changes -> React re-render -> Both views update via React tree
-**Recovery flow:** Student window reopens -> sends STUDENT_READY -> receives STATE_SYNC
-
-## Build Order (Dependencies)
-
-The components should be built in this order due to dependencies:
-
-### Phase 1: Foundation
-1. **BroadcastChannel service** - No dependencies, can be unit tested in isolation
-   - Message types definition
-   - Channel creation/cleanup
-   - Message serialization
-
-2. **Style injection utilities** - No dependencies
-   - copyStylesToWindow function
-   - MutationObserver setup
-
-### Phase 2: Window Lifecycle
-3. **StudentWindowManager** - Depends on: Style injection
-   - Window open/close
-   - Lifecycle events (beforeunload)
-   - Style sync activation
-
-4. **Display detection service** - Independent, can parallel with #3
-   - Feature detection
-   - Permission handling
-   - Fallback calculations
-
-### Phase 3: Integration
-5. **PresentationController** - Depends on: BroadcastChannel, StudentWindowManager
-   - State management
-   - Event handling
-   - Channel integration
-
-6. **StudentView** - Depends on: None (pure presentation)
-   - Receives props only
-   - No internal state
-
-### Phase 4: Enhancement
-7. **Display picker UI** - Depends on: Display detection
-   - User selects target screen
-   - Permission request flow
-
-8. **Recovery mechanisms** - Depends on: All above
-   - Reconnection handling
-   - State resync
-
-## Component Interface Specifications
-
-### BroadcastChannel Messages
-
-```typescript
-type PresentationMessage =
-  | { type: 'STATE_UPDATE'; payload: { currentIndex: number; visibleBullets: number } }
-  | { type: 'STUDENT_READY' }
-  | { type: 'STATE_SYNC'; payload: { currentIndex: number; visibleBullets: number } }
-  | { type: 'WINDOW_CLOSING' };
-```
-
-### StudentWindowManager Props
-
-```typescript
-interface StudentWindowManagerProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onReady: () => void;
-  children: React.ReactNode;
-  targetScreen?: 'auto' | 'primary' | 'secondary';
-}
-```
-
-### PresentationController Props
-
-```typescript
-interface PresentationControllerProps {
-  slides: Slide[];
-  initialSlideIndex: number;
-  studentNames: string[];
-  onExit: () => void;
-}
-
-// Internal state
-interface PresentationState {
-  currentIndex: number;
-  visibleBullets: number;
-  isStudentWindowOpen: boolean;
-  windowStatus: 'closed' | 'opening' | 'open' | 'reconnecting';
-}
-```
-
-## Anti-Patterns to Avoid
-
-### Anti-Pattern 1: Direct Window Manipulation from Child
-**Problem:** StudentView directly calling `window.close()` or manipulating parent state
-**Why bad:** Breaks unidirectional data flow, makes debugging hard
-**Instead:** Emit events up through BroadcastChannel or callbacks
-
-### Anti-Pattern 2: Storing State in Both Windows
-**Problem:** Duplicating currentIndex in student window's local state
-**Why bad:** State divergence, sync bugs
-**Instead:** Single source of truth in PresentationController, portal passes props
-
-### Anti-Pattern 3: Synchronous Style Copying
-**Problem:** Copying styles synchronously in window.open callback
-**Why bad:** Styles may not be loaded yet, race conditions
-**Instead:** Use MutationObserver, wait for DOMContentLoaded
-
-### Anti-Pattern 4: Relying Only on Window Management API
-**Problem:** Building display selection that requires the API
-**Why bad:** 20% of users (Firefox, Safari) get broken experience
-**Instead:** Progressive enhancement with graceful fallback
-
-## Patterns to Follow
-
-### Pattern 1: Event-Driven State Updates
-```typescript
-// Good: Single handler, broadcasts to all consumers
-const handleNext = useCallback(() => {
-  const newState = calculateNextState(currentIndex, visibleBullets, totalBullets);
-  setCurrentIndex(newState.currentIndex);
-  setVisibleBullets(newState.visibleBullets);
-  // BroadcastChannel handles sync automatically via useEffect
-}, [currentIndex, visibleBullets, totalBullets]);
-```
-
-### Pattern 2: Defensive Window References
-```typescript
-// Good: Always check window validity
-const postToStudent = useCallback((message: PresentationMessage) => {
-  if (studentWindow && !studentWindow.closed) {
-    channel.current?.postMessage(message);
-  }
-}, [studentWindow]);
-```
-
-### Pattern 3: Graceful Degradation
-```typescript
-// Good: Feature detect and provide alternatives
-const canTargetDisplay = 'getScreenDetails' in window;
-
-return (
-  <Button onClick={openStudentWindow}>
-    {canTargetDisplay ? 'Open on External Display' : 'Open Student Window'}
-  </Button>
-);
-```
-
-## Testing Considerations
-
-### Unit Testable Components
-- BroadcastChannel service (mock channel)
-- Style injection utilities (mock DOM)
-- Display detection (mock window.getScreenDetails)
-- State calculations (pure functions)
-
-### Integration Test Scenarios
-1. Open student window -> verify styles present
-2. Navigate slides -> verify both views update
-3. Close student window -> verify cleanup
-4. Reopen student window -> verify state recovery
-5. Navigate while window opening -> verify no race condition
-
-### Manual Test Scenarios
-1. Single monitor: Student window positions correctly
-2. Dual monitor: Student window targets external (when API supported)
-3. Permission denied: Falls back gracefully
-4. Rapid navigation: No state desync
-
----
-
-# Permission Flow Architecture (v1.2 Focus)
-
-**Updated:** 2026-01-18
-**Confidence:** HIGH (patterns verified against MDN documentation and React best practices)
-
-## Problem Analysis
-
-### Current Flow (Race Condition)
-
-```
-+-------------------------------------------------------------------------+
-| CURRENT ARCHITECTURE (Problematic)                                       |
-+-------------------------------------------------------------------------+
-|                                                                          |
-|  PresentationView mounts                                                 |
-|         |                                                                |
-|         v                                                                |
-|  useWindowManagement() called                                            |
-|         |                                                                |
-|         +---> screen.isExtended check (SYNC) ---> hasMultipleScreens=true|
-|         |                                                                |
-|         +---> navigator.permissions.query() (ASYNC) ------------+        |
-|                                                                 |        |
-|  useEffect in PresentationView runs                            |        |
-|         |                                                       |        |
-|         v                                                       |        |
-|  Checks: isSupported && hasMultipleScreens && permissionState  |        |
-|         |                                                       |        |
-|         v                                                       |        |
-|  permissionState is STILL 'unavailable' (initial value)        |        |
-|         |                                                       |        |
-|         v                                                       |        |
-|  Condition FALSE ---> PermissionExplainer NOT shown            |        |
-|                                                                 |        |
-|                     ... async query completes ...               <--------+
-|                                                                 |
-|                     permissionState becomes 'prompt'            |
-|                                                                 |
-|                     BUT useEffect already ran!                  |
-|                     UI never shows PermissionExplainer          |
-|                                                                 |
-+-------------------------------------------------------------------------+
-```
-
-### Root Cause
-
-The race condition occurs because:
-
-1. **Initial state is misleading**: `permissionState` starts as `'unavailable'`, which is a valid terminal state (API not supported). The useEffect cannot distinguish between "still loading" and "actually unavailable".
-
-2. **No loading state**: There is no explicit "loading" or "pending" state to gate UI decisions.
-
-3. **Effect runs too early**: The useEffect in PresentationView fires on mount, before the async permission query completes.
-
-4. **No re-run trigger**: When `permissionState` updates from `'unavailable'` to `'prompt'`, the useEffect does run again, but by that time the user may have already clicked "Launch Student" (the button is enabled immediately).
-
-## Recommended Architecture
-
-### Pattern: Explicit Loading State with Gated Interaction
-
-The fix requires introducing an explicit loading state that gates user interaction until permission status is known.
-
-```
-+-------------------------------------------------------------------------+
-| RECOMMENDED ARCHITECTURE                                                 |
-+-------------------------------------------------------------------------+
-|                                                                          |
-|  +---------------------------------------------------------------+      |
-|  | useWindowManagement Hook                                       |      |
-|  |                                                                |      |
-|  |  States:                                                       |      |
-|  |    isLoading: boolean      <-- NEW: true until async completes |      |
-|  |    permissionState: 'prompt' | 'granted' | 'denied' | null    |      |
-|  |                            <-- CHANGED: null = not yet known   |      |
-|  |    hasMultipleScreens: boolean                                 |      |
-|  |    secondaryScreen: ScreenTarget | null                        |      |
-|  |                                                                |      |
-|  |  Initialization:                                               |      |
-|  |    isLoading = true                                            |      |
-|  |    permissionState = null                                      |      |
-|  |                                                                |      |
-|  |  After async query:                                            |      |
-|  |    isLoading = false                                           |      |
-|  |    permissionState = result.state                              |      |
-|  |                                                                |      |
-|  +---------------------------------------------------------------+      |
-|                                                                          |
-|  +---------------------------------------------------------------+      |
-|  | PresentationView Component                                     |      |
-|  |                                                                |      |
-|  |  Decision Logic:                                               |      |
-|  |                                                                |      |
-|  |  if (isLoading) {                                              |      |
-|  |    // Don't show permission UI yet                             |      |
-|  |    // BUT also don't enable "Launch Student" yet               |      |
-|  |  }                                                             |      |
-|  |                                                                |      |
-|  |  if (!isLoading && hasMultipleScreens &&                       |      |
-|  |      permissionState === 'prompt') {                           |      |
-|  |    // NOW safe to show PermissionExplainer                     |      |
-|  |  }                                                             |      |
-|  |                                                                |      |
-|  |  "Launch Student" button:                                      |      |
-|  |    disabled={isLoading || isConnected}                         |      |
-|  |                                                                |      |
-|  +---------------------------------------------------------------+      |
-|                                                                          |
-+-------------------------------------------------------------------------+
-```
-
----
-
-# Bug Fix Architecture Analysis (v2.3)
-
-**Milestone:** v2.3 Bug Fixes
-**Researched:** 2026-01-20
-**Scope:** Integration points and component relationships for 4 bugs
-
-## Bug Overview
-
-| Bug | Category | Complexity |
-|-----|----------|------------|
-| Game activity not showing in student view | BroadcastChannel sync | Medium |
-| Slide preview cutoff in teacher view | CSS scaling | Low |
-| AI slide revision error | API handler flow | Medium |
-| Flowchart layout issues | CSS flexbox | Low |
-
----
-
-## Bug 1: Game Activity Not Showing in Student View
-
-### Problem Analysis
-
-The QuizOverlay (game activity) renders as a portal in PresentationView but is NOT synchronized to StudentView via BroadcastChannel. The student window only receives `STATE_UPDATE` messages containing `{ currentIndex, visibleBullets, slides }`.
-
-### Integration Points
+### Existing Quiz System (Kahoot-style)
 
 ```
 PresentationView.tsx
     |
-    +-- QuizOverlay (portal to document.body)
-    |       |
-    |       +-- isQuizModalOpen state (local to teacher)
-    |       +-- questions, qIndex, reveal (local quiz state)
-    |
-    +-- useBroadcastSync hook
+    +-- QuizOverlay Component (modal)
             |
-            +-- posts: STATE_UPDATE, HEARTBEAT, CLOSE_STUDENT
-            +-- receives: STATE_REQUEST, HEARTBEAT_ACK
+            +-- Mode State Machine: setup → loading → play → summary
+            +-- AI Question Generation (via AIProviderInterface)
+            +-- BroadcastChannel Sync (GAME_STATE_UPDATE, GAME_CLOSE)
+            +-- Teacher Controls (reveal answer, next question)
+            +-- Visual: 4-option grid with shapes (triangle, diamond, circle, square)
+            |
+            v (synced via BroadcastChannel)
+            |
+StudentGameView.tsx (read-only display)
+    +-- Receives GameSyncState
+    +-- Renders identical visual without controls
 ```
 
-### Files Involved
+### Existing Integration Points
 
-| File | Role | Changes Needed |
-|------|------|----------------|
-| `/types.ts` | Message type definitions | Add game state message types |
-| `/hooks/useBroadcastSync.ts` | Channel communication | No changes (generic) |
-| `/components/PresentationView.tsx` | Teacher view with QuizOverlay | Broadcast game state changes |
-| `/components/StudentView.tsx` | Student display | Render QuizOverlay based on received state |
+| Component | Purpose | Game Relevance |
+|-----------|---------|----------------|
+| **PresentationView.tsx** | Main teacher interface with presentation controls | Launch point for all games |
+| **QuizOverlay** | Modal game component with state machine | Pattern to replicate for new games |
+| **StudentGameView.tsx** | Read-only game display for projector | Must support multiple game formats |
+| **GameSyncState** (types.ts) | Sync structure for game state | Needs extension for new game types |
+| **BroadcastChannel** | Real-time teacher→student sync | Reuse for all games |
+| **AIProviderInterface** | Question generation abstraction | Extend for difficulty-aware generation |
+| **generateImpromptuQuiz()** | Current quiz generator | Template for game-specific generators |
 
-### Data Flow (Current)
-
-```
-Teacher                          Student
-[QuizOverlay]                    [Nothing]
-     |                                |
-     +-- isQuizModalOpen=true         |
-     |                                |
-     +-- STATE_UPDATE                 |
-         { currentIndex,      ------> (no game info)
-           visibleBullets,            |
-           slides }                   |
-```
-
-### Data Flow (Required)
+### Existing State Flow
 
 ```
-Teacher                          Student
-[QuizOverlay]                    [QuizOverlay]
-     |                                |
-     +-- GAME_STATE_UPDATE    ------> |
-         { isPlaying: true,           +-- renders game UI
-           mode: 'play',              +-- display only (no controls)
-           questions,                 |
-           currentQuestion,           |
-           reveal }                   |
+Teacher Action (PresentationView)
+    ↓
+QuizOverlay updates internal state
+    ↓
+useEffect triggers onGameStateChange callback
+    ↓
+PresentationView broadcasts via BroadcastChannel
+    ↓
+StudentView receives broadcast and updates display
 ```
 
-### Key Considerations
+**Strengths:**
+- Clean separation between teacher controls and student display
+- AI question generation already integrated with lesson content
+- BroadcastChannel provides reliable one-way sync (teacher → student)
+- Mode state machine prevents invalid state transitions
 
-1. **One-way sync:** Student view is display-only. Teacher controls quiz progression.
-2. **Message types to add:**
-   - `GAME_START` - Opens quiz overlay in student view
-   - `GAME_UPDATE` - Updates question index, reveal state
-   - `GAME_END` - Closes quiz overlay
-3. **QuizOverlay refactor:** Extract display-only version for student (no buttons except maybe visual feedback)
-
-### Estimated Complexity
-
-MEDIUM - Requires:
-- New message type definitions
-- State sync logic in PresentationView
-- Message handling in StudentView
-- Possibly a separate `QuizStudentView` component (simplified QuizOverlay)
+**Current Limitations:**
+1. Single game format hardcoded (Kahoot-style 4-option grid)
+2. No game selection mechanism
+3. GameSyncState assumes one question structure
+4. No difficulty/grade level integration with AI generation
+5. No per-game question format customization
 
 ---
 
-## Bug 2: Slide Preview Cutoff in Teacher View
+## Game Show Format Requirements
 
-### Problem Analysis
+### The Chase
 
-In PresentationView, the slide preview on the left side uses a container that doesn't properly scale the slide content to fit. The `SlideContentRenderer` renders at full slide dimensions but the container clips overflow.
+**Game Mechanics:**
+- **Cash Builder** (Round 1): Rapid-fire questions, 60 seconds, accumulate money per correct answer
+- **Head-to-Head Chase** (Round 2): Player vs Chaser, board-based with position tracking, offer selection (high/medium/low risk)
+- **Final Chase** (Round 3): Team answers questions, Chaser attempts to catch up with time limit
 
-### Integration Points
+**Educational Adaptation:**
+- Single contestant or whole-class team mode
+- Simplify to 2 rounds: Cash Builder + Head-to-Head
+- Teacher plays "Chaser" role (controls Chaser answers)
+- Visual: Linear board with player/chaser positions, step-by-step movement
+
+**Technical Requirements:**
+- Position state tracking (player position, chaser position)
+- Timer state (60-second cash builder)
+- Risk selection (high/medium/low offer with different start positions)
+- Sequential question flow (must answer to advance)
+
+**Sources:**
+- [The Chase Game Show Rules - Wordiply](https://wordiplypro.com/the-chase-game-show-rules-and-history/)
+- [The Chase (British game show) - Wikipedia](https://en.wikipedia.org/wiki/The_Chase_(British_game_show))
+
+### Beat the Chaser
+
+**Game Mechanics:**
+- **Cash Builder** (Round 1): 5 questions maximum, stop on first miss
+- **The Choice** (Round 2): Select 2-5 Chasers to face, each with time offer
+- **Timed Battle** (Round 3): Clock-based - contestant gets 60s, Chasers get less (e.g., 40s for 3 Chasers)
+
+**Educational Adaptation:**
+- Simplify to single "mega Chaser" with difficulty selection (Easy/Medium/Hard)
+- Difficulty determines Chaser time advantage (Easy: 50s, Medium: 40s, Hard: 30s)
+- Visual: Dual timer display, dramatic countdown
+
+**Technical Requirements:**
+- Dual timer state (contestant clock, Chaser clock)
+- Active timer toggle (who's currently answering)
+- Difficulty selection affects time allocation
+- Win condition: Contestant clock survives vs Chaser clock reaches zero
+
+**Sources:**
+- [Beat the Chasers - Wikipedia](https://en.wikipedia.org/wiki/Beat_the_Chasers)
+
+### Who Wants to Be a Millionaire
+
+**Game Mechanics:**
+- **Money Ladder**: 15 questions with increasing value/difficulty
+- **Lifelines**: 50:50, Phone a Friend, Ask the Audience (used once each)
+- **Safety Nets**: Walk away option at any point
+- **Question Progression**: Linear, no time limit, deliberate decision-making
+
+**Educational Adaptation:**
+- Simplify to 10 questions (instead of 15)
+- Classroom lifelines:
+  - **50:50**: Teacher removes two wrong answers
+  - **Phone a Friend**: Ask one classmate
+  - **Ask the Audience**: Class vote display
+- Visual: Money ladder sidebar, lifeline icons, dramatic question reveal
+
+**Technical Requirements:**
+- Lifeline state tracking (used/available)
+- Money ladder position state
+- Lifeline activation modes (pause question to activate)
+- Progressive difficulty integration with AI (questions get harder as player advances)
+
+**Sources:**
+- [Who Wants to Be a Millionaire Rules - US version](https://wwbm.com/rules)
+- [Lifeline - Who Wants To Be A Millionaire Wiki](https://millionaire.fandom.com/wiki/Lifeline)
+- [Who Wants to Be a Millionaire Classroom Game Template](https://up2dateskills.com/blog/up2date-english/who-wants-to-be-a-millionaire-game-template-and-instructions-for-the-classroom/)
+
+---
+
+## Recommended Architecture
+
+### High-Level Component Structure
 
 ```
-PresentationView.tsx (line 619-624)
+PresentationView.tsx
     |
-    +-- flex container (flex-1 bg-black)
+    +-- GameSelectionModal (NEW)
             |
-            +-- div (w-full h-full max-w-[1600px] aspect-video)
-                    |
-                    +-- SlideContentRenderer
-                            |
-                            +-- DefaultLayout, FlowchartLayout, etc.
-                            +-- These layouts assume FULL viewport
+            +-- Game Cards: "The Chase", "Beat the Chaser", "Millionaire", "Quick Quiz"
+            +-- Launches selected game component
+            |
+            v
+    +-- Game Components (NEW - shared base, game-specific UI)
+            |
+            +-- TheChaseGame.tsx
+            |       - Phases: cash-builder → head-to-head
+            |       - State: positions, offers, timer
+            |       - UI: Board view, position markers
+            |
+            +-- BeatTheChaserGame.tsx
+            |       - Phases: cash-builder → difficulty-select → timed-battle
+            |       - State: dual timers, active clock
+            |       - UI: Timer displays, difficulty selector
+            |
+            +-- MillionaireGame.tsx
+            |       - Phases: question progression (1-10)
+            |       - State: money ladder, lifelines
+            |       - UI: Money ladder, lifeline buttons, 4-option display
+            |
+            +-- QuizOverlay.tsx (RENAME to QuickQuizGame.tsx)
+                    - Keep existing Kahoot-style game as "Quick Quiz"
+                    - Maintains backward compatibility
+            |
+            v (all games sync via BroadcastChannel)
+            |
+StudentGameView.tsx (EXTEND with game format routing)
+    |
+    +-- Receives: { gameType, mode, gameSpecificState }
+    +-- Renders appropriate game display component
+            |
+            +-- StudentChaseView.tsx (NEW)
+            +-- StudentChaserView.tsx (NEW)
+            +-- StudentMillionaireView.tsx (NEW)
+            +-- StudentQuickQuizView.tsx (existing StudentGameView refactored)
 ```
 
-### Files Involved
+### Shared Game Framework
 
-| File | Role | Changes Needed |
-|------|------|----------------|
-| `/components/PresentationView.tsx` | Teacher view layout | Add scaling wrapper for preview |
-| `/components/SlideRenderers.tsx` | Slide layouts | Potentially no changes (already responsive) |
+Create **BaseGame.tsx** - abstract component/pattern that all games follow:
 
-### Current CSS Structure (PresentationView lines 619-624)
-
-```tsx
-<div className="flex-1 bg-black relative flex items-center justify-center p-4 min-w-0 min-h-0">
-  <div className="w-full h-full max-w-[1600px] aspect-video bg-white rounded-lg overflow-hidden shadow-2xl relative">
-    <SlideContentRenderer slide={currentSlide} visibleBullets={visibleBullets} />
-  </div>
-</div>
-```
-
-### Problem
-
-- `aspect-video` maintains 16:9 ratio
-- But if parent container is shorter than aspect-video height, content overflows
-- `overflow-hidden` clips the overflow, causing cutoff
-- No CSS transform scaling to fit content within bounds
-
-### Solution Approach
-
-Add CSS scaling (transform: scale) or use a container query approach:
-
-```css
-/* Option 1: CSS transform scaling */
-.slide-preview-wrapper {
-  transform: scale(var(--scale-factor));
-  transform-origin: center;
+```typescript
+// Base game lifecycle
+interface GameLifecycle {
+  setup: () => void;           // Initial configuration screen
+  loading: () => void;         // AI generating questions
+  play: () => void;            // Active gameplay
+  summary: () => void;         // Results/completion screen
 }
 
-/* Option 2: object-fit analogy for divs */
-/* Calculate scale based on container vs content dimensions */
+// Base game props (all games receive these)
+interface BaseGameProps {
+  slides: Slide[];
+  currentIndex: number;
+  onClose: () => void;
+  provider: AIProviderInterface | null;
+  onError: (title: string, message: string) => void;
+  onRequestAI: (featureName: string) => void;
+  onGameStateChange: (state: GameSyncState | null) => void;
+}
+
+// Each game component implements BaseGameProps + game-specific state
 ```
 
-### Estimated Complexity
+### Extended Type System
 
-LOW - CSS-only fix:
-- Calculate available space
-- Apply transform: scale() to fit content
-- No component logic changes needed
+```typescript
+// types.ts - EXTEND existing types
+
+// Discriminated union for game types
+export type GameType = 'quick-quiz' | 'chase' | 'beat-chaser' | 'millionaire';
+
+// Extended game sync state (replaces current GameSyncState)
+export interface BaseGameSyncState {
+  gameType: GameType;
+  mode: 'loading' | 'play' | 'summary';
+  questions: QuizQuestion[];
+  currentQuestionIndex: number;
+}
+
+// Game-specific state extensions
+export interface ChaseGameState extends BaseGameSyncState {
+  gameType: 'chase';
+  phase: 'cash-builder' | 'head-to-head';
+  playerPosition: number;
+  chaserPosition: number;
+  cashBuilt: number;
+  selectedOffer: 'high' | 'medium' | 'low' | null;
+  timerSeconds: number;
+}
+
+export interface ChaserGameState extends BaseGameSyncState {
+  gameType: 'beat-chaser';
+  phase: 'cash-builder' | 'difficulty-select' | 'timed-battle';
+  contestantTimeRemaining: number;
+  chaserTimeRemaining: number;
+  activeClock: 'contestant' | 'chaser';
+  difficulty: 'easy' | 'medium' | 'hard' | null;
+}
+
+export interface MillionaireGameState extends BaseGameSyncState {
+  gameType: 'millionaire';
+  moneyLadderPosition: number;  // 0-9 (10 questions)
+  lifelines: {
+    fiftyFifty: 'available' | 'used';
+    phoneAFriend: 'available' | 'used';
+    askAudience: 'available' | 'used';
+  };
+  lifelineActive: string | null;  // Which lifeline is currently in use
+  eliminatedOptions?: number[];   // For 50:50 display
+}
+
+export interface QuickQuizGameState extends BaseGameSyncState {
+  gameType: 'quick-quiz';
+  isAnswerRevealed: boolean;
+}
+
+// Union type for type-safe game state
+export type GameSyncState =
+  | ChaseGameState
+  | ChaserGameState
+  | MillionaireGameState
+  | QuickQuizGameState;
+
+// Updated message types
+export type PresentationMessage =
+  | { type: 'STATE_UPDATE'; payload: PresentationState }
+  | { type: 'STATE_REQUEST' }
+  | { type: 'HEARTBEAT'; timestamp: number }
+  | { type: 'HEARTBEAT_ACK'; timestamp: number }
+  | { type: 'CLOSE_STUDENT' }
+  | { type: 'GAME_STATE_UPDATE'; payload: GameSyncState }  // Now accepts all game types
+  | { type: 'GAME_CLOSE' }
+  | { type: 'STUDENT_SELECT'; payload: { studentName: string } }
+  | { type: 'STUDENT_CLEAR' };
+```
+
+### AI Question Generation Extension
+
+```typescript
+// services/aiProvider.ts - ADD to interface
+
+export interface AIProviderInterface {
+  // ... existing methods ...
+
+  // NEW: Generate questions with difficulty targeting
+  generateQuizWithDifficulty(
+    slides: Slide[],
+    currentIndex: number,
+    numQuestions: number,
+    difficultyProgression?: DifficultyLevel[]  // Optional difficulty curve
+  ): Promise<QuizQuestion[]>;
+
+  // NEW: Generate single question at specific difficulty
+  generateSingleQuestion(
+    slides: Slide[],
+    currentIndex: number,
+    difficulty: DifficultyLevel
+  ): Promise<QuizQuestion>;
+}
+
+// Difficulty levels (align with grade system)
+export type DifficultyLevel = 'E' | 'D' | 'C' | 'B' | 'A';
+
+// Difficulty progression presets
+export const MILLIONAIRE_DIFFICULTY: DifficultyLevel[] = [
+  'E', 'E', 'D', 'D', 'C', 'C', 'B', 'B', 'A', 'A'  // 10 questions, progressive
+];
+
+export const CHASE_DIFFICULTY: DifficultyLevel = 'C';  // Medium difficulty for all
+```
 
 ---
 
-## Bug 3: AI Slide Revision Error
+## Data Flow Architecture
 
-### Problem Analysis
-
-The "revise slide using AI" feature in SlideCard triggers an error. Need to trace the data flow from button click through provider to API call.
-
-### Integration Points
+### Game Launch Flow
 
 ```
-SlideCard.tsx (line 42-52)
-    |
-    +-- handleMagicEdit()
-            |
-            +-- onRevise(slide.id, revisionInput)  // prop from App.tsx
-                    |
-App.tsx (line 328-350)
-    |
-    +-- handleReviseSlide(id, instruction)
-            |
-            +-- provider.reviseSlide(target, instruction)
-                    |
-GeminiProvider / ClaudeProvider
-    |
-    +-- reviseSlide() implementation
-            |
-            +-- API call to Gemini/Claude
+1. Teacher clicks "Game" button in PresentationView
+   ↓
+2. GameSelectionModal opens with 4 game cards
+   ↓
+3. Teacher selects game type (e.g., "The Chase")
+   ↓
+4. PresentationView renders <TheChaseGame {...baseProps} />
+   ↓
+5. TheChaseGame enters 'setup' mode (configure options)
+   ↓
+6. Teacher clicks "Start" → mode becomes 'loading'
+   ↓
+7. AI generates questions via provider.generateQuizWithDifficulty()
+   ↓
+8. Mode becomes 'play', teacher controls game progression
+   ↓
+9. Game state changes trigger onGameStateChange(state)
+   ↓
+10. PresentationView broadcasts GAME_STATE_UPDATE to student view
+   ↓
+11. StudentGameView receives broadcast, routes to StudentChaseView
+   ↓
+12. Game ends, mode becomes 'summary', teacher closes game
 ```
 
-### Files Involved
+### State Synchronization Pattern
 
-| File | Role | Potential Issue |
-|------|------|-----------------|
-| `/components/SlideCard.tsx` | UI trigger | Error state not shown to user |
-| `/App.tsx` | Handler orchestration | Error handling may swallow details |
-| `/services/providers/geminiProvider.ts` | Gemini wrapper | Wraps error as UNKNOWN_ERROR |
-| `/services/providers/claudeProvider.ts` | Claude implementation | JSON extraction may fail |
-| `/services/geminiService.ts` | Raw Gemini call | JSON parsing may fail on partial response |
-
-### Current Flow Analysis
-
-**SlideCard.tsx:**
-```tsx
-const handleMagicEdit = async () => {
-  if (!revisionInput.trim()) return;
-  if (!isAIAvailable) {
-    onRequestAI('refine this slide with AI');
-    return;
-  }
-  setIsRevising(true);
-  await onRevise(slide.id, revisionInput);  // Errors not caught here!
-  setRevisionInput('');
-  setIsRevising(false);
-};
-```
-
-**App.tsx:**
-```tsx
-const handleReviseSlide = async (id: string, instruction: string) => {
-  // ... provider check ...
-  handleUpdateSlide(id, { isGeneratingImage: true });  // Uses wrong flag name
-  try {
-    const updates = await provider.reviseSlide(target, instruction);
-    handleUpdateSlide(id, { ...updates, isGeneratingImage: false });
-    // ... image regen logic ...
-  } catch (err) {
-    handleUpdateSlide(id, { isGeneratingImage: false });
-    if (err instanceof AIProviderError) {
-      setErrorModal({ title: 'Revision Failed', message: err.userMessage });
-    }
-    // Note: non-AIProviderError errors are silently swallowed!
-  }
-};
-```
-
-**Gemini reviseSlide (geminiService.ts):**
 ```typescript
-export const reviseSlide = async (apiKey: string, slide: Slide, instruction: string): Promise<Partial<Slide>> => {
-  const ai = new GoogleGenAI({ apiKey });
-  const model = "gemini-3-flash-preview";
+// Inside any game component (e.g., TheChaseGame.tsx)
 
-  const prompt = `
-    Current Slide: ${JSON.stringify(slide)}
-    Edit Instruction: "${instruction}"
-    Return ONLY JSON with updated fields.
-  `;
+const [mode, setMode] = useState<'setup' | 'loading' | 'play' | 'summary'>('setup');
+const [playerPosition, setPlayerPosition] = useState(0);
+const [chaserPosition, setChaserPosition] = useState(-3);
+// ... other game-specific state
 
-  const response = await ai.models.generateContent({
-    model,
-    contents: prompt,
-    config: { responseMimeType: "application/json" }
+// Broadcast state changes to student view
+useEffect(() => {
+  if (mode === 'loading' || mode === 'play' || mode === 'summary') {
+    onGameStateChange({
+      gameType: 'chase',
+      mode,
+      questions,
+      currentQuestionIndex,
+      phase: currentPhase,
+      playerPosition,
+      chaserPosition,
+      cashBuilt,
+      selectedOffer,
+      timerSeconds
+    });
+  }
+}, [mode, playerPosition, chaserPosition, /* all sync-relevant state */]);
+
+// Clean up on unmount
+useEffect(() => {
+  return () => onGameStateChange(null);
+}, []);
+```
+
+### Student View Routing
+
+```typescript
+// StudentGameView.tsx - REFACTOR to handle multiple game types
+
+const StudentGameView: React.FC<{ gameState: GameSyncState }> = ({ gameState }) => {
+  // Type-safe routing based on discriminated union
+  switch (gameState.gameType) {
+    case 'chase':
+      return <StudentChaseView state={gameState} />;
+
+    case 'beat-chaser':
+      return <StudentChaserView state={gameState} />;
+
+    case 'millionaire':
+      return <StudentMillionaireView state={gameState} />;
+
+    case 'quick-quiz':
+      return <StudentQuickQuizView state={gameState} />;
+
+    default:
+      // TypeScript exhaustiveness check ensures all cases covered
+      const _exhaustive: never = gameState;
+      return <div>Unknown game type</div>;
+  }
+};
+```
+
+---
+
+## Component Structure Details
+
+### GameSelectionModal.tsx (NEW)
+
+**Purpose:** Present teacher with game format options
+
+**Visual Design:**
+- 2x2 grid of game cards
+- Each card: Game title, icon, description, "Play" button
+- Modal overlay (similar to SettingsModal pattern)
+
+**State:**
+- No internal state (stateless presentation)
+- Callbacks: `onSelectGame(gameType: GameType)`, `onClose()`
+
+**Integration:**
+```typescript
+// PresentationView.tsx
+const [gameSelectionOpen, setGameSelectionOpen] = useState(false);
+const [activeGame, setActiveGame] = useState<GameType | null>(null);
+
+<button onClick={() => setGameSelectionOpen(true)}>🎮 Game</button>
+
+{gameSelectionOpen && (
+  <GameSelectionModal
+    onSelectGame={(gameType) => {
+      setActiveGame(gameType);
+      setGameSelectionOpen(false);
+    }}
+    onClose={() => setGameSelectionOpen(false)}
+  />
+)}
+
+{activeGame === 'chase' && <TheChaseGame {...baseGameProps} />}
+{activeGame === 'beat-chaser' && <BeatTheChaserGame {...baseGameProps} />}
+{activeGame === 'millionaire' && <MillionaireGame {...baseGameProps} />}
+{activeGame === 'quick-quiz' && <QuickQuizGame {...baseGameProps} />}
+```
+
+### TheChaseGame.tsx (NEW)
+
+**Phases:**
+1. **Setup**: Configure number of questions, select offer risk level preview
+2. **Cash Builder**: 60-second rapid-fire questions, money accumulation display
+3. **Head-to-Head**: Board view (7 steps), player vs chaser, question-by-question movement
+
+**State Machine:**
+```
+setup → loading → play:cash-builder → play:head-to-head → summary
+```
+
+**UI Components:**
+- Cash Builder: Timer, question counter, money display, rapid question flow
+- Head-to-Head: Linear board (7 positions), player icon, chaser icon, offer display
+- Controls: Start, Reveal Answer, Player Correct/Wrong, Next Question
+
+**Sync State:**
+```typescript
+{
+  gameType: 'chase',
+  mode: 'play',
+  phase: 'head-to-head',
+  questions: [...],
+  currentQuestionIndex: 3,
+  playerPosition: 4,      // Steps from start (0-6)
+  chaserPosition: 2,      // Steps from start (starts at -3)
+  cashBuilt: 4000,
+  selectedOffer: 'medium',
+  timerSeconds: 45        // Remaining time in cash builder
+}
+```
+
+### BeatTheChaserGame.tsx (NEW)
+
+**Phases:**
+1. **Setup**: Preview difficulty options
+2. **Cash Builder**: 5 questions maximum, first miss ends round
+3. **Difficulty Select**: Choose Easy/Medium/Hard (affects Chaser time)
+4. **Timed Battle**: Alternating questions, dual timer display
+
+**State Machine:**
+```
+setup → loading → play:cash-builder → play:difficulty-select → play:timed-battle → summary
+```
+
+**UI Components:**
+- Cash Builder: Question counter (max 5), stop on miss indicator
+- Difficulty Select: 3 cards showing time allocations (Easy: 50s, Medium: 40s, Hard: 30s)
+- Timed Battle: Dual timer display (contestant: 60s, chaser: selected time), active indicator
+- Controls: Contestant Correct/Wrong, Chaser Correct/Wrong, Toggle Active Clock
+
+**Sync State:**
+```typescript
+{
+  gameType: 'beat-chaser',
+  mode: 'play',
+  phase: 'timed-battle',
+  questions: [...],
+  currentQuestionIndex: 7,
+  contestantTimeRemaining: 23,  // Seconds left
+  chaserTimeRemaining: 15,      // Seconds left
+  activeClock: 'chaser',
+  difficulty: 'medium'
+}
+```
+
+### MillionaireGame.tsx (NEW)
+
+**Phases:**
+1. **Setup**: Preview money ladder (10 questions)
+2. **Question Progression**: Linear advancement through ladder (1→10)
+3. **Lifeline Activation**: Pause gameplay to use lifeline, resume after
+
+**State Machine:**
+```
+setup → loading → play:question → play:lifeline-active → play:question → summary
+```
+
+**UI Components:**
+- Money Ladder: Vertical sidebar (10 levels), current position highlighted
+- Question Display: Single question, 4 options (A/B/C/D), dramatic reveal
+- Lifeline Panel: 3 buttons (50:50, Phone Friend, Ask Audience), gray out when used
+- Lifeline Views:
+  - 50:50: Animate removal of 2 wrong answers
+  - Phone Friend: Show "calling" overlay, teacher provides classmate input
+  - Ask Audience: Bar chart showing class vote percentages
+- Controls: Lock Answer, Use Lifeline, Next Question
+
+**Sync State:**
+```typescript
+{
+  gameType: 'millionaire',
+  mode: 'play',
+  questions: [...],
+  currentQuestionIndex: 5,
+  moneyLadderPosition: 5,      // 0-9 index
+  lifelines: {
+    fiftyFifty: 'used',
+    phoneAFriend: 'available',
+    askAudience: 'available'
+  },
+  lifelineActive: 'askAudience',  // Currently showing audience vote
+  eliminatedOptions: [1, 3]       // For 50:50, which options removed (0-3 indexes)
+}
+```
+
+### QuickQuizGame.tsx (REFACTOR from QuizOverlay)
+
+**Changes:**
+- Rename QuizOverlay → QuickQuizGame
+- Update to use new BaseGameProps interface
+- Add gameType: 'quick-quiz' to sync state
+- Otherwise maintain existing behavior (Kahoot-style 4-option grid)
+
+**Purpose:**
+- Provide backward compatibility
+- Keep existing "quick review" game format
+- Acts as simplest game option for rapid lesson checks
+
+---
+
+## Integration Points & Modifications
+
+### Existing Files to Modify
+
+#### 1. types.ts
+**Changes:**
+- Add `GameType` type
+- Replace `GameSyncState` with discriminated union (see Type System section)
+- Update `PresentationMessage` type (already correct, just verify)
+
+**Impact:** HIGH - affects all game components and sync logic
+
+#### 2. PresentationView.tsx
+**Changes:**
+- Add GameSelectionModal import and state
+- Add conditional rendering for all 4 game components
+- Rename QuizOverlay to QuickQuizGame
+- Update game button to open selection modal
+
+**Lines to modify:** ~20-30 lines (mostly additions)
+
+#### 3. StudentGameView.tsx
+**Changes:**
+- Refactor to routing component (switch statement on gameType)
+- Extract current rendering logic into StudentQuickQuizView
+- Add imports for new student view components
+
+**Impact:** MEDIUM - complete refactor but straightforward routing logic
+
+#### 4. services/aiProvider.ts
+**Changes:**
+- Add `DifficultyLevel` type
+- Add `generateQuizWithDifficulty()` method to interface
+- Add `generateSingleQuestion()` method to interface
+- Add difficulty progression presets (MILLIONAIRE_DIFFICULTY, etc.)
+
+**Impact:** MEDIUM - interface extension, implementations needed
+
+#### 5. services/geminiService.ts (and providers/claudeProvider.ts)
+**Changes:**
+- Implement new difficulty-aware generation methods
+- Extend system prompts to include Bloom's taxonomy difficulty levels
+- Add difficulty progression logic
+
+**Impact:** HIGH - core AI generation logic changes
+
+---
+
+## New Files to Create
+
+### Critical Path (MVP)
+
+1. **components/GameSelectionModal.tsx**
+   - Game selection UI
+   - Simple modal with 4 cards
+   - ~100 lines
+
+2. **components/games/QuickQuizGame.tsx**
+   - Renamed/refactored from QuizOverlay
+   - Add gameType to state
+   - ~10 line change from existing
+
+3. **components/games/MillionaireGame.tsx**
+   - Simplest new game (no timers, linear progression)
+   - ~300-400 lines
+   - Single-phase gameplay
+
+4. **components/student-views/StudentQuickQuizView.tsx**
+   - Extract from current StudentGameView
+   - ~130 lines (existing code)
+
+5. **components/student-views/StudentMillionaireView.tsx**
+   - Millionaire student display
+   - ~200 lines
+
+### Phase 2 (Chase Games)
+
+6. **components/games/TheChaseGame.tsx**
+   - Multi-phase (cash builder + head-to-head)
+   - Timer logic
+   - Position tracking
+   - ~400-500 lines
+
+7. **components/games/BeatTheChaserGame.tsx**
+   - Multi-phase with difficulty selection
+   - Dual timer logic
+   - ~350-450 lines
+
+8. **components/student-views/StudentChaseView.tsx**
+   - Chase student display
+   - ~250 lines
+
+9. **components/student-views/StudentChaserView.tsx**
+   - Beat the Chaser student display
+   - ~200 lines
+
+---
+
+## Suggested Build Order
+
+### Phase 1: Foundation & Millionaire (Milestone Start)
+**Goal:** Prove game framework works with simplest new game
+
+1. **Update Type System** (types.ts)
+   - Add GameType union
+   - Add discriminated GameSyncState union
+   - Add DifficultyLevel types
+
+2. **Create Game Framework**
+   - GameSelectionModal component
+   - BaseGameProps pattern established
+
+3. **Refactor Existing Quiz**
+   - Rename QuizOverlay → QuickQuizGame
+   - Add gameType to state
+   - Extract StudentQuickQuizView
+
+4. **Integrate Millionaire**
+   - MillionaireGame component (setup + play + summary)
+   - StudentMillionaireView component
+   - Test sync pattern with lifeline state
+
+5. **Extend AI Generation**
+   - Add generateQuizWithDifficulty() to providers
+   - Implement MILLIONAIRE_DIFFICULTY progression
+   - Test progressive difficulty questions
+
+**Deliverable:** Working game selection menu with 2 games (Quick Quiz + Millionaire)
+
+**Validation:**
+- Game selection works
+- Millionaire loads and syncs correctly
+- Lifelines function properly
+- Difficulty progression generates appropriate questions
+- Student view displays correctly
+
+### Phase 2: The Chase
+**Goal:** Add multi-phase game with timer logic
+
+1. **TheChaseGame Component**
+   - Cash builder phase (timer implementation)
+   - Head-to-head phase (position tracking)
+   - Risk/offer selection
+
+2. **StudentChaseView Component**
+   - Cash builder display (timer, money)
+   - Board visualization (player/chaser positions)
+
+3. **Timer Hook**
+   - Reusable countdown timer logic
+   - Pause/resume functionality
+   - Completion callbacks
+
+**Deliverable:** 3 games available (Quick Quiz + Millionaire + Chase)
+
+**Validation:**
+- Timer works correctly in cash builder
+- Position tracking accurate
+- Offer selection affects starting positions
+- Student view matches teacher game state
+
+### Phase 3: Beat the Chaser
+**Goal:** Add dual-timer gameplay and difficulty selection
+
+1. **BeatTheChaserGame Component**
+   - Cash builder (5 question max, stop on miss)
+   - Difficulty selection screen
+   - Dual timer battle phase
+
+2. **StudentChaserView Component**
+   - Dual timer display
+   - Active clock indicator
+
+3. **Dual Timer Logic**
+   - Alternating clock activation
+   - Win condition detection
+
+**Deliverable:** All 4 games complete
+
+**Validation:**
+- Difficulty selection affects Chaser time
+- Dual timers alternate correctly
+- Win/loss detection accurate
+- All game states sync to student view
+
+### Phase 4: Polish & Enhancement
+**Goal:** Improve UX and add advanced features
+
+1. **Visual Enhancements**
+   - Game-specific themes (Chase: blue/red, Millionaire: gold/purple)
+   - Animations (timer countdowns, lifeline activations)
+   - Sound effects (optional)
+
+2. **Question Bank Optimization**
+   - Cache questions to reduce AI calls
+   - Pre-generate next question during gameplay
+   - Fallback questions if AI fails
+
+3. **Student Engagement Features**
+   - Optional: Student answer input (not just display)
+   - Optional: Scoreboard persistence
+   - Optional: Class vs Teacher mode
+
+---
+
+## Architecture Patterns to Follow
+
+### 1. State Machine Pattern (all games)
+
+```typescript
+// Each game follows strict mode progression
+type GameMode = 'setup' | 'loading' | 'play' | 'summary';
+
+// Valid transitions (enforced)
+const validTransitions: Record<GameMode, GameMode[]> = {
+  setup: ['loading'],
+  loading: ['play', 'setup'],  // setup on error
+  play: ['summary'],
+  summary: []  // terminal state
+};
+
+function setGameMode(newMode: GameMode) {
+  if (validTransitions[mode].includes(newMode)) {
+    setMode(newMode);
+  } else {
+    console.error(`Invalid transition: ${mode} → ${newMode}`);
+  }
+}
+```
+
+**Why:** Prevents invalid state transitions, makes debugging easier, ensures sync state is always valid
+
+### 2. Sync State Separation
+
+```typescript
+// SEPARATE: Internal game state vs sync state
+
+// Internal state (teacher only)
+const [numQuestions, setNumQuestions] = useState(10);  // Setup config
+const [setupStep, setSetupStep] = useState(1);         // UI state
+
+// Sync state (broadcast to student)
+const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+const [moneyLadderPosition, setMoneyLadderPosition] = useState(0);
+
+// Only sync state goes in useEffect broadcast
+useEffect(() => {
+  onGameStateChange({
+    // Only include what student view needs
+    gameType: 'millionaire',
+    mode,
+    questions,
+    currentQuestionIndex,
+    moneyLadderPosition,
+    lifelines,
+    // DO NOT include: numQuestions, setupStep, etc.
+  });
+}, [mode, questions, currentQuestionIndex, moneyLadderPosition, lifelines]);
+```
+
+**Why:** Reduces bandwidth, prevents student view from receiving irrelevant state, clearer data ownership
+
+### 3. Component Composition Over Duplication
+
+```typescript
+// SHARED components used across games
+
+// Shared: Question display (all games use this)
+const QuestionDisplay: React.FC<{
+  question: string;
+  options: string[];
+  optionDisplay: 'grid' | 'list' | 'buttons';
+  highlightCorrect?: number;
+  eliminatedOptions?: number[];
+}> = ({ ... }) => { /* ... */ };
+
+// Shared: Timer display
+const TimerDisplay: React.FC<{
+  seconds: number;
+  label: string;
+  color: string;
+  isActive: boolean;
+}> = ({ ... }) => { /* ... */ };
+
+// Shared: Loading screen
+const GameLoadingScreen: React.FC<{
+  message: string;
+}> = ({ message }) => { /* ... */ };
+
+// Game-specific: Millionaire money ladder (unique to this game)
+const MoneyLadder: React.FC<{
+  currentPosition: number;
+  totalSteps: number;
+}> = ({ ... }) => { /* ... */ };
+```
+
+**Why:** Reduces code duplication, consistent UX across games, easier maintenance
+
+### 4. Error Boundary Pattern
+
+```typescript
+// Wrap each game in error boundary to prevent full app crash
+
+// components/games/GameErrorBoundary.tsx
+class GameErrorBoundary extends React.Component<
+  { children: React.ReactNode; onError: (error: Error) => void },
+  { hasError: boolean }
+> {
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error) {
+    this.props.onError(error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="game-error">
+          <h2>Game Error</h2>
+          <p>Something went wrong. Please close and try again.</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// Usage in PresentationView
+{activeGame === 'millionaire' && (
+  <GameErrorBoundary onError={(err) => setErrorModal({
+    title: 'Game Error',
+    message: err.message
+  })}>
+    <MillionaireGame {...baseGameProps} />
+  </GameErrorBoundary>
+)}
+```
+
+**Why:** Game crashes don't break presentation, graceful degradation, better error reporting
+
+### 5. AI Generation Strategy Pattern
+
+```typescript
+// Different games may need different question generation strategies
+
+interface QuestionGenerationStrategy {
+  generateQuestions(
+    slides: Slide[],
+    currentIndex: number,
+    count: number
+  ): Promise<QuizQuestion[]>;
+}
+
+// Strategy 1: Progressive difficulty (Millionaire)
+class ProgressiveDifficultyStrategy implements QuestionGenerationStrategy {
+  async generateQuestions(slides, currentIndex, count) {
+    const difficulties = MILLIONAIRE_DIFFICULTY.slice(0, count);
+    const questions: QuizQuestion[] = [];
+    for (const diff of difficulties) {
+      const q = await provider.generateSingleQuestion(slides, currentIndex, diff);
+      questions.push(q);
+    }
+    return questions;
+  }
+}
+
+// Strategy 2: Uniform difficulty (Chase, Quick Quiz)
+class UniformDifficultyStrategy implements QuestionGenerationStrategy {
+  constructor(private difficulty: DifficultyLevel) {}
+
+  async generateQuestions(slides, currentIndex, count) {
+    return provider.generateQuizWithDifficulty(
+      slides,
+      currentIndex,
+      count,
+      Array(count).fill(this.difficulty)
+    );
+  }
+}
+
+// Strategy 3: Random difficulty (Beat the Chaser - based on selected difficulty)
+class RandomDifficultyStrategy implements QuestionGenerationStrategy {
+  constructor(private difficultyRange: DifficultyLevel[]) {}
+
+  async generateQuestions(slides, currentIndex, count) {
+    const difficulties = Array(count).fill(null).map(() =>
+      this.difficultyRange[Math.floor(Math.random() * this.difficultyRange.length)]
+    );
+    return provider.generateQuizWithDifficulty(slides, currentIndex, count, difficulties);
+  }
+}
+```
+
+**Why:** Flexible question generation, easy to test different difficulty approaches, reusable across games
+
+---
+
+## Anti-Patterns to Avoid
+
+### 1. Prop Drilling Through Game State
+
+**Wrong:**
+```typescript
+// DON'T pass entire game state through multiple levels
+<TheChaseGame>
+  <CashBuilderPhase gameState={gameState}>
+    <QuestionDisplay gameState={gameState}>
+      <Option gameState={gameState} />
+    </QuestionDisplay>
+  </CashBuilderPhase>
+</TheChaseGame>
+```
+
+**Right:**
+```typescript
+// DO use React Context for deep game state
+const ChaseGameContext = createContext<ChaseGameState | null>(null);
+
+<ChaseGameContext.Provider value={gameState}>
+  <CashBuilderPhase>
+    <QuestionDisplay />  {/* Uses useContext internally */}
+  </CashBuilderPhase>
+</ChaseGameContext.Provider>
+```
+
+### 2. Tight Coupling to Specific AI Provider
+
+**Wrong:**
+```typescript
+// DON'T directly call Gemini service
+import { generateImpromptuQuiz } from '../services/geminiService';
+
+const questions = await generateImpromptuQuiz(apiKey, slides, index, count);
+```
+
+**Right:**
+```typescript
+// DO use abstracted provider interface
+const questions = await provider.generateQuizWithDifficulty(
+  slides,
+  index,
+  count,
+  difficulties
+);
+```
+
+**Why:** Provider abstraction already exists (Gemini/Claude), maintain consistency
+
+### 3. Duplicating Student View Logic
+
+**Wrong:**
+```typescript
+// DON'T copy-paste display logic between teacher and student views
+// TheChaseGame.tsx - Teacher version
+<div className="board">
+  {positions.map((pos, i) => (
+    <div className={`step ${playerPosition === i ? 'player' : ''}`} />
+  ))}
+</div>
+
+// StudentChaseView.tsx - Student version (DUPLICATE CODE)
+<div className="board">
+  {positions.map((pos, i) => (
+    <div className={`step ${playerPosition === i ? 'player' : ''}`} />
+  ))}
+</div>
+```
+
+**Right:**
+```typescript
+// DO extract shared display component
+// components/shared/ChaseBoard.tsx
+export const ChaseBoard: React.FC<{
+  playerPosition: number;
+  chaserPosition: number;
+  totalSteps: number;
+}> = ({ ... }) => { /* ... */ };
+
+// Use in both teacher and student views
+<ChaseBoard
+  playerPosition={gameState.playerPosition}
+  chaserPosition={gameState.chaserPosition}
+  totalSteps={7}
+/>
+```
+
+### 4. Ignoring Mode State Machine
+
+**Wrong:**
+```typescript
+// DON'T allow direct jumps to any state
+<button onClick={() => setMode('summary')}>Skip to End</button>
+```
+
+**Right:**
+```typescript
+// DO enforce valid transitions
+function handleEndGame() {
+  if (mode === 'play') {
+    setMode('summary');  // Valid: play → summary
+  } else {
+    console.error('Cannot end game from current mode');
+  }
+}
+```
+
+### 5. Blocking UI During AI Generation
+
+**Wrong:**
+```typescript
+// DON'T freeze UI while waiting for questions
+const handleStart = async () => {
+  const questions = await provider.generateQuestions(...);  // UI frozen
+  setQuestions(questions);
+  setMode('play');
+};
+```
+
+**Right:**
+```typescript
+// DO show loading state immediately
+const handleStart = async () => {
+  setMode('loading');  // Student view sees "Generating questions..."
+  try {
+    const questions = await provider.generateQuestions(...);
+    setQuestions(questions);
+    setMode('play');
+  } catch (error) {
+    onError('Generation Failed', error.message);
+    setMode('setup');  // Return to setup on error
+  }
+};
+```
+
+---
+
+## Scalability Considerations
+
+### At Launch (4 games)
+
+**Concerns:**
+- Code organization (multiple game files)
+- Sync state type safety (discriminated unions)
+- AI generation load (4 different question patterns)
+
+**Solutions:**
+- Organize games in `/components/games/` folder
+- Use discriminated unions for exhaustive type checking
+- Share AI generation logic where possible (uniform difficulty games)
+
+### At 10 Games
+
+**Concerns:**
+- GameSelectionModal becomes crowded
+- Sync state union becomes unwieldy
+- Duplicated UI components (timers, question displays)
+
+**Solutions:**
+- Add category filtering to game selection ("Quick Games", "Challenge Games")
+- Consider breaking GameSyncState into separate module
+- Extract shared components to `/components/game-ui/` folder
+- Add game search/filter functionality
+
+### At Scale (20+ games, team collaborators)
+
+**Concerns:**
+- Merge conflicts on types.ts
+- Testing individual games in isolation
+- Performance (bundle size, sync overhead)
+
+**Solutions:**
+- Split game types into separate files (`types/games/millionaire.ts`, etc.)
+- Create game development kit (GDK) with mocks for provider/sync
+- Lazy load game components (React.lazy + Suspense)
+- Implement game manifest system for dynamic registration
+
+```typescript
+// Future: Dynamic game registration
+interface GameManifest {
+  id: GameType;
+  name: string;
+  description: string;
+  icon: string;
+  component: React.LazyExoticComponent<React.ComponentType<BaseGameProps>>;
+  studentComponent: React.LazyExoticComponent<React.ComponentType<any>>;
+}
+
+const gameRegistry: GameManifest[] = [
+  {
+    id: 'millionaire',
+    name: 'Who Wants to Be a Millionaire',
+    description: 'Answer 10 questions with lifelines',
+    icon: '💰',
+    component: React.lazy(() => import('./games/MillionaireGame')),
+    studentComponent: React.lazy(() => import('./student-views/StudentMillionaireView'))
+  },
+  // ... other games
+];
+```
+
+---
+
+## Testing Strategy
+
+### Unit Tests (per game)
+
+```typescript
+// Example: MillionaireGame.test.tsx
+
+describe('MillionaireGame', () => {
+  it('starts in setup mode', () => {
+    const { getByText } = render(<MillionaireGame {...mockProps} />);
+    expect(getByText('Money Ladder')).toBeInTheDocument();
   });
 
-  return JSON.parse(response.text || "{}");  // No error handling!
-};
+  it('transitions to loading on start', async () => {
+    const { getByText, findByText } = render(<MillionaireGame {...mockProps} />);
+    fireEvent.click(getByText('Start Game'));
+    expect(await findByText('Generating Questions...')).toBeInTheDocument();
+  });
+
+  it('disables lifeline after use', () => {
+    const { getByText } = render(<MillionaireGame {...mockPropsInPlay} />);
+    const fiftyFiftyButton = getByText('50:50');
+    fireEvent.click(fiftyFiftyButton);
+    expect(fiftyFiftyButton).toBeDisabled();
+  });
+});
 ```
 
-### Likely Issues
+### Integration Tests (sync flow)
 
-1. **No responseSchema:** Unlike `generateLessonSlides`, `reviseSlide` doesn't use a schema, so Gemini may return malformed JSON
-2. **No try-catch in geminiService:** Raw JSON.parse can throw on invalid response
-3. **Silent error swallowing:** Non-AIProviderError errors in App.tsx aren't displayed
-4. **Wrong loading indicator:** Uses `isGeneratingImage` instead of a revision-specific flag
+```typescript
+// Example: game-sync.test.tsx
 
-### Estimated Complexity
+describe('Game Sync Flow', () => {
+  it('broadcasts game state changes to student view', async () => {
+    const onGameStateChange = jest.fn();
+    const { getByText } = render(
+      <MillionaireGame
+        {...mockProps}
+        onGameStateChange={onGameStateChange}
+      />
+    );
 
-MEDIUM - Requires:
-- Add responseSchema to reviseSlide in geminiService
-- Wrap JSON.parse in try-catch with proper error
-- Ensure all errors bubble up as AIProviderError
-- Possibly add revision-specific loading state
+    // Start game
+    fireEvent.click(getByText('Start Game'));
 
----
-
-## Bug 4: Flowchart Layout Issues
-
-### Problem Analysis
-
-The FlowchartLayout has two visual issues:
-1. Arrows align to bottom of boxes instead of center
-2. Whitespace not filled - boxes don't expand vertically
-
-### Integration Points
-
-```
-SlideRenderers.tsx
-    |
-    +-- FlowchartLayout (line 113-164)
-            |
-            +-- Container div (flex, items-start)
-            |       |
-            |       +-- Arrow SVG divs (flex, items-center, pb-20)
-            |       +-- Card divs (flex-1, aspect-[4/3])
-            |
-            +-- Arrows and cards in horizontal flex row
+    // Wait for loading state broadcast
+    await waitFor(() => {
+      expect(onGameStateChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          gameType: 'millionaire',
+          mode: 'loading'
+        })
+      );
+    });
+  });
+});
 ```
 
-### Files Involved
+### E2E Tests (full game flow)
 
-| File | Role | Changes Needed |
-|------|------|----------------|
-| `/components/SlideRenderers.tsx` | FlowchartLayout component | CSS adjustments |
+```typescript
+// Example: millionaire-flow.e2e.test.tsx
 
-### Current CSS Structure (FlowchartLayout)
+describe('Millionaire Full Game Flow', () => {
+  it('completes full game from setup to summary', async () => {
+    // Mock AI provider
+    const mockProvider = createMockProvider([
+      { question: 'Q1', options: ['A', 'B', 'C', 'D'], correctAnswerIndex: 0, explanation: 'E1' },
+      // ... 10 questions
+    ]);
 
-```tsx
-// Container
-<div className="flex w-full px-4 gap-4 md:gap-6 flex-1 items-start justify-center">
+    const { getByText, findByText } = render(
+      <PresentationView
+        slides={mockSlides}
+        provider={mockProvider}
+      />
+    );
 
-// Arrow
-<div className="... flex items-center justify-center h-full pb-20 px-2 ...">
-  <svg className="w-8 h-8 md:w-16 md:h-16" .../>
-</div>
+    // Open game selection
+    fireEvent.click(getByText('🎮 Game'));
+    fireEvent.click(getByText('Millionaire'));
 
-// Card
-<div className="flex-1 min-w-0 ...">
-  <div className="aspect-[4/3] rounded-3xl p-4 md:p-8 flex items-center justify-center ...">
-    ...
-  </div>
-</div>
-```
+    // Configure and start
+    fireEvent.click(getByText('Start Game'));
+    expect(await findByText('Q1')).toBeInTheDocument();
 
-### Problem Analysis
+    // Answer all 10 questions
+    for (let i = 0; i < 10; i++) {
+      fireEvent.click(getByText('Lock Answer A'));
+      fireEvent.click(getByText('Next Question'));
+    }
 
-1. **Arrow alignment:** `pb-20` (padding-bottom: 5rem) pushes arrow up, but this is a static offset that doesn't center the arrow on the card. The `h-full` on the arrow container depends on flex parent height.
-
-2. **Whitespace:** `items-start` on container aligns children to top. Cards have `aspect-[4/3]` which constrains height. No mechanism to fill remaining vertical space.
-
-### Solution Approach
-
-1. **Center arrows:** Remove `pb-20`, use `items-center` on both container and arrow wrapper
-2. **Fill whitespace:** Consider removing `aspect-[4/3]` constraint or using grid layout instead of flex
-
-```tsx
-// Potential fix
-<div className="flex w-full px-4 gap-4 md:gap-6 flex-1 items-center justify-center">
-  // Arrow - no pb-20, already h-full and items-center
-  <div className="... flex items-center justify-center h-full px-2 ...">
-
-  // Card - consider flex-1 on both wrapper and inner, remove aspect ratio
-  <div className="flex-1 min-w-0 h-full flex flex-col">
-    <div className="flex-1 rounded-3xl p-4 md:p-8 flex items-center justify-center ...">
-```
-
-### Estimated Complexity
-
-LOW - CSS-only fix:
-- Change `items-start` to `items-center` on container
-- Remove `pb-20` from arrow
-- Adjust card height constraints to fill space
-
----
-
-## Dependency Analysis
-
-### No Cross-Bug Dependencies
-
-Each bug is independent:
-- Bug 1 (Game sync) - BroadcastChannel layer
-- Bug 2 (Preview cutoff) - CSS in PresentationView
-- Bug 3 (AI revision) - API handler layer
-- Bug 4 (Flowchart) - CSS in SlideRenderers
-
-### Recommended Fix Order
-
-1. **Bug 4 (Flowchart)** - Simplest, CSS only, low risk
-2. **Bug 2 (Preview cutoff)** - CSS only, low risk
-3. **Bug 3 (AI revision)** - API layer, medium risk, needs testing
-4. **Bug 1 (Game sync)** - Most complex, requires new message types and component changes
-
----
-
-## Component Relationship Diagram
-
-```
-App.tsx
-  |
-  +-- Settings/Provider management
-  |
-  +-- handleReviseSlide() -----> provider.reviseSlide() [Bug 3]
-  |
-  +-- PresentationView
-        |
-        +-- Slide Preview Container [Bug 2]
-        |     |
-        |     +-- SlideContentRenderer
-        |           |
-        |           +-- FlowchartLayout [Bug 4]
-        |
-        +-- QuizOverlay (teacher only) [Bug 1]
-        |
-        +-- useBroadcastSync
-              |
-              +-- STATE_UPDATE ---> StudentView
-                                      |
-                                      +-- (No game state) [Bug 1]
+    // Verify summary
+    expect(await findByText('You Won!')).toBeInTheDocument();
+  });
+});
 ```
 
 ---
 
-## File Quick Reference
+## Sources
 
-| Bug | Primary Files | Secondary Files |
-|-----|---------------|-----------------|
-| 1 | `StudentView.tsx`, `PresentationView.tsx` | `types.ts`, `useBroadcastSync.ts` |
-| 2 | `PresentationView.tsx` | None |
-| 3 | `geminiService.ts`, `App.tsx` | `geminiProvider.ts`, `claudeProvider.ts`, `SlideCard.tsx` |
-| 4 | `SlideRenderers.tsx` | None |
+**Game Show Mechanics:**
+- [The Chase Game Show Rules - Wordiply](https://wordiplypro.com/the-chase-game-show-rules-and-history/)
+- [The Chase (British game show) - Wikipedia](https://en.wikipedia.org/wiki/The_Chase_(British_game_show))
+- [Beat the Chasers - Wikipedia](https://en.wikipedia.org/wiki/Beat_the_Chasers)
+- [Who Wants to Be a Millionaire Rules - US version](https://wwbm.com/rules)
+- [Lifeline - Who Wants To Be A Millionaire Wiki](https://millionaire.fandom.com/wiki/Lifeline)
 
----
+**Educational Adaptations:**
+- [Who Wants to Be a Millionaire Classroom Game Template](https://up2dateskills.com/blog/up2date-english/who-wants-to-be-a-millionaire-game-template-and-instructions-for-the-classroom/)
+- [The Chase Classroom Quiz Resources - Just Family Fun](https://justfamilyfun.com/the-chase-questions-and-answers/)
+- [Best Quiz and Game Show Apps for Classrooms - Common Sense Education](https://www.commonsense.org/education/best-in-class/the-best-quiz-and-game-show-apps-for-classrooms)
 
-## Testing Considerations
-
-### Bug 1 (Game Sync)
-- Open teacher view, launch student window
-- Start quiz game, verify it appears in student view
-- Progress through questions, verify sync
-- End quiz, verify student view returns to slide
-
-### Bug 2 (Preview Cutoff)
-- Create slide with 4+ bullet points
-- Enter presentation mode
-- Verify all content visible in left preview
-
-### Bug 3 (AI Revision)
-- Edit a slide, enter revision instruction
-- Click Revise, observe result
-- Test with both Gemini and Claude providers
-- Test edge cases: empty instruction, invalid API key
-
-### Bug 4 (Flowchart)
-- Create/load slide with flowchart layout
-- Verify arrows centered on boxes
-- Verify boxes fill vertical space
-- Test with 2, 3, 4 content items
-
----
-
-## Sources (v1.0-v2.0)
-
-### HIGH Confidence (Official Documentation)
-- [BroadcastChannel API - MDN](https://developer.mozilla.org/en-US/docs/Web/API/BroadcastChannel)
-- [Window Management API - MDN](https://developer.mozilla.org/en-US/docs/Web/API/Window_Management_API)
-- [createPortal - React](https://react.dev/reference/react-dom/createPortal)
-- [Window Management - Chrome Developers](https://developer.chrome.com/docs/capabilities/web-apis/window-management)
-- [MDN: Using the Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API/Using_the_Permissions_API)
-
-### MEDIUM Confidence (Browser Support Data)
-- [BroadcastChannel - Can I Use](https://caniuse.com/broadcastchannel) - 95.8% global support
-- [getScreenDetails - Can I Use](https://caniuse.com/mdn-api_window_getscreendetails) - 80.11% global support (Chromium only)
+**React Architecture:**
+- [State Management in 2026: Redux, Context API, and Modern Patterns - Nucamp](https://www.nucamp.co/blog/state-management-in-2026-redux-context-api-and-modern-patterns)
+- [Game Show Classroom: Comparing Quiz Platforms - Ditch That Textbook](https://ditchthattextbook.com/game-show-classroom-comparing-the-big-5/)
