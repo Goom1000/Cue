@@ -53,7 +53,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 
 ### Pending Todos
 
-14 todos in `.planning/todos/pending/` - run `/gsd:check-todos` to review
+15 todos in `.planning/todos/pending/` - run `/gsd:check-todos` to review
 
 ### Blockers/Concerns
 
