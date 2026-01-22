@@ -762,8 +762,36 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
 
           <div className={`bg-slate-900 border-slate-700 flex flex-col shadow-2xl z-40 shrink-0 transition-all duration-300 ${layoutMode === 'col' ? 'h-80 border-t w-full' : 'w-96 border-l h-full'}`}>
                <div className="p-3 bg-slate-800/50 border-b border-slate-700 flex justify-between items-center shrink-0">
-                   <div className="flex items-center gap-2">
+                   <div className="flex items-center gap-3">
                        <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Presenter Console</span>
+
+                       {/* Mode Toggle */}
+                       <div className="flex items-center gap-2">
+                           <span className={`text-[10px] font-bold uppercase tracking-wider ${!isTargetedMode ? 'text-slate-300' : 'text-slate-500'}`}>Manual</span>
+                           <label className="relative inline-flex items-center cursor-pointer">
+                               <input
+                                   type="checkbox"
+                                   className="sr-only peer"
+                                   checked={isTargetedMode}
+                                   onChange={() => setIsTargetedMode(!isTargetedMode)}
+                                   disabled={!canUseTargetedMode}
+                               />
+                               <div className={`w-9 h-5 rounded-full peer transition-colors ${
+                                   canUseTargetedMode
+                                       ? 'bg-slate-600 peer-checked:bg-amber-500 peer-focus:ring-2 peer-focus:ring-amber-500/50'
+                                       : 'bg-slate-700 cursor-not-allowed'
+                               } after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4`}></div>
+                           </label>
+                           <span className={`text-[10px] font-bold uppercase tracking-wider ${isTargetedMode && canUseTargetedMode ? 'text-amber-400' : 'text-slate-500'}`}>
+                               Targeted
+                           </span>
+                           {!canUseTargetedMode && (
+                               <span className="text-[9px] text-slate-500 italic" title="Load a class with grade assignments to use Targeted mode">
+                                   (assign grades first)
+                               </span>
+                           )}
+                       </div>
+
                        <button onClick={() => setShowFullScript(!showFullScript)} className="text-[10px] text-slate-500 hover:text-slate-300 transition-colors uppercase font-bold tracking-tighter">
                            {showFullScript ? 'Close Full Script' : 'Full Script'}
                        </button>
@@ -803,94 +831,106 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
                         )}
                    </button>
                    
-                   {/* Differentiated Question Buttons - HIGHLIGHTED IF FLAGGED */}
-                   <div className={`grid grid-cols-5 gap-2 mt-3 p-2 rounded-xl transition-all ${currentSlide.hasQuestionFlag ? 'bg-amber-500/10 ring-1 ring-amber-500/30' : ''}`}>
-                       {currentSlide.hasQuestionFlag && (
-                           <div className="col-span-5 text-[10px] font-bold text-amber-500 uppercase tracking-widest text-center mb-1">
-                               ⚡ Question Time ⚡
-                           </div>
-                       )}
-                       <div className="relative">
-                         <button
-                           onClick={() => handleGenerateQuestion('A')}
-                           className={`w-full bg-rose-800/50 hover:bg-rose-700 text-rose-200 border border-rose-700/50 rounded-lg py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${!isAIAvailable ? 'opacity-50' : ''}`}
-                           title={!isAIAvailable ? 'Add API key in Settings to enable' : undefined}
-                         >
-                           A
-                         </button>
-                         {!isAIAvailable && (
-                           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-slate-500 rounded-full flex items-center justify-center">
-                             <svg className="w-2 h-2 text-white" viewBox="0 0 20 20" fill="currentColor">
-                               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                             </svg>
-                           </span>
-                         )}
+                   {/* Question Buttons - Mode Dependent */}
+                   {isTargetedMode && canUseTargetedMode ? (
+                       /* Targeted Mode: Single Question Button with Student Preview */
+                       <div className={`mt-3 p-3 rounded-xl transition-all ${currentSlide.hasQuestionFlag ? 'bg-amber-500/10 ring-1 ring-amber-500/30' : 'bg-slate-700/50'}`}>
+                           {currentSlide.hasQuestionFlag && (
+                               <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest text-center mb-2">
+                                   Question Time
+                               </div>
+                           )}
+
+                           {nextStudent ? (
+                               <div className="space-y-2">
+                                   {/* Student Preview */}
+                                   <div className="flex items-center justify-between">
+                                       <div className="text-sm text-slate-300">
+                                           <span className="text-slate-500">Next: </span>
+                                           <span className="font-bold text-white">{nextStudent.name}</span>
+                                           <span className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                                               nextStudent.grade === 'A' ? 'bg-rose-900 text-rose-300' :
+                                               nextStudent.grade === 'B' ? 'bg-orange-900 text-orange-300' :
+                                               nextStudent.grade === 'C' ? 'bg-amber-900 text-amber-300' :
+                                               nextStudent.grade === 'D' ? 'bg-green-900 text-green-300' :
+                                               'bg-emerald-900 text-emerald-300'
+                                           }`}>
+                                               Grade {nextStudent.grade}
+                                           </span>
+                                       </div>
+                                       <button
+                                           onClick={() => setCyclingState(prev => advanceCycling(prev, studentData))}
+                                           className="text-[10px] text-slate-400 hover:text-white px-2 py-1 rounded bg-slate-600/50 hover:bg-slate-600 transition-colors"
+                                           title="Skip this student (counts as asked)"
+                                       >
+                                           Skip
+                                       </button>
+                                   </div>
+
+                                   {/* Question Button */}
+                                   <div className="relative">
+                                       <button
+                                           onClick={() => {
+                                               handleGenerateQuestion(nextStudent.grade);
+                                               setCyclingState(prev => advanceCycling(prev, studentData));
+                                           }}
+                                           className={`w-full bg-amber-600 hover:bg-amber-500 text-white border border-amber-500/50 rounded-lg py-3 text-sm font-bold uppercase tracking-wider transition-colors ${!isAIAvailable ? 'opacity-50' : ''}`}
+                                           title={!isAIAvailable ? 'Add API key in Settings to enable' : `Generate question for ${nextStudent.name}`}
+                                       >
+                                           Question for {nextStudent.name}
+                                       </button>
+                                       {!isAIAvailable && (
+                                           <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-slate-500 rounded-full flex items-center justify-center">
+                                               <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                                   <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                                               </svg>
+                                           </span>
+                                       )}
+                                   </div>
+                               </div>
+                           ) : (
+                               <div className="text-center text-slate-500 text-sm py-2">
+                                   No students with grades assigned
+                               </div>
+                           )}
                        </div>
-                       <div className="relative">
-                         <button
-                           onClick={() => handleGenerateQuestion('B')}
-                           className={`w-full bg-orange-800/50 hover:bg-orange-700 text-orange-200 border border-orange-700/50 rounded-lg py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${!isAIAvailable ? 'opacity-50' : ''}`}
-                           title={!isAIAvailable ? 'Add API key in Settings to enable' : undefined}
-                         >
-                           B
-                         </button>
-                         {!isAIAvailable && (
-                           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-slate-500 rounded-full flex items-center justify-center">
-                             <svg className="w-2 h-2 text-white" viewBox="0 0 20 20" fill="currentColor">
-                               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                             </svg>
-                           </span>
-                         )}
+                   ) : (
+                       /* Manual Mode: 5 Difficulty Buttons (existing behavior) */
+                       <div className={`grid grid-cols-5 gap-2 mt-3 p-2 rounded-xl transition-all ${currentSlide.hasQuestionFlag ? 'bg-amber-500/10 ring-1 ring-amber-500/30' : ''}`}>
+                           {currentSlide.hasQuestionFlag && (
+                               <div className="col-span-5 text-[10px] font-bold text-amber-500 uppercase tracking-widest text-center mb-1">
+                                   Question Time
+                               </div>
+                           )}
+                           {(['A', 'B', 'C', 'D', 'E'] as const).map(grade => {
+                               const colors = {
+                                   A: 'bg-rose-800/50 hover:bg-rose-700 text-rose-200 border-rose-700/50',
+                                   B: 'bg-orange-800/50 hover:bg-orange-700 text-orange-200 border-orange-700/50',
+                                   C: 'bg-amber-800/50 hover:bg-amber-700 text-amber-200 border-amber-700/50',
+                                   D: 'bg-green-800/50 hover:bg-green-700 text-green-200 border-green-700/50',
+                                   E: 'bg-emerald-800/50 hover:bg-emerald-700 text-emerald-200 border-emerald-700/50',
+                               };
+                               return (
+                                   <div key={grade} className="relative">
+                                       <button
+                                           onClick={() => handleGenerateQuestion(grade)}
+                                           className={`w-full ${colors[grade]} border rounded-lg py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${!isAIAvailable ? 'opacity-50' : ''}`}
+                                           title={!isAIAvailable ? 'Add API key in Settings to enable' : undefined}
+                                       >
+                                           {grade}
+                                       </button>
+                                       {!isAIAvailable && (
+                                           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-slate-500 rounded-full flex items-center justify-center">
+                                               <svg className="w-2 h-2 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                                   <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                                               </svg>
+                                           </span>
+                                       )}
+                                   </div>
+                               );
+                           })}
                        </div>
-                       <div className="relative">
-                         <button
-                           onClick={() => handleGenerateQuestion('C')}
-                           className={`w-full bg-amber-800/50 hover:bg-amber-700 text-amber-200 border border-amber-700/50 rounded-lg py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${!isAIAvailable ? 'opacity-50' : ''}`}
-                           title={!isAIAvailable ? 'Add API key in Settings to enable' : undefined}
-                         >
-                           C
-                         </button>
-                         {!isAIAvailable && (
-                           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-slate-500 rounded-full flex items-center justify-center">
-                             <svg className="w-2 h-2 text-white" viewBox="0 0 20 20" fill="currentColor">
-                               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                             </svg>
-                           </span>
-                         )}
-                       </div>
-                       <div className="relative">
-                         <button
-                           onClick={() => handleGenerateQuestion('D')}
-                           className={`w-full bg-green-800/50 hover:bg-green-700 text-green-200 border border-green-700/50 rounded-lg py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${!isAIAvailable ? 'opacity-50' : ''}`}
-                           title={!isAIAvailable ? 'Add API key in Settings to enable' : undefined}
-                         >
-                           D
-                         </button>
-                         {!isAIAvailable && (
-                           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-slate-500 rounded-full flex items-center justify-center">
-                             <svg className="w-2 h-2 text-white" viewBox="0 0 20 20" fill="currentColor">
-                               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                             </svg>
-                           </span>
-                         )}
-                       </div>
-                       <div className="relative">
-                         <button
-                           onClick={() => handleGenerateQuestion('E')}
-                           className={`w-full bg-emerald-800/50 hover:bg-emerald-700 text-emerald-200 border border-emerald-700/50 rounded-lg py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${!isAIAvailable ? 'opacity-50' : ''}`}
-                           title={!isAIAvailable ? 'Add API key in Settings to enable' : undefined}
-                         >
-                           E
-                         </button>
-                         {!isAIAvailable && (
-                           <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-slate-500 rounded-full flex items-center justify-center">
-                             <svg className="w-2 h-2 text-white" viewBox="0 0 20 20" fill="currentColor">
-                               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                             </svg>
-                           </span>
-                         )}
-                       </div>
-                   </div>
+                   )}
                    
                    {/* Generated Question Display (Now underneath buttons) */}
                    {isGeneratingQuestion && (
