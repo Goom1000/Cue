@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Slide, PresentationMessage, BROADCAST_CHANNEL_NAME, GameSyncState } from '../types';
+import { Slide, PresentationMessage, BROADCAST_CHANNEL_NAME, GameSyncState, GradeLevel, StudentWithGrade } from '../types';
 import Button from './Button';
 import { MarkdownText, SlideContentRenderer } from './SlideRenderers';
 import { QuizQuestion } from '../services/geminiService';
@@ -13,6 +13,23 @@ import ConnectionStatus from './ConnectionStatus';
 import PermissionRecovery from './PermissionRecovery';
 import NextSlidePreview from './NextSlidePreview';
 import { useToast, ToastContainer } from './Toast';
+
+// Fisher-Yates shuffle - unbiased O(n) randomization
+function shuffleArray<T>(array: T[]): T[] {
+  const result = [...array];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+// Targeted mode cycling state - tracks student order and progress
+interface TargetedCyclingState {
+  shuffledOrder: string[];     // All students with grades in random order
+  currentIndex: number;        // Index of next student to ask
+  askedStudents: Set<string>;  // For manual marking (voluntary answers)
+}
 
 // --- QUIZ GAME MODAL COMPONENT ---
 const QuizOverlay: React.FC<{
