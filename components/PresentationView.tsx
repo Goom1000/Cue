@@ -31,6 +31,57 @@ interface TargetedCyclingState {
   askedStudents: Set<string>;  // For manual marking (voluntary answers)
 }
 
+// Initialize shuffled cycling from students with grades
+function initializeCycling(studentData: StudentWithGrade[]): TargetedCyclingState {
+  const studentsWithGrades = studentData.filter(s => s.grade !== null);
+
+  if (studentsWithGrades.length === 0) {
+    return { shuffledOrder: [], currentIndex: 0, askedStudents: new Set() };
+  }
+
+  return {
+    shuffledOrder: shuffleArray(studentsWithGrades.map(s => s.name)),
+    currentIndex: 0,
+    askedStudents: new Set(),
+  };
+}
+
+// Get next student name and grade level for questioning
+function getNextStudent(
+  cyclingState: TargetedCyclingState,
+  studentData: StudentWithGrade[]
+): { name: string; grade: GradeLevel } | null {
+  const { shuffledOrder, currentIndex } = cyclingState;
+
+  if (shuffledOrder.length === 0 || currentIndex >= shuffledOrder.length) {
+    return null;
+  }
+
+  const name = shuffledOrder[currentIndex];
+  const student = studentData.find(s => s.name === name);
+
+  return student && student.grade ? { name, grade: student.grade } : null;
+}
+
+// Advance cycling state, reshuffle when cycle complete
+function advanceCycling(
+  prev: TargetedCyclingState,
+  studentData: StudentWithGrade[]
+): TargetedCyclingState {
+  const newIndex = prev.currentIndex + 1;
+
+  // If all students asked, reshuffle and restart
+  if (newIndex >= prev.shuffledOrder.length) {
+    return initializeCycling(studentData);
+  }
+
+  return {
+    ...prev,
+    currentIndex: newIndex,
+    askedStudents: new Set([...prev.askedStudents, prev.shuffledOrder[prev.currentIndex]]),
+  };
+}
+
 // --- QUIZ GAME MODAL COMPONENT ---
 const QuizOverlay: React.FC<{
     slides: Slide[];
