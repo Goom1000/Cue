@@ -77,7 +77,10 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Active
 
-(None — define requirements for next milestone with /gsd:new-milestone)
+**v2.5 Rebrand to Cue:**
+- [ ] App header, browser tab, favicon show "Cue" branding
+- [ ] Save files use `.cue` extension (backward compatible with `.pipi`)
+- [ ] GitHub repo renamed with updated Pages URL
 
 ### Deferred (v2.5+)
 
