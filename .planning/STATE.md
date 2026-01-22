@@ -2,19 +2,19 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-01-21)
+See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** v2.4 Targeted Questioning
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 18 - Student Display
-Plan: 01 of 1 complete
-Status: Phase complete
-Last activity: 2026-01-22 - Completed Phase 18 (Student Display)
+Phase: N/A (milestone complete)
+Plan: N/A
+Status: Ready to plan next milestone
+Last activity: 2026-01-22 - v2.4 milestone complete
 
-Progress: [=====================] 9/9 plans (v2.4)
+Progress: Milestone complete - run /gsd:new-milestone
 
 ## Performance Metrics
 
@@ -26,25 +26,17 @@ Progress: [=====================] 9/9 plans (v2.4)
 - v2.1: 2 plans, 4 hours
 - v2.2: 8 plans, 1 day
 - v2.3: 4 plans, 2 days
+- v2.4: 9 plans, 2 days
 
 **Project Totals:**
-- Milestones shipped: 7 (v1.0, v1.1, v1.2, v2.0, v2.1, v2.2, v2.3)
-- Total phases: 28 completed
-- Total plans: 55
-- Total LOC: ~8,500 TypeScript
-
-## Current Milestone: v2.4 Targeted Questioning
-
-**Phases:**
-- Phase 15: Student Grades (GRAD-01, GRAD-02, GRAD-03) - Complete
-- Phase 16: Question Enhancement (QGEN-01, QGEN-02, QGEN-03) - Complete
-- Phase 17: Targeting Mode (TARG-01 to TARG-03, CYCL-01 to CYCL-04) - Complete
-- Phase 18: Student Display (DISP-01, DISP-02, DISP-03) - Complete
-
-**Requirements:** 16 total, 16 complete (all phases)
+- Milestones shipped: 8 (v1.0, v1.1, v1.2, v2.0, v2.1, v2.2, v2.3, v2.4)
+- Total phases: 32 completed
+- Total plans: 64
+- Total LOC: ~9,400 TypeScript
 
 ## Completed Milestones
 
+- v2.4 Targeted Questioning (2026-01-22) - 4 phases, 9 plans
 - v2.3 Bug Fixes (2026-01-21) - 3 phases, 4 plans
 - v2.2 Flexible Upload & Class Bank (2026-01-20) - 4 phases, 8 plans
 - v2.1 Landing Page & Branding (2026-01-19) - 2 phases, 2 plans
@@ -70,10 +62,10 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-22
-Stopped at: Phase 18 complete ✓
+Stopped at: v2.4 milestone complete
 Resume file: None
-Next: Audit milestone v2.4
+Next: Start next milestone with /gsd:new-milestone
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-22 - Phase 18 complete*
+*Last updated: 2026-01-22 - v2.4 milestone complete*

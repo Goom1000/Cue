@@ -1,5 +1,33 @@
 # Project Milestones: PiPi
 
+## v2.4 Targeted Questioning (Shipped: 2026-01-22)
+
+**Delivered:** Enabled teachers to call on specific students by ability level with AI-generated questions that show answers in the teleprompter, fair student cycling, and student name banners on the projector.
+
+**Phases completed:** 15-18 (9 plans total)
+
+**Key accomplishments:**
+
+- Grade assignment (A-E) for students in class bank with localStorage persistence
+- AI question + answer generation with Bloom's taxonomy mapping (5 difficulty levels)
+- Manual vs Targeted mode toggle with fair Fisher-Yates shuffle cycling
+- Student name banner overlay on student view via BroadcastChannel
+- Progress counter with expandable student list showing who's been asked
+- Export/import grade preservation in .pipi files
+
+**Stats:**
+
+- 12 files created/modified
+- ~9,400 lines of TypeScript (project total)
+- 4 phases, 9 plans, 16 requirements
+- 2 days (2026-01-21 -> 2026-01-22)
+
+**Git range:** `feat(15-01)` -> `docs(18)`
+
+**What's next:** TBD with /gsd:new-milestone
+
+---
+
 ## v2.3 Bug Fixes (Shipped: 2026-01-21)
 
 **Delivered:** Fixed critical UI/sync bugs affecting presentation experience: flowchart layout, teacher view slide display, AI revision error handling, and game activity not syncing to student view.

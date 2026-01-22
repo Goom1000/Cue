@@ -4,19 +4,7 @@
 
 A presentation tool for teachers that transforms PDF lesson plans into interactive slideshows with AI-generated content, a teleprompter script for the teacher, and progressive bullet reveal. Teachers upload their existing lesson plans, select student age/grade level, and the AI creates an engaging presentation with speaker notes that guide the teacher through natural, conversational delivery.
 
-**v2.3 shipped:** Fixed critical bugs affecting presentation experience: flowchart layout, teacher view slide display, AI revision error handling, and game activity syncing to student view.
-
-## Current Milestone: v2.4 Targeted Questioning
-
-**Goal:** Enable teachers to call on specific students by ability level with AI-generated questions that show answers in the teleprompter.
-
-**Target features:**
-- Answer display in teleprompter (question + expected answer)
-- Student grade assignment (A/B/C/D/E levels) stored in class bank
-- 5 difficulty buttons (A through E) in teleprompter
-- Manual vs Targeted mode toggle
-- Student cycling with randomized order (overlay banner on student view)
-- Infinite cycling with reshuffle when all students at level have been asked
+**v2.4 shipped:** Teachers can call on specific students by ability level with AI-generated questions that show answers in the teleprompter, fair student cycling, and student name banners on the projector.
 
 ## Core Value
 
@@ -79,18 +67,19 @@ Students see only the presentation; teachers see the presentation plus a telepro
 - ✓ Slide preview fits correctly in teacher view (no cutoff) — v2.3
 - ✓ AI slide revision feature works without errors — v2.3
 - ✓ Flowchart layout has centered arrows and fills whitespace — v2.3
+- ✓ Question + answer display in teleprompter — v2.4
+- ✓ Student grade level assignment (A/B/C/D/E) in class bank — v2.4
+- ✓ 5 difficulty buttons (A through E) in teleprompter — v2.4
+- ✓ Manual vs Targeted questioning mode toggle — v2.4
+- ✓ Student cycling with randomized order per grade level — v2.4
+- ✓ Student name overlay banner on student view — v2.4
+- ✓ Infinite randomized cycling (reshuffle when all asked) — v2.4
 
 ### Active
 
-- [ ] Question + answer display in teleprompter
-- [ ] Student grade level assignment (A/B/C/D/E) in class bank
-- [ ] 5 difficulty buttons (A through E) in teleprompter
-- [ ] Manual vs Targeted questioning mode toggle
-- [ ] Student cycling with randomized order per grade level
-- [ ] Student name overlay banner on student view
-- [ ] Infinite randomized cycling (reshuffle when all asked)
+(None — define requirements for next milestone with /gsd:new-milestone)
 
-### Deferred (v2.4+)
+### Deferred (v2.5+)
 
 - [ ] Elapsed time display showing presentation duration
 - [ ] Fullscreen recovery (auto re-enter if exited)
@@ -116,17 +105,18 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Current State
 
-Shipped v2.3 with ~8,000 LOC TypeScript.
+Shipped v2.4 with ~9,400 LOC TypeScript.
 Tech stack: React 19, Vite, Gemini/Claude API, Tailwind CSS, react-rnd.
 Client-side only (no backend).
 Deployed at: https://goom1000.github.io/PiPi/
 
-v2.3 delivered Bug Fixes:
-- Flowchart layout fixed (centered arrows, equal-height boxes)
-- Teacher view slide display fixed (no more cutoff/cropping)
-- AI revision graceful error handling with retry logic and toast notifications
-- Real-time game sync from teacher to student view via BroadcastChannel
-- StudentGameView component for read-only quiz display on student screen
+v2.4 delivered Targeted Questioning:
+- Grade assignment (A-E) for students in class bank with localStorage persistence
+- AI question + answer generation with Bloom's taxonomy mapping (5 difficulty levels)
+- Manual vs Targeted mode toggle with fair Fisher-Yates shuffle cycling
+- Student name banner overlay on student view via BroadcastChannel
+- Progress counter with expandable student list showing who's been asked
+- Export/import grade preservation in .pipi files
 
 ### Technical Environment
 
@@ -190,6 +180,12 @@ v2.3 delivered Bug Fixes:
 | Exponential backoff 1s/2s | Max 2 retries with increasing delay before toast | ✓ Good — v2.3 |
 | Exclude 'setup' mode from sync | Setup is teacher-only config screen with no content for students | ✓ Good — v2.3 |
 | Ref-based game tracking | Prevent spurious GAME_CLOSE on mount when gameState is initially null | ✓ Good — v2.3 |
+| Optional studentData migration | Backward-compatible grade storage with migration on read | ✓ Good — v2.4 |
+| Bloom's taxonomy mapping | A-E difficulty levels map to cognitive depth (Analysis → Recall) | ✓ Good — v2.4 |
+| Fisher-Yates shuffle | Unbiased O(n) randomization for fair student cycling | ✓ Good — v2.4 |
+| STUDENT_SELECT/CLEAR messages | BroadcastChannel pattern for ephemeral banner state | ✓ Good — v2.4 |
+| Targeted mode default | Teachers want targeted questioning as primary experience | ✓ Good — v2.4 |
+| Cycling reset on slide change | Fair distribution per slide, students can be asked again | ✓ Good — v2.4 |
 
 ---
-*Last updated: 2026-01-21 after v2.4 milestone start*
+*Last updated: 2026-01-22 after v2.4 milestone completion*
