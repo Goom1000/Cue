@@ -1,10 +1,10 @@
-# PiPi (Presentation Intelligence)
+# Cue (Presentation Intelligence)
 
 ## What This Is
 
 A presentation tool for teachers that transforms PDF lesson plans into interactive slideshows with AI-generated content, a teleprompter script for the teacher, and progressive bullet reveal. Teachers upload their existing lesson plans, select student age/grade level, and the AI creates an engaging presentation with speaker notes that guide the teacher through natural, conversational delivery.
 
-**v2.4 shipped:** Teachers can call on specific students by ability level with AI-generated questions that show answers in the teleprompter, fair student cycling, and student name banners on the projector.
+**v2.5 shipped:** Complete rebrand from PiPi to Cue with .cue file format (backward compatible with .pipi), deployed at https://goom1000.github.io/Cue/
 
 ## Core Value
 
@@ -74,15 +74,15 @@ Students see only the presentation; teachers see the presentation plus a telepro
 - ✓ Student cycling with randomized order per grade level — v2.4
 - ✓ Student name overlay banner on student view — v2.4
 - ✓ Infinite randomized cycling (reshuffle when all asked) — v2.4
+- ✓ App header, browser tab, favicon show "Cue" branding — v2.5
+- ✓ Save files use `.cue` extension (backward compatible with `.pipi`) — v2.5
+- ✓ GitHub repo renamed with deployment at https://goom1000.github.io/Cue/ — v2.5
 
 ### Active
 
-**v2.5 Rebrand to Cue:**
-- [ ] App header, browser tab, favicon show "Cue" branding
-- [ ] Save files use `.cue` extension (backward compatible with `.pipi`)
-- [ ] GitHub repo renamed with updated Pages URL
+(None - ready for next milestone)
 
-### Deferred (v2.5+)
+### Deferred (v2.6+)
 
 - [ ] Elapsed time display showing presentation duration
 - [ ] Fullscreen recovery (auto re-enter if exited)
@@ -108,18 +108,18 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Current State
 
-Shipped v2.4 with ~9,400 LOC TypeScript.
+Shipped v2.5 with ~9,400 LOC TypeScript.
 Tech stack: React 19, Vite, Gemini/Claude API, Tailwind CSS, react-rnd.
 Client-side only (no backend).
-Deployed at: https://goom1000.github.io/PiPi/
+Deployed at: https://goom1000.github.io/Cue/
 
-v2.4 delivered Targeted Questioning:
-- Grade assignment (A-E) for students in class bank with localStorage persistence
-- AI question + answer generation with Bloom's taxonomy mapping (5 difficulty levels)
-- Manual vs Targeted mode toggle with fair Fisher-Yates shuffle cycling
-- Student name banner overlay on student view via BroadcastChannel
-- Progress counter with expandable student list showing who's been asked
-- Export/import grade preservation in .pipi files
+v2.5 delivered Rebrand to Cue:
+- Complete UI rebrand from "PiPi" to "Cue" (header, tab, landing, footer)
+- File format migration to .cue with backward compatibility for .pipi
+- TypeScript types renamed (CueFile, CueFileContent, createCueFile, readCueFile)
+- AI prompts reference "Cue-style" presentation format
+- GitHub repository renamed to "Cue"
+- GitHub Pages deployment at professional URL
 
 ### Technical Environment
 
@@ -190,5 +190,9 @@ v2.4 delivered Targeted Questioning:
 | Targeted mode default | Teachers want targeted questioning as primary experience | ✓ Good — v2.4 |
 | Cycling reset on slide change | Fair distribution per slide, students can be asked again | ✓ Good — v2.4 |
 
+| Backward compatible file format | Accept both .cue and .pipi extensions | ✓ Good — v2.5 |
+| Internal identifiers preserved | localStorage/BroadcastChannel keep pipi- prefix | ✓ Good — v2.5 |
+| Repository name "Cue" | Simple, matches brand, short URL | ✓ Good — v2.5 |
+
 ---
-*Last updated: 2026-01-22 after v2.4 milestone completion*
+*Last updated: 2026-01-22 after v2.5 milestone completion*

@@ -1,4 +1,32 @@
-# Project Milestones: PiPi
+# Project Milestones: Cue
+
+## v2.5 Rebrand to Cue (Shipped: 2026-01-22)
+
+**Delivered:** Complete rebrand from PiPi to Cue across UI, file format (.cue extension with .pipi backward compatibility), and GitHub repository with deployment at https://goom1000.github.io/Cue/
+
+**Phases completed:** 19 (2 plans total)
+
+**Key accomplishments:**
+
+- Complete UI rebrand (header, browser tab, landing page, footer) from "PiPi" to "Cue"
+- File format migration to `.cue` extension with backward compatibility for `.pipi` files
+- TypeScript types renamed from PiPi* to Cue* (CueFile, CueFileContent, etc.)
+- AI prompts updated to reference "Cue-style"
+- GitHub repository renamed to "Cue"
+- GitHub Pages deployment live at https://goom1000.github.io/Cue/
+
+**Stats:**
+
+- 19 files created/modified
+- ~9,400 lines of TypeScript (project total)
+- 1 phase, 2 plans, 10 requirements
+- 1 day (2026-01-22)
+
+**Git range:** `84eb233` → `ab14dda`
+
+**What's next:** TBD with /gsd:new-milestone
+
+---
 
 ## v2.4 Targeted Questioning (Shipped: 2026-01-22)
 

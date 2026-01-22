@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** v2.5 Rebrand to Cue
+**Current focus:** Ready for next milestone planning
 
 ## Current Position
 
-Phase: 19 (Rebrand to Cue)
-Plan: 02 of 02
-Status: Phase complete
-Last activity: 2026-01-22 - Completed 19-02-PLAN.md
+Phase: Ready for next milestone
+Plan: N/A
+Status: v2.5 complete, awaiting /gsd:new-milestone
+Last activity: 2026-01-22 - Completed v2.5 milestone
 
-Progress: ████████████████░░░░ 83% (66/79 plans complete)
+Progress: ████████████████████ 100% (all v2.5 plans complete)
 
 ## Performance Metrics
 
@@ -27,11 +27,12 @@ Progress: ████████████████░░░░ 83% (66/7
 - v2.2: 8 plans, 1 day
 - v2.3: 4 plans, 2 days
 - v2.4: 9 plans, 2 days
+- v2.5: 2 plans, 1 day
 
 **Project Totals:**
 - Milestones shipped: 9 (v1.0, v1.1, v1.2, v2.0, v2.1, v2.2, v2.3, v2.4, v2.5)
-- Total phases: 33 completed
-- Total plans: 66 (66 complete, 0 in progress)
+- Total phases: 19 completed
+- Total plans: 66 complete
 - Total LOC: ~9,400 TypeScript
 
 ## Completed Milestones
@@ -50,18 +51,16 @@ Progress: ████████████████░░░░ 83% (66/7
 
 ### Decisions
 
-Recent decisions from 19-01 and 19-02:
-- Maintain backward compatibility by accepting both .cue and .pipi file extensions
-- Keep localStorage keys unchanged (pipi- prefix) to preserve user data
-- Keep BroadcastChannel name unchanged for cross-window sync compatibility
-- Repository name: "Cue" (simple, matches brand exactly)
-- Favicon path kept as relative (./favicon.png) for Vite base path compatibility
+v2.5 key decisions:
+- Backward compatible file format (accept both .cue and .pipi)
+- Internal identifiers preserved (localStorage/BroadcastChannel keep pipi- prefix)
+- Repository name "Cue" (simple, matches brand, short URL)
 
 All decisions logged in PROJECT.md Key Decisions table.
 
 ### Pending Todos
 
-15 todos in `.planning/todos/pending/` - run `/gsd:check-todos` to review
+Check `.planning/todos/pending/` for ideas captured during development.
 
 ### Blockers/Concerns
 
@@ -70,10 +69,10 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-22
-Stopped at: Completed 19-02-PLAN.md (Phase 19 complete, Milestone v2.5 shipped)
+Stopped at: v2.5 milestone archived
 Resume file: None
-Next: Ready for next milestone planning
+Next: /gsd:new-milestone for next version
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-22 - Phase 19 complete, Milestone v2.5 shipped*
+*Last updated: 2026-01-22 - v2.5 milestone complete*
