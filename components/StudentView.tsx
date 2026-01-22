@@ -1,8 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Slide, PresentationMessage, BROADCAST_CHANNEL_NAME, GameSyncState } from '../types';
 import useBroadcastSync from '../hooks/useBroadcastSync';
 import { SlideContentRenderer } from './SlideRenderers';
 import StudentGameView from './StudentGameView';
+
+// Length-based font sizing for long names
+function getNameFontSize(name: string): string {
+  const length = name.length;
+  if (length <= 10) return 'text-6xl';
+  if (length <= 15) return 'text-5xl';
+  if (length <= 20) return 'text-4xl';
+  if (length <= 30) return 'text-3xl';
+  return 'text-2xl';
+}
 
 /**
  * Standalone student view component.
@@ -15,6 +25,9 @@ const StudentView: React.FC = () => {
   const [slides, setSlides] = useState<Slide[]>([]);
   const [connected, setConnected] = useState(false);
   const [gameState, setGameState] = useState<GameSyncState | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  const [isExiting, setIsExiting] = useState(false);
+  const timerRef = useRef<number | null>(null);
 
   const { lastMessage, postMessage } = useBroadcastSync<PresentationMessage>(BROADCAST_CHANNEL_NAME);
 
@@ -44,6 +57,30 @@ const StudentView: React.FC = () => {
       setGameState(null);
     }
 
+    // Handle student selection for banner display
+    if (lastMessage.type === 'STUDENT_SELECT') {
+      // Clear any existing timer
+      if (timerRef.current) clearTimeout(timerRef.current);
+
+      // Reset exit state and show new student
+      setIsExiting(false);
+      setSelectedStudent(lastMessage.payload.studentName);
+
+      // Auto-dismiss after 3 seconds
+      timerRef.current = window.setTimeout(() => {
+        setIsExiting(true);
+        // Wait for exit animation (500ms) before clearing
+        setTimeout(() => setSelectedStudent(null), 500);
+      }, 3000);
+    }
+
+    if (lastMessage.type === 'STUDENT_CLEAR') {
+      // Immediate clear on slide change (no exit animation)
+      if (timerRef.current) clearTimeout(timerRef.current);
+      setSelectedStudent(null);
+      setIsExiting(false);
+    }
+
     // Respond to heartbeat from teacher view
     if (lastMessage.type === 'HEARTBEAT') {
       postMessage({ type: 'HEARTBEAT_ACK', timestamp: lastMessage.timestamp });
@@ -54,6 +91,13 @@ const StudentView: React.FC = () => {
       window.close();
     }
   }, [lastMessage, postMessage]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const currentSlide = slides[currentIndex];
 
@@ -77,7 +121,22 @@ const StudentView: React.FC = () => {
 
   // Normal slide mode - render slide content only
   return (
-    <div className="h-screen w-screen bg-black flex items-center justify-center overflow-hidden">
+    <div className="h-screen w-screen bg-black flex items-center justify-center overflow-hidden relative">
+      {/* Student Name Banner */}
+      {selectedStudent && (
+        <div className={`absolute top-0 left-0 right-0 z-50 flex justify-center pt-8 ${isExiting ? 'animate-fade-out' : 'animate-slide-down'}`}>
+          <div className="bg-indigo-600 px-12 py-6 rounded-2xl shadow-2xl">
+            <p className="text-white text-xl font-medium mb-1 text-center">
+              Question for
+            </p>
+            <p className={`text-white font-bold text-center ${getNameFontSize(selectedStudent)}`}>
+              {selectedStudent}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Slide content */}
       <div className="w-full h-full max-w-[1920px] max-h-[1080px] aspect-video bg-white">
         <SlideContentRenderer slide={currentSlide} visibleBullets={visibleBullets} />
       </div>
