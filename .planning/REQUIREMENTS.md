@@ -101,55 +101,55 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | TBD | Pending |
-| FOUND-02 | TBD | Pending |
-| FOUND-03 | TBD | Pending |
-| FOUND-04 | TBD | Pending |
-| FOUND-05 | TBD | Pending |
-| MILL-01 | TBD | Pending |
-| MILL-02 | TBD | Pending |
-| MILL-03 | TBD | Pending |
-| MILL-04 | TBD | Pending |
-| MILL-05 | TBD | Pending |
-| MILL-06 | TBD | Pending |
-| MILL-07 | TBD | Pending |
-| MILL-08 | TBD | Pending |
-| CHASE-01 | TBD | Pending |
-| CHASE-02 | TBD | Pending |
-| CHASE-03 | TBD | Pending |
-| CHASE-04 | TBD | Pending |
-| CHASE-05 | TBD | Pending |
-| CHASE-06 | TBD | Pending |
-| CHASE-07 | TBD | Pending |
-| CHASE-08 | TBD | Pending |
-| CHASE-09 | TBD | Pending |
-| CHASE-10 | TBD | Pending |
-| BEAT-01 | TBD | Pending |
-| BEAT-02 | TBD | Pending |
-| BEAT-03 | TBD | Pending |
-| BEAT-04 | TBD | Pending |
-| BEAT-05 | TBD | Pending |
-| BEAT-06 | TBD | Pending |
-| BEAT-07 | TBD | Pending |
-| BEAT-08 | TBD | Pending |
-| COMP-01 | TBD | Pending |
-| COMP-02 | TBD | Pending |
-| COMP-03 | TBD | Pending |
-| COMP-04 | TBD | Pending |
-| AI-01 | TBD | Pending |
-| AI-02 | TBD | Pending |
-| AI-03 | TBD | Pending |
-| AI-04 | TBD | Pending |
-| VIEW-01 | TBD | Pending |
-| VIEW-02 | TBD | Pending |
-| VIEW-03 | TBD | Pending |
-| VIEW-04 | TBD | Pending |
+| FOUND-01 | Phase 20 | Pending |
+| FOUND-02 | Phase 20 | Pending |
+| FOUND-03 | Phase 20 | Pending |
+| FOUND-04 | Phase 20 | Pending |
+| FOUND-05 | Phase 20 | Pending |
+| MILL-01 | Phase 21 | Pending |
+| MILL-02 | Phase 21 | Pending |
+| MILL-03 | Phase 21 | Pending |
+| MILL-04 | Phase 21 | Pending |
+| MILL-05 | Phase 21 | Pending |
+| MILL-06 | Phase 21 | Pending |
+| MILL-07 | Phase 21 | Pending |
+| MILL-08 | Phase 21 | Pending |
+| AI-01 | Phase 22 | Pending |
+| AI-02 | Phase 22 | Pending |
+| AI-03 | Phase 22 | Pending |
+| AI-04 | Phase 22 | Pending |
+| CHASE-01 | Phase 23 | Pending |
+| CHASE-02 | Phase 23 | Pending |
+| CHASE-03 | Phase 23 | Pending |
+| CHASE-04 | Phase 23 | Pending |
+| CHASE-05 | Phase 23 | Pending |
+| CHASE-06 | Phase 23 | Pending |
+| CHASE-07 | Phase 23 | Pending |
+| CHASE-08 | Phase 23 | Pending |
+| CHASE-09 | Phase 23 | Pending |
+| CHASE-10 | Phase 23 | Pending |
+| BEAT-01 | Phase 24 | Pending |
+| BEAT-02 | Phase 24 | Pending |
+| BEAT-03 | Phase 24 | Pending |
+| BEAT-04 | Phase 24 | Pending |
+| BEAT-05 | Phase 24 | Pending |
+| BEAT-06 | Phase 24 | Pending |
+| BEAT-07 | Phase 24 | Pending |
+| BEAT-08 | Phase 24 | Pending |
+| COMP-01 | Phase 25 | Pending |
+| COMP-02 | Phase 25 | Pending |
+| COMP-03 | Phase 25 | Pending |
+| COMP-04 | Phase 25 | Pending |
+| VIEW-01 | Phase 26 | Pending |
+| VIEW-02 | Phase 26 | Pending |
+| VIEW-03 | Phase 26 | Pending |
+| VIEW-04 | Phase 26 | Pending |
 
 **Coverage:**
 - v3.0 requirements: 42 total
-- Mapped to phases: 0
-- Unmapped: 42
+- Mapped to phases: 42
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-22*
-*Last updated: 2026-01-22 after initial definition*
+*Last updated: 2026-01-23 after roadmap creation*
