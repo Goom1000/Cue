@@ -69,9 +69,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 17-01-PLAN.md - Cycling state infrastructure (shuffle, types, helpers)
-- [ ] 17-02-PLAN.md - Mode toggle UI and conditional button rendering
-- [ ] 17-03-PLAN.md - Progress counter, expandable list, and integration polish
+- [x] 17-01-PLAN.md - Cycling state infrastructure (shuffle, types, helpers)
+- [x] 17-02-PLAN.md - Mode toggle UI and conditional button rendering
+- [x] 17-03-PLAN.md - Progress counter, expandable list, and integration polish
 
 **Requirements:**
 - TARG-01: Toggle switch in teleprompter: Manual vs Targeted mode
@@ -119,7 +119,7 @@ Plans:
 |-------|------|--------------|--------|
 | 15 | Student Grades | GRAD-01, GRAD-02, GRAD-03 | Complete |
 | 16 | Question Enhancement | QGEN-01, QGEN-02, QGEN-03 | Complete |
-| 17 | Targeting Mode | TARG-01, TARG-02, TARG-03, CYCL-01, CYCL-02, CYCL-03, CYCL-04 | Planned |
+| 17 | Targeting Mode | TARG-01, TARG-02, TARG-03, CYCL-01, CYCL-02, CYCL-03, CYCL-04 | Complete |
 | 18 | Student Display | DISP-01, DISP-02, DISP-03 | Pending |
 
 **Coverage:** 16/16 requirements mapped
@@ -132,3 +132,4 @@ Plans:
 *Phase 16 planned: 2026-01-22*
 *Phase 16 complete: 2026-01-22*
 *Phase 17 planned: 2026-01-22*
+*Phase 17 complete: 2026-01-22*

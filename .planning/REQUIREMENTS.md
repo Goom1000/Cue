@@ -21,9 +21,9 @@ Requirements for targeted questioning milestone. Each maps to roadmap phases.
 
 ### Targeting Mode
 
-- [ ] **TARG-01**: Toggle switch in teleprompter: Manual vs Targeted mode
-- [ ] **TARG-02**: Manual mode: click grade -> generate question (current behavior)
-- [ ] **TARG-03**: Targeted mode: click grade -> generate question + select student at that level
+- [x] **TARG-01**: Toggle switch in teleprompter: Manual vs Targeted mode
+- [x] **TARG-02**: Manual mode: click grade -> generate question (current behavior)
+- [x] **TARG-03**: Targeted mode: click grade -> generate question + select student at that level
 
 ### Student Display
 
@@ -33,10 +33,10 @@ Requirements for targeted questioning milestone. Each maps to roadmap phases.
 
 ### Cycling Logic
 
-- [ ] **CYCL-01**: Students at each grade level cycled in randomized order
-- [ ] **CYCL-02**: Track which students have been asked per grade level
-- [ ] **CYCL-03**: Auto-reshuffle and restart cycle when all students at level asked
-- [ ] **CYCL-04**: Reset tracking when navigating to a new slide
+- [x] **CYCL-01**: Students at each grade level cycled in randomized order
+- [x] **CYCL-02**: Track which students have been asked per grade level
+- [x] **CYCL-03**: Auto-reshuffle and restart cycle when all students at level asked
+- [x] **CYCL-04**: Reset tracking when navigating to a new slide
 
 ## Future Requirements
 
@@ -81,16 +81,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GRAD-01 | Phase 15 | Complete |
 | GRAD-02 | Phase 15 | Complete |
 | GRAD-03 | Phase 15 | Complete |
-| TARG-01 | Phase 17 | Pending |
-| TARG-02 | Phase 17 | Pending |
-| TARG-03 | Phase 17 | Pending |
+| TARG-01 | Phase 17 | Complete |
+| TARG-02 | Phase 17 | Complete |
+| TARG-03 | Phase 17 | Complete |
 | DISP-01 | Phase 18 | Pending |
 | DISP-02 | Phase 18 | Pending |
 | DISP-03 | Phase 18 | Pending |
-| CYCL-01 | Phase 17 | Pending |
-| CYCL-02 | Phase 17 | Pending |
-| CYCL-03 | Phase 17 | Pending |
-| CYCL-04 | Phase 17 | Pending |
+| CYCL-01 | Phase 17 | Complete |
+| CYCL-02 | Phase 17 | Complete |
+| CYCL-03 | Phase 17 | Complete |
+| CYCL-04 | Phase 17 | Complete |
 
 **Coverage:**
 - v2.4 requirements: 16 total
@@ -99,4 +99,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-01-21*
-*Last updated: 2026-01-22 after Phase 16 complete*
+*Last updated: 2026-01-22 after Phase 17 complete*
