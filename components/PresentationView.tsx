@@ -323,6 +323,16 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
   } | null>(null);
   const [isGeneratingQuestion, setIsGeneratingQuestion] = useState(false);
 
+  // Targeting Mode State
+  const [isTargetedMode, setIsTargetedMode] = useState(true); // Default to Targeted per CONTEXT.md
+  const [cyclingState, setCyclingState] = useState<TargetedCyclingState>(() =>
+    initializeCycling(studentData)
+  );
+
+  // Derived state for mode availability
+  const hasStudentsWithGrades = studentData.some(s => s.grade !== null);
+  const canUseTargetedMode = studentData.length > 0 && hasStudentsWithGrades;
+
   // BroadcastChannel sync with heartbeat enabled for connection monitoring
   const { lastMessage, postMessage, isConnected } = useBroadcastSync<PresentationMessage>(
     BROADCAST_CHANNEL_NAME,
@@ -360,6 +370,17 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
   useEffect(() => {
       setQuickQuestion(null);
   }, [currentIndex]);
+
+  // Reset cycling state when slide changes (CYCL-04)
+  useEffect(() => {
+    setCyclingState(initializeCycling(studentData));
+  }, [currentIndex, studentData]);
+
+  // Next student for Targeted mode preview
+  const nextStudent = useMemo(() => {
+    if (!isTargetedMode || !canUseTargetedMode) return null;
+    return getNextStudent(cyclingState, studentData);
+  }, [isTargetedMode, canUseTargetedMode, cyclingState, studentData]);
 
   // Handle incoming messages (student requesting state)
   useEffect(() => {
