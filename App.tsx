@@ -5,8 +5,8 @@ import { createAIProvider, AIProviderError, AIProviderInterface, GenerationInput
 import { useSettings } from './hooks/useSettings';
 import { useClassBank } from './hooks/useClassBank';
 import { exportToPowerPoint } from './services/pptxService';
-import { createPiPiFile, downloadPresentation, checkFileSize } from './services/saveService';
-import { readPiPiFile } from './services/loadService';
+import { createCueFile, downloadPresentation, checkFileSize } from './services/saveService';
+import { readCueFile } from './services/loadService';
 import { useAutoSave, getAutoSave, getAutoSaveTimestamp, clearAutoSave, hasAutoSave, AutoSaveData } from './hooks/useAutoSave';
 import { useDragDrop } from './hooks/useDragDrop';
 import Button from './components/Button';
@@ -597,7 +597,7 @@ function App() {
 
   const handleSaveClick = useCallback(() => {
     // Check file size first (use local studentGrades)
-    const file = createPiPiFile(lessonTitle, slides, studentNames, lessonText, undefined, studentGrades);
+    const file = createCueFile(lessonTitle, slides, studentNames, lessonText, undefined, studentGrades);
     const sizeInfo = checkFileSize(file);
 
     if (sizeInfo.exceeds50MB) {
@@ -611,7 +611,7 @@ function App() {
 
   const handleSaveConfirm = useCallback(() => {
     // Use local studentGrades
-    const file = createPiPiFile(lessonTitle, slides, studentNames, lessonText, undefined, studentGrades);
+    const file = createCueFile(lessonTitle, slides, studentNames, lessonText, undefined, studentGrades);
     downloadPresentation(file, pendingSaveFilename);
     addToast('Presentation saved successfully!', 3000, 'success');
     setHasUnsavedChanges(false);
@@ -636,24 +636,24 @@ function App() {
     }
 
     try {
-      const pipiFile = await readPiPiFile(file);
-      setSlides(pipiFile.content.slides);
-      const loadedStudents = pipiFile.content.studentNames || [];
+      const cueFile = await readCueFile(file);
+      setSlides(cueFile.content.slides);
+      const loadedStudents = cueFile.content.studentNames || [];
       setStudentNames(loadedStudents);
-      setLessonText(pipiFile.content.lessonText || '');
-      setLessonTitle(pipiFile.title);
+      setLessonText(cueFile.content.lessonText || '');
+      setLessonTitle(cueFile.title);
       setAppState(AppState.EDITING);
       setActiveSlideIndex(0);
       clearAutoSave();
       setHasUnsavedChanges(false);
 
       // Restore grade data if present
-      const loadedGrades = pipiFile.content.studentGrades || [];
+      const loadedGrades = cueFile.content.studentGrades || [];
       setStudentGrades(loadedGrades);
 
       // Also save as class with grades if students present
       if (loadedGrades.length > 0 && loadedStudents.length > 0) {
-        const className = pipiFile.title || 'Imported Class';
+        const className = cueFile.title || 'Imported Class';
         saveClass(className, loadedStudents, loadedGrades);
         setActiveClassName(className);
       }
@@ -685,7 +685,7 @@ function App() {
   useDragDrop(
     handleLoadFile,
     !showSettings && !showResourceHub && appState !== AppState.PRESENTING && !showFilenamePrompt && !showRecoveryModal,
-    (file) => addToast(`"${file.name}" is not a .pipi file. Only .pipi files can be loaded.`, 5000, 'error')
+    (file) => addToast(`"${file.name}" is not a .cue or .pipi file. Only .cue and .pipi files can be loaded.`, 5000, 'error')
   );
 
   // ============================================================================
@@ -803,7 +803,7 @@ function App() {
             {/* Hidden file input for load */}
             <input
               type="file"
-              accept=".pipi"
+              accept=".cue,.pipi"
               onChange={handleLoadInputChange}
               style={{ display: 'none' }}
               ref={loadFileInputRef}
@@ -1045,7 +1045,7 @@ function App() {
                   </div>
                 </div>
                 <p className="text-center text-sm text-slate-400 dark:text-slate-500 mt-4">
-                  or drag a <span className="font-mono text-indigo-500 dark:text-amber-400">.pipi</span> file anywhere to open
+                  or drag a <span className="font-mono text-indigo-500 dark:text-amber-400">.cue</span> file anywhere to open
                 </p>
               </div>
             </div>
@@ -1287,7 +1287,7 @@ function App() {
                 autoFocus
                 className="flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-amber-500"
               />
-              <span className="text-slate-400 dark:text-slate-500 text-sm">.pipi</span>
+              <span className="text-slate-400 dark:text-slate-500 text-sm">.cue</span>
             </div>
             <div className="flex gap-3 justify-end">
               <button

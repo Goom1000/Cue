@@ -79,22 +79,22 @@ export const DEFAULT_SETTINGS: Settings = {
 // File format version - increment on breaking changes
 export const CURRENT_FILE_VERSION = 1;
 
-// Content structure stored in .pipi files
-export interface PiPiFileContent {
+// Content structure stored in .cue files
+export interface CueFileContent {
   slides: Slide[];
   studentNames: string[];
   lessonText: string;
   studentGrades?: StudentWithGrade[];  // Optional for backward compatibility
 }
 
-// .pipi file format with version metadata
-export interface PiPiFile {
+// .cue file format with version metadata
+export interface CueFile {
   version: number;
   createdAt: string; // ISO 8601
   modifiedAt: string; // ISO 8601
   title: string;
   author?: string;
-  content: PiPiFileContent;
+  content: CueFileContent;
 }
 
 // Class Bank - saved student lists

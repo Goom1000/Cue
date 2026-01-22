@@ -1,13 +1,13 @@
-import { PiPiFile, CURRENT_FILE_VERSION } from '../types';
+import { CueFile, CURRENT_FILE_VERSION } from '../types';
 
 /**
- * Type guard to validate that parsed data has the expected PiPiFile shape.
+ * Type guard to validate that parsed data has the expected CueFile shape.
  * Follows existing isValidSettings pattern from useSettings.ts.
  *
  * @param data - Unknown data to validate
- * @returns True if data is a valid PiPiFile
+ * @returns True if data is a valid CueFile
  */
-export function isValidPiPiFile(data: unknown): data is PiPiFile {
+export function isValidCueFile(data: unknown): data is CueFile {
   if (typeof data !== 'object' || data === null) return false;
   const obj = data as Record<string, unknown>;
 
@@ -38,10 +38,10 @@ export function isValidPiPiFile(data: unknown): data is PiPiFile {
  * Migrate file data from older versions to current version.
  * Currently a no-op since version 1 is current; kept as future-proofing.
  *
- * @param data - PiPiFile with potentially older version
- * @returns Migrated PiPiFile at CURRENT_FILE_VERSION
+ * @param data - CueFile with potentially older version
+ * @returns Migrated CueFile at CURRENT_FILE_VERSION
  */
-function migrateFile(data: PiPiFile): PiPiFile {
+function migrateFile(data: CueFile): CueFile {
   const fromVersion = data.version;
 
   if (fromVersion < CURRENT_FILE_VERSION) {
@@ -58,20 +58,21 @@ function migrateFile(data: PiPiFile): PiPiFile {
 }
 
 /**
- * Read and parse a .pipi file from a File object.
+ * Read and parse a .cue or .pipi file from a File object.
  *
  * Validates file extension, parses JSON, validates structure,
  * and migrates from older versions if needed.
  *
  * @param file - File object from file input or drag-drop
- * @returns Promise resolving to validated PiPiFile
+ * @returns Promise resolving to validated CueFile
  * @throws Error with user-friendly message on validation failure
  */
-export function readPiPiFile(file: File): Promise<PiPiFile> {
+export function readCueFile(file: File): Promise<CueFile> {
   return new Promise((resolve, reject) => {
-    // Validate file extension
-    if (!file.name.endsWith('.pipi')) {
-      reject(new Error('Invalid file type. Expected .pipi file.'));
+    // Validate file extension - accept both .cue and .pipi for backward compatibility
+    const isValidExtension = file.name.endsWith('.cue') || file.name.endsWith('.pipi');
+    if (!isValidExtension) {
+      reject(new Error('Invalid file type. Expected .cue or .pipi file.'));
       return;
     }
 
@@ -83,7 +84,7 @@ export function readPiPiFile(file: File): Promise<PiPiFile> {
         const data = JSON.parse(reader.result as string);
 
         // Validate structure
-        if (!isValidPiPiFile(data)) {
+        if (!isValidCueFile(data)) {
           reject(new Error('File format is corrupted or incompatible.'));
           return;
         }

@@ -1,17 +1,17 @@
 import { useEffect } from 'react';
 
 /**
- * Hook for window-level drag-and-drop handling of .pipi files.
+ * Hook for window-level drag-and-drop handling of .cue files.
  *
  * Attaches to window so drops work anywhere (no visible drop zone needed).
  * Per CONTEXT.md: "No visible drop zone - drop anywhere on window, just works"
  *
- * @param onFile - Callback invoked when a valid .pipi file is dropped
+ * @param onFile - Callback invoked when a valid .cue file is dropped
  * @param enabled - Whether to listen for drops (default: true). Set to false during modals.
- * @param onInvalidFile - Optional callback invoked when an invalid (non-.pipi) file is dropped
+ * @param onInvalidFile - Optional callback invoked when an invalid (non-.cue) file is dropped
  *
  * @example
- * useDragDrop((file) => handleLoadFile(file), !showSettings, (file) => showError(`${file.name} is not a .pipi file`));
+ * useDragDrop((file) => handleLoadFile(file), !showSettings, (file) => showError(`${file.name} is not a .cue file`));
  */
 export function useDragDrop(
   onFile: (file: File) => void,
@@ -36,7 +36,8 @@ export function useDragDrop(
       const file = e.dataTransfer?.files[0];
       if (!file) return;
 
-      if (file.name.endsWith('.pipi')) {
+      const isValidFile = file.name.endsWith('.cue') || file.name.endsWith('.pipi');
+      if (isValidFile) {
         onFile(file);
       } else if (onInvalidFile) {
         onInvalidFile(file);

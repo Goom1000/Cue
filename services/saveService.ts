@@ -1,7 +1,7 @@
-import { Slide, PiPiFile, CURRENT_FILE_VERSION, StudentWithGrade } from '../types';
+import { Slide, CueFile, CURRENT_FILE_VERSION, StudentWithGrade } from '../types';
 
 /**
- * Create a PiPiFile object for saving.
+ * Create a CueFile object for saving.
  *
  * @param title - Presentation title
  * @param slides - Array of slides
@@ -9,16 +9,16 @@ import { Slide, PiPiFile, CURRENT_FILE_VERSION, StudentWithGrade } from '../type
  * @param lessonText - Original lesson text input
  * @param existingFile - Optional existing file to preserve createdAt
  * @param studentGrades - Optional array of student grade assignments
- * @returns PiPiFile object ready for serialization
+ * @returns CueFile object ready for serialization
  */
-export function createPiPiFile(
+export function createCueFile(
   title: string,
   slides: Slide[],
   studentNames: string[],
   lessonText: string,
-  existingFile?: PiPiFile,
+  existingFile?: CueFile,
   studentGrades?: StudentWithGrade[]
-): PiPiFile {
+): CueFile {
   const now = new Date().toISOString();
 
   return {
@@ -36,12 +36,12 @@ export function createPiPiFile(
 }
 
 /**
- * Check the size of a PiPiFile when serialized to JSON.
+ * Check the size of a CueFile when serialized to JSON.
  *
- * @param file - The PiPiFile to check
+ * @param file - The CueFile to check
  * @returns Object with size in bytes, MB, and whether it exceeds 50MB
  */
-export function checkFileSize(file: PiPiFile): {
+export function checkFileSize(file: CueFile): {
   sizeBytes: number;
   sizeMB: number;
   exceeds50MB: boolean;
@@ -59,22 +59,22 @@ export function checkFileSize(file: PiPiFile): {
 }
 
 /**
- * Trigger a browser download of the presentation as a .pipi file.
+ * Trigger a browser download of the presentation as a .cue file.
  *
  * Creates a Blob from the serialized JSON, generates an object URL,
  * and triggers a download via a hidden anchor element.
  *
- * @param file - The PiPiFile to download
- * @param filename - Desired filename (will ensure .pipi extension)
+ * @param file - The CueFile to download
+ * @param filename - Desired filename (will ensure .cue extension)
  */
-export function downloadPresentation(file: PiPiFile, filename: string): void {
+export function downloadPresentation(file: CueFile, filename: string): void {
   // Serialize with pretty-print for human readability
   const json = JSON.stringify(file, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
 
-  // Ensure filename ends with .pipi
-  const finalFilename = filename.endsWith('.pipi') ? filename : `${filename}.pipi`;
+  // Ensure filename ends with .cue
+  const finalFilename = filename.endsWith('.cue') ? filename : `${filename}.cue`;
 
   // Create hidden anchor and trigger download
   const link = document.createElement('a');
