@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** Phase 25 - Competition Modes (Complete)
+**Current focus:** Phase 26 - Student View Integration (In Progress)
 
 ## Current Position
 
-Phase: 25 of 26 (Competition Modes)
-Plan: 5 of 5 complete
-Status: Phase complete
-Last activity: 2026-01-24 - Completed 25-05-PLAN.md (Game State Integration)
+Phase: 26 of 26 (Student View Integration)
+Plan: 1 of 5 complete
+Status: In progress
+Last activity: 2026-01-23 - Completed 26-01-PLAN.md (Visual Enhancement Foundation)
 
-Progress: ██████████████████░░░ 86% (v3.0 Quiz Game Variety)
+Progress: ██████████████████░░░ 87% (v3.0 Quiz Game Variety)
 
 ## Performance Metrics
 
@@ -28,12 +28,12 @@ Progress: ██████████████████░░░ 86% (v
 - v2.3: 4 plans, 2 days
 - v2.4: 9 plans, 2 days
 - v2.5: 2 plans, 1 day
-- v3.0: Phase 20 complete (3 plans, 43min), Phase 21 complete (4 plans, 15min), Phase 22 complete (4 plans: 01=4min, 02=2min, 03=4min, 04=2min), Phase 23 complete (01=2min, 02=2min, 03=1min, 04=1.5min, 05=2.9min, 06=2min, 07=3.8min, 08=2min), Phase 24 complete (01=3min, 02=1min, 03=2min, 04=2min, 05=2min), Phase 25 complete (01=1.5min, 02=1min, 03=1min, 04=2min, 05=4min)
+- v3.0: Phase 20 complete (3 plans, 43min), Phase 21 complete (4 plans, 15min), Phase 22 complete (4 plans: 01=4min, 02=2min, 03=4min, 04=2min), Phase 23 complete (01=2min, 02=2min, 03=1min, 04=1.5min, 05=2.9min, 06=2min, 07=3.8min, 08=2min), Phase 24 complete (01=3min, 02=1min, 03=2min, 04=2min, 05=2min), Phase 25 complete (01=1.5min, 02=1min, 03=1min, 04=2min, 05=4min), Phase 26 in progress (01=2min)
 
 **Project Totals:**
 - Milestones shipped: 9 (v1.0, v1.1, v1.2, v2.0, v2.1, v2.2, v2.3, v2.4, v2.5)
 - Total phases: 25 completed
-- Total plans: 107 complete
+- Total plans: 108 complete
 - Total LOC: ~14,000 TypeScript
 
 ## Completed Milestones
@@ -245,6 +245,12 @@ v3.0 key decisions:
 - All game state factories accept optional competitionMode parameter
 - Competition mode syncs to student view via BroadcastChannel (game state updates)
 
+26-01 decisions (Visual enhancement foundation):
+- Screen glow renders as fixed inset overlay (pointer-events-none, z-30) outside timer component
+- Classroom timer uses animate-rapid-pulse (0.3s scale to 1.08) vs regular animate-pulse for urgency
+- Score animations track previous values via useRef to detect changes without prop comparisons
+- Animation duration 200ms for score pulse (scale-125 + text-amber-400)
+
 All decisions logged in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -257,11 +263,11 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-24 06:04:26 UTC
-Stopped at: Completed 25-05-PLAN.md (Game State Integration)
+Last session: 2026-01-23 21:39:00 UTC
+Stopped at: Completed 26-01-PLAN.md (Visual Enhancement Foundation)
 Resume file: None
-Next: Phase 25 complete - proceed to Phase 26
+Next: Continue Phase 26 - plan 02 (Quick Quiz student view)
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-24 - Phase 25 complete (Competition Modes)*
+*Last updated: 2026-01-23 - Phase 26 in progress (Student View Integration)*
