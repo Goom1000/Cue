@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 ## Current Position
 
 Phase: 25 of 26 (Competition Modes)
-Plan: 2 of 5 complete
+Plan: 3 of 5 complete
 Status: In progress
-Last activity: 2026-01-23 - Completed 25-02-PLAN.md (Competition Mode UI Component)
+Last activity: 2026-01-24 - Completed 25-03-PLAN.md (Score Display Components)
 
 Progress: █████░░░░░░░░░░░░░░░░ 26% (v3.0 Quiz Game Variety)
 
@@ -28,12 +28,12 @@ Progress: █████░░░░░░░░░░░░░░░░ 26% (v
 - v2.3: 4 plans, 2 days
 - v2.4: 9 plans, 2 days
 - v2.5: 2 plans, 1 day
-- v3.0: Phase 20 complete (3 plans, 43min), Phase 21 complete (4 plans, 15min), Phase 22 complete (4 plans: 01=4min, 02=2min, 03=4min, 04=2min), Phase 23 complete (01=2min, 02=2min, 03=1min, 04=1.5min, 05=2.9min, 06=2min, 07=3.8min, 08=2min), Phase 24 complete (01=3min, 02=1min, 03=2min, 04=2min, 05=2min), Phase 25 (01=1.5min, 02=1min)
+- v3.0: Phase 20 complete (3 plans, 43min), Phase 21 complete (4 plans, 15min), Phase 22 complete (4 plans: 01=4min, 02=2min, 03=4min, 04=2min), Phase 23 complete (01=2min, 02=2min, 03=1min, 04=1.5min, 05=2.9min, 06=2min, 07=3.8min, 08=2min), Phase 24 complete (01=3min, 02=1min, 03=2min, 04=2min, 05=2min), Phase 25 (01=1.5min, 02=1min, 03=1min)
 
 **Project Totals:**
 - Milestones shipped: 9 (v1.0, v1.1, v1.2, v2.0, v2.1, v2.2, v2.3, v2.4, v2.5)
 - Total phases: 24 completed
-- Total plans: 100 complete
+- Total plans: 101 complete
 - Total LOC: ~14,000 TypeScript
 
 ## Completed Milestones
@@ -226,6 +226,13 @@ v3.0 key decisions:
 - Team name inputs editable inline for teacher customization
 - Individual mode defaults with empty player name
 
+25-03 decisions (Score display components):
+- ScoreOverlay (teacher) includes +/- buttons for manual score correction
+- ScoreDisplay (student) uses larger fonts for classroom visibility from back of room
+- Active team highlighted with amber glow ring (ring-2 teacher, ring-4 student)
+- Fixed top-right positioning for non-intrusive overlay during gameplay
+- Individual mode shows player name badge; team mode shows all teams with scores
+
 All decisions logged in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -238,11 +245,11 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-23 20:51:46 UTC
-Stopped at: Completed 25-02-PLAN.md (Competition Mode UI Component)
+Last session: 2026-01-24 05:45:00 UTC
+Stopped at: Completed 25-03-PLAN.md (Score Display Components)
 Resume file: None
-Next: 25-03
+Next: 25-04
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-23 - Phase 25 in progress (Competition Modes)*
+*Last updated: 2026-01-24 - Phase 25 in progress (Competition Modes)*
