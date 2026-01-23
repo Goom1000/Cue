@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 ## Current Position
 
 Phase: 20 of 26 (Game Foundation & Type System)
-Plan: 2 of 3
-Status: In progress
-Last activity: 2026-01-23 — Completed 20-02-PLAN.md (GameContainer router and Quick Quiz refactor)
+Plan: 3 of 3 (Phase complete)
+Status: Phase complete
+Last activity: 2026-01-23 — Completed 20-03-PLAN.md (Game system integration)
 
-Progress: █░░░░░░░░░░░░░░░░░░░ 5% (v3.0 Quiz Game Variety)
+Progress: ███░░░░░░░░░░░░░░░░░░ 11% (v3.0 Quiz Game Variety)
 
 ## Performance Metrics
 
@@ -28,13 +28,13 @@ Progress: █░░░░░░░░░░░░░░░░░░░ 5% (v3.0 
 - v2.3: 4 plans, 2 days
 - v2.4: 9 plans, 2 days
 - v2.5: 2 plans, 1 day
-- v3.0: 2 plans (in progress)
+- v3.0: Phase 20 complete (3 plans, 43min)
 
 **Project Totals:**
 - Milestones shipped: 9 (v1.0, v1.1, v1.2, v2.0, v2.1, v2.2, v2.3, v2.4, v2.5)
-- Total phases: 19 completed (phases 20-26 planned)
-- Total plans: 68 complete
-- Total LOC: ~9,700 TypeScript
+- Total phases: 20 completed (phases 21-26 planned)
+- Total plans: 71 complete
+- Total LOC: ~9,900 TypeScript
 
 ## Completed Milestones
 
@@ -71,6 +71,13 @@ v3.0 key decisions:
 - Placeholder games show specific phase numbers ("Coming in Phase N") for clarity
 - Shared GameSplash and ResultScreen components serve all game types
 
+20-03 decisions (Game system integration):
+- Removed QuizOverlay component entirely, replaced with GameContainer architecture
+- Quick Quiz launches with loading state before question generation completes
+- Placeholder games show splash screen immediately (no generation needed)
+- Confirmation dialog prevents accidental mid-game switches
+- Game state factories (createQuickQuizState, createPlaceholderState) ensure consistent initial states
+
 All decisions logged in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -83,11 +90,11 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-23
-Stopped at: Completed 20-02-PLAN.md (GameContainer router and Quick Quiz refactor)
+Last session: 2026-01-23 02:11:19 UTC
+Stopped at: Completed 20-03-PLAN.md (Game system integration) - Phase 20 complete
 Resume file: None
-Next: Continue with 20-03-PLAN.md (Toolbar integration)
+Next: Phase 21 - Millionaire Game (first full game implementation)
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-23 - Completed 20-02 (GameContainer router)*
+*Last updated: 2026-01-23 - Phase 20 complete (Game Foundation & Type System)*
