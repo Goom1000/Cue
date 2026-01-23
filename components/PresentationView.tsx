@@ -1205,33 +1205,6 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
                    <div className="flex items-center gap-3">
                        <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Presenter Console</span>
 
-                       {/* Mode Toggle */}
-                       <div className="flex items-center gap-2">
-                           <span className={`text-[10px] font-bold uppercase tracking-wider ${!isTargetedMode ? 'text-slate-300' : 'text-slate-500'}`}>Manual</span>
-                           <label className="relative inline-flex items-center cursor-pointer">
-                               <input
-                                   type="checkbox"
-                                   className="sr-only peer"
-                                   checked={isTargetedMode}
-                                   onChange={() => setIsTargetedMode(!isTargetedMode)}
-                                   disabled={!canUseTargetedMode}
-                               />
-                               <div className={`w-9 h-5 rounded-full peer transition-colors ${
-                                   canUseTargetedMode
-                                       ? 'bg-slate-600 peer-checked:bg-amber-500 peer-focus:ring-2 peer-focus:ring-amber-500/50'
-                                       : 'bg-slate-700 cursor-not-allowed'
-                               } after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4`}></div>
-                           </label>
-                           <span className={`text-[10px] font-bold uppercase tracking-wider ${isTargetedMode && canUseTargetedMode ? 'text-amber-400' : 'text-slate-500'}`}>
-                               Targeted
-                           </span>
-                           {!canUseTargetedMode && (
-                               <span className="text-[9px] text-slate-500 italic" title="Load a class with grade assignments to use Targeted mode">
-                                   (assign grades first)
-                               </span>
-                           )}
-                       </div>
-
                        <button onClick={() => setShowFullScript(!showFullScript)} className="text-[10px] text-slate-500 hover:text-slate-300 transition-colors uppercase font-bold tracking-tighter">
                            {showFullScript ? 'Close Full Script' : 'Full Script'}
                        </button>
@@ -1270,7 +1243,30 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
                           currentIndex === slides.length - 1 ? 'End Presentation' : <><span>Next Slide</span><span className="group-hover:translate-x-1 transition-transform">➔</span></>
                         )}
                    </button>
-                   
+
+                   {/* Mode Toggle */}
+                   <div className="flex items-center justify-center gap-3 mt-3 py-2 border-b border-slate-700/50">
+                       <span className={`text-[10px] font-bold uppercase tracking-wider ${!isTargetedMode ? 'text-slate-300' : 'text-slate-500'}`}>Manual</span>
+                       <label className="relative inline-flex items-center cursor-pointer">
+                           <input
+                               type="checkbox"
+                               className="sr-only peer"
+                               checked={isTargetedMode}
+                               onChange={() => setIsTargetedMode(!isTargetedMode)}
+                               disabled={!canUseTargetedMode}
+                           />
+                           <div className={`w-9 h-5 rounded-full peer transition-colors ${
+                               canUseTargetedMode
+                                   ? 'bg-slate-600 peer-checked:bg-amber-500 peer-focus:ring-2 peer-focus:ring-amber-500/50'
+                                   : 'bg-slate-700 cursor-not-allowed'
+                           } after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4`}></div>
+                       </label>
+                       <span className={`text-[10px] font-bold uppercase tracking-wider ${isTargetedMode && canUseTargetedMode ? 'text-amber-400' : 'text-slate-500'}`}>Targeted</span>
+                       {!canUseTargetedMode && (
+                           <span className="text-[9px] text-slate-500 italic">(assign grades first)</span>
+                       )}
+                   </div>
+
                    {/* Question Buttons - Mode Dependent */}
                    {isTargetedMode && canUseTargetedMode ? (
                        /* Targeted Mode: Single Question Button with Student Preview */
