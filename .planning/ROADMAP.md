@@ -46,23 +46,25 @@ Plans:
 
 ### Phase 21: Millionaire Game
 
-**Goal**: Students play Who Wants to Be a Millionaire with 15-question progression and functional lifelines
+**Goal**: Students play Who Wants to Be a Millionaire with configurable question count (3, 5, or 10) and functional lifelines
 **Depends on**: Phase 20
 **Requirements**: MILL-01, MILL-02, MILL-03, MILL-04, MILL-05, MILL-06, MILL-07, MILL-08
 **Success Criteria** (what must be TRUE):
-  1. Teacher launches Millionaire game with 15 questions of increasing difficulty
+  1. Teacher launches Millionaire game with selectable question count (3, 5, or 10)
   2. Student view shows money tree with current position and prize amounts
-  3. Student can see safe havens at questions 5, 10, and 15
+  3. Student can see safe havens at appropriate positions (e.g., questions 3 and 5 for 5-question game)
   4. Teacher activates 50:50 lifeline and 2 wrong answers disappear
   5. Teacher activates Ask the Audience lifeline and poll percentages display
   6. Teacher activates Phone-a-Friend lifeline and AI hint appears
   7. Game ends on wrong answer, falling back to last safe haven amount
-  8. Victory screen displays when all 15 questions answered correctly
-**Plans**: TBD
+  8. Victory screen displays when all questions answered correctly
+**Plans**: 4 plans
 
 Plans:
-- [ ] 21-01: TBD
-- [ ] 21-02: TBD
+- [ ] 21-01-PLAN.md — Type extensions & money tree component
+- [ ] 21-02-PLAN.md — Question display & game flow
+- [ ] 21-03-PLAN.md — Lifeline system with AI phone-a-friend
+- [ ] 21-04-PLAN.md — Student view & celebration animations
 
 ### Phase 22: AI Integration
 
@@ -162,7 +164,7 @@ Phases execute in numeric order: 20 → 21 → 22 → 23 → 24 → 25 → 26
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 20. Game Foundation & Type System | 3/3 | ✓ Complete | 2026-01-23 |
-| 21. Millionaire Game | 0/TBD | Not started | - |
+| 21. Millionaire Game | 0/4 | In progress | - |
 | 22. AI Integration | 0/TBD | Not started | - |
 | 23. The Chase | 0/TBD | Not started | - |
 | 24. Beat the Chaser | 0/TBD | Not started | - |
