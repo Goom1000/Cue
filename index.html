@@ -79,6 +79,59 @@
       .dark .custom-scrollbar::-webkit-scrollbar-thumb {
         background-color: #475569;
       }
+      /* Flash animation for correct answer reveal - TV show style */
+      @keyframes flashReveal {
+        0% {
+          background-color: inherit;
+          transform: scale(1);
+        }
+        15% {
+          background-color: white;
+          transform: scale(1.02);
+          box-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
+        }
+        30% {
+          background-color: inherit;
+          transform: scale(1);
+        }
+        45% {
+          background-color: white;
+          transform: scale(1.01);
+        }
+        60% {
+          background-color: #22c55e;
+          transform: scale(1.05);
+          box-shadow: 0 0 40px rgba(34, 197, 94, 0.5);
+        }
+        100% {
+          background-color: #22c55e;
+          transform: scale(1);
+          box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+        }
+      }
+
+      .animate-flash-correct {
+        animation: flashReveal 0.8s ease-out forwards;
+      }
+
+      /* Crossfade for game transitions */
+      @keyframes crossfadeIn {
+        from { opacity: 0; transform: scale(0.98); }
+        to { opacity: 1; transform: scale(1); }
+      }
+
+      @keyframes crossfadeOut {
+        from { opacity: 1; transform: scale(1); }
+        to { opacity: 0; transform: scale(1.02); }
+      }
+
+      .animate-crossfade-in {
+        animation: crossfadeIn 0.3s ease-out forwards;
+      }
+
+      .animate-crossfade-out {
+        animation: crossfadeOut 0.3s ease-in forwards;
+      }
     </style>
   <script type="importmap">
 {
