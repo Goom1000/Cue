@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Slide, PresentationMessage, BROADCAST_CHANNEL_NAME, GameState, GameType, QuickQuizState, ActiveGameState, MillionaireState, TheChaseState, BeatTheChaserState, GradeLevel, StudentWithGrade } from '../types';
+import { Slide, PresentationMessage, BROADCAST_CHANNEL_NAME, GameState, GameType, QuickQuizState, ActiveGameState, MillionaireState, TheChaseState, BeatTheChaserState, GradeLevel, StudentWithGrade, CompetitionMode } from '../types';
 import Button from './Button';
 import { MarkdownText, SlideContentRenderer } from './SlideRenderers';
 import { QuizQuestion, generatePhoneAFriendHint } from '../services/geminiService';
@@ -16,6 +16,7 @@ import { useToast, ToastContainer } from './Toast';
 import GameMenu from './games/GameMenu';
 import GameContainer from './games/GameContainer';
 import { MONEY_TREE_CONFIGS, getSafeHavenAmount } from './games/millionaire/millionaireConfig';
+import CompetitionModeSection from './games/shared/CompetitionModeSection';
 
 // Fisher-Yates shuffle - unbiased O(n) randomization
 function shuffleArray<T>(array: T[]): T[] {
@@ -108,9 +109,16 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
   const [activeGame, setActiveGame] = useState<ActiveGameState>(null);
   const [pendingGameType, setPendingGameType] = useState<GameType | null>(null);
   const gameWasOpenRef = useRef(false);
+  const [showQuickQuizSetup, setShowQuickQuizSetup] = useState(false);
   const [showMillionaireSetup, setShowMillionaireSetup] = useState(false);
   const [showChaseSetup, setShowChaseSetup] = useState(false);
   const [lifelineLoading, setLifelineLoading] = useState<'phoneAFriend' | null>(null);
+
+  // Competition Mode State
+  const [competitionMode, setCompetitionMode] = useState<CompetitionMode>({
+    mode: 'individual',
+    playerName: ''
+  });
 
   // Question Generation State
   const [quickQuestion, setQuickQuestion] = useState<{
@@ -507,9 +515,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
     }
 
     if (gameType === 'quick-quiz') {
-      // Launch Quick Quiz - needs to generate questions first
-      setPendingGameType('quick-quiz');
-      launchQuickQuiz();
+      setShowQuickQuizSetup(true);
     } else if (gameType === 'millionaire') {
       // Show question count selection modal
       setShowMillionaireSetup(true);
@@ -1352,12 +1358,65 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
       {/* Toast notifications for reconnection feedback */}
       <ToastContainer toasts={toasts} removeToast={removeToast} />
 
+      {/* Quick Quiz Setup Modal */}
+      {showQuickQuizSetup && (
+        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center animate-fade-in">
+          <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full border-2 border-indigo-400/30 shadow-2xl">
+            <h3 className="text-3xl font-black text-white mb-2 text-center">Quick Quiz</h3>
+            <p className="text-slate-300 text-center mb-6">Kahoot-style questions</p>
+
+            <CompetitionModeSection
+              value={competitionMode}
+              onChange={setCompetitionMode}
+            />
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowQuickQuizSetup(false);
+                  setCompetitionMode({ mode: 'individual', playerName: '' });
+                }}
+                className="flex-1 py-3 text-slate-400 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowQuickQuizSetup(false);
+                  setPendingGameType('quick-quiz');
+                  launchQuickQuiz();
+                }}
+                disabled={!isAIAvailable}
+                className={`flex-1 py-3 font-bold rounded-xl transition-all ${
+                  isAIAvailable
+                    ? 'bg-indigo-600 hover:bg-indigo-500 text-white hover:scale-105'
+                    : 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                }`}
+              >
+                Start Game
+              </button>
+            </div>
+            {!isAIAvailable && (
+              <p className="text-sm text-amber-400 text-center mt-4">
+                Add an API key in Settings to enable
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Millionaire Setup Modal */}
       {showMillionaireSetup && (
         <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center animate-fade-in">
           <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full border-2 border-indigo-400/30 shadow-2xl">
             <h3 className="text-3xl font-black text-white mb-2 text-center">Millionaire</h3>
             <p className="text-slate-300 text-center mb-6">How many questions?</p>
+
+            <CompetitionModeSection
+              value={competitionMode}
+              onChange={setCompetitionMode}
+            />
+
             <div className="space-y-3">
               <button
                 onClick={() => launchMillionaire(3)}
@@ -1399,7 +1458,10 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
               </p>
             )}
             <button
-              onClick={() => setShowMillionaireSetup(false)}
+              onClick={() => {
+                setShowMillionaireSetup(false);
+                setCompetitionMode({ mode: 'individual', playerName: '' });
+              }}
               className="w-full mt-4 py-2 text-sm text-slate-400 hover:text-white transition-colors"
             >
               Cancel
@@ -1414,6 +1476,11 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
           <div className="bg-slate-800 rounded-2xl p-8 max-w-xl w-full border-2 border-red-400/30 shadow-2xl">
             <h3 className="text-3xl font-black text-white mb-2 text-center">The Chase</h3>
             <p className="text-slate-300 text-center mb-6">Configure game settings</p>
+
+            <CompetitionModeSection
+              value={competitionMode}
+              onChange={setCompetitionMode}
+            />
 
             {/* Control Mode Toggle */}
             <div className="mb-6 p-4 bg-slate-700/50 rounded-xl">
@@ -1518,7 +1585,10 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
               </p>
             )}
             <button
-              onClick={() => setShowChaseSetup(false)}
+              onClick={() => {
+                setShowChaseSetup(false);
+                setCompetitionMode({ mode: 'individual', playerName: '' });
+              }}
               className="w-full py-2 text-sm text-slate-400 hover:text-white transition-colors"
             >
               Cancel
