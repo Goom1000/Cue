@@ -33,7 +33,23 @@ export const CASH_BUILDER_QUESTIONS = 10;     // Number of questions in Cash Bui
 export const TIME_PER_CORRECT = 5;            // Seconds added per correct answer
 export const MAX_CONTESTANT_TIME = 60;        // Cap to prevent runaway accumulation
 export const TIME_BONUS_AMOUNT = 5;           // Seconds added for catch-up mechanic
-export const CHASER_THINKING_DELAY = 1000;    // 1 second thinking delay (faster than Chase)
+
+// Chaser thinking time by difficulty (in ms)
+// Longer thinking = more time drains from chaser's clock = fairer for students
+export const CHASER_THINKING_TIME: Record<BeatTheChaserDifficulty, { min: number; max: number }> = {
+  easy: { min: 4000, max: 7000 },    // 4-7 seconds - slow, gives students big advantage
+  medium: { min: 3000, max: 5000 },  // 3-5 seconds - moderate pace
+  hard: { min: 2000, max: 4000 }     // 2-4 seconds - faster but still fair
+};
+
+// Helper to get random thinking time for given difficulty
+export function getChaserThinkingTime(difficulty: BeatTheChaserDifficulty): number {
+  const { min, max } = CHASER_THINKING_TIME[difficulty];
+  return min + Math.random() * (max - min);
+}
+
+// Legacy constant for backward compatibility
+export const CHASER_THINKING_DELAY = 3000;    // Default 3 seconds (use getChaserThinkingTime for dynamic)
 
 // Helper function to calculate chaser starting time
 export function calculateChaserTime(contestantTime: number, difficulty: BeatTheChaserDifficulty): number {

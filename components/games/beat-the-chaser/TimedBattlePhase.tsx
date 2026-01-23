@@ -4,7 +4,7 @@ import { useTimer } from '../../../hooks/useTimer';
 import { useChaserAI } from '../../../hooks/useChaserAI';
 import DualTimerDisplay from './DualTimerDisplay';
 import TimeBonusEffect from './TimeBonusEffect';
-import { TIME_BONUS_AMOUNT, CHASER_THINKING_DELAY, BeatTheChaserDifficulty } from './beatTheChaserConfig';
+import { TIME_BONUS_AMOUNT, getChaserThinkingTime, BeatTheChaserDifficulty } from './beatTheChaserConfig';
 
 interface TimedBattlePhaseProps {
   contestantStartTime: number;
@@ -41,10 +41,10 @@ const TimedBattlePhase: React.FC<TimedBattlePhaseProps> = ({
   const [showTimeBonus, setShowTimeBonus] = useState(false);
   const [gameEnded, setGameEnded] = useState(false);
 
-  // Get chaser AI hook
+  // Get chaser AI hook - use minimal delay since we handle thinking time dynamically
   const { getChaserAnswer, isThinking } = useChaserAI({
     difficulty,
-    thinkingDelayMs: CHASER_THINKING_DELAY
+    thinkingDelayMs: 0  // We handle thinking delay manually for variable timing
   });
 
   const currentQuestion = questions[currentQuestionIndex];
@@ -104,11 +104,16 @@ const TimedBattlePhase: React.FC<TimedBattlePhaseProps> = ({
 
     // Handle chaser's turn (AI or manual)
     if (isAIControlled) {
+      // Simulate chaser "thinking" - timer runs during this delay
+      // Longer delay = more time drains from chaser's clock = fairer for students
+      const thinkingTime = getChaserThinkingTime(difficulty);
+      await new Promise(resolve => setTimeout(resolve, thinkingTime));
+
       const chaserIdx = await getChaserAnswer(currentQuestion);
       handleChaserAnswer(chaserIdx, true); // Skip phase check since we just set it
     }
     // If manual control, wait for teacher to click answer
-  }, [turnPhase, gameEnded, currentQuestion, contestantTimer, chaserTimer, isAIControlled, getChaserAnswer]);
+  }, [turnPhase, gameEnded, currentQuestion, contestantTimer, chaserTimer, isAIControlled, getChaserAnswer, difficulty]);
 
   // Handle chaser answer
   // Note: skipPhaseCheck is used when called directly from handleContestantAnswer
