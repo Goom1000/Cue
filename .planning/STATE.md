@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 
 ## Current Position
 
-Phase: 23 of 26 (The Chase) - IN PROGRESS
-Plan: 7 of 7 complete
+Phase: 23 of 26 (The Chase) - COMPLETE
+Plan: 8 of 8 complete
 Status: Phase complete
-Last activity: 2026-01-23 - Completed 23-08-PLAN.md (Student view for all Chase phases)
+Last activity: 2026-01-23 - Completed 23-07-PLAN.md (Game orchestrator integration)
 
 Progress: █████░░░░░░░░░░░░░░░░ 24% (v3.0 Quiz Game Variety)
 
@@ -28,13 +28,13 @@ Progress: █████░░░░░░░░░░░░░░░░ 24% (v
 - v2.3: 4 plans, 2 days
 - v2.4: 9 plans, 2 days
 - v2.5: 2 plans, 1 day
-- v3.0: Phase 20 complete (3 plans, 43min), Phase 21 complete (4 plans, 15min), Phase 22 complete (4 plans: 01=4min, 02=2min, 03=4min, 04=2min), Phase 23 complete (01=2min, 02=2min, 03=1min, 04=1.5min, 05=2.9min, 06=2min, 08=2min)
+- v3.0: Phase 20 complete (3 plans, 43min), Phase 21 complete (4 plans, 15min), Phase 22 complete (4 plans: 01=4min, 02=2min, 03=4min, 04=2min), Phase 23 complete (01=2min, 02=2min, 03=1min, 04=1.5min, 05=2.9min, 06=2min, 07=3.8min, 08=2min)
 
 **Project Totals:**
 - Milestones shipped: 9 (v1.0, v1.1, v1.2, v2.0, v2.1, v2.2, v2.3, v2.4, v2.5)
 - Total phases: 23 completed (phases 24-26 planned)
-- Total plans: 92 complete
-- Total LOC: ~12,860 TypeScript
+- Total plans: 93 complete
+- Total LOC: ~13,060 TypeScript
 
 ## Completed Milestones
 
@@ -169,6 +169,12 @@ v3.0 key decisions:
 - Contestant phase has keyboard shortcuts (1-4) for rapid answering
 - Auto-triggers AI chaser answers when entering chaser-round phase
 
+23-07 decisions (Chase orchestrator integration):
+- TheChaseGame orchestrator uses local phase state management for teacher-side phase tracking
+- Setup modal combines difficulty selection with AI/manual control toggle in single UI
+- Generate 40 questions for complete Chase game (Cash Builder + Head-to-Head + Final Chase)
+- Control mode toggle defaults to AI-Controlled for automated gameplay
+
 23-08 decisions (Chase student view):
 - Cash Builder displays timer with urgency styling at 10s threshold
 - Offer Selection shows VotingWidget when voting open, offer display when waiting
@@ -188,10 +194,10 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-23 11:05:24 UTC
-Stopped at: Completed 23-08-PLAN.md (Student view for all Chase phases)
+Last session: 2026-01-23 11:06:53 UTC
+Stopped at: Completed 23-07-PLAN.md (Game orchestrator integration)
 Resume file: None
-Next: Phase 23 complete - begin Phase 24
+Next: Phase 23 complete - begin Phase 24 (Game menu icons and polish)
 
 ---
 *State initialized: 2026-01-18*
