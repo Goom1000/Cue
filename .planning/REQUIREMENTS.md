@@ -9,11 +9,11 @@ Requirements for the Quiz Game Variety milestone. Each maps to roadmap phases.
 
 ### Game Foundation
 
-- [ ] **FOUND-01**: Game selection menu replaces current quiz button with all game options
-- [ ] **FOUND-02**: Unified game state architecture with discriminated unions per game type
-- [ ] **FOUND-03**: BroadcastChannel sync works for all game types (atomic state snapshots)
-- [ ] **FOUND-04**: Teacher controls answer reveals for all games
-- [ ] **FOUND-05**: Existing Kahoot-style quiz remains functional as "Quick Quiz" option
+- [x] **FOUND-01**: Game selection menu replaces current quiz button with all game options
+- [x] **FOUND-02**: Unified game state architecture with discriminated unions per game type
+- [x] **FOUND-03**: BroadcastChannel sync works for all game types (atomic state snapshots)
+- [x] **FOUND-04**: Teacher controls answer reveals for all games
+- [x] **FOUND-05**: Existing Kahoot-style quiz remains functional as "Quick Quiz" option
 
 ### Who Wants to Be a Millionaire
 
@@ -101,11 +101,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | Phase 20 | Pending |
-| FOUND-02 | Phase 20 | Pending |
-| FOUND-03 | Phase 20 | Pending |
-| FOUND-04 | Phase 20 | Pending |
-| FOUND-05 | Phase 20 | Pending |
+| FOUND-01 | Phase 20 | Complete |
+| FOUND-02 | Phase 20 | Complete |
+| FOUND-03 | Phase 20 | Complete |
+| FOUND-04 | Phase 20 | Complete |
+| FOUND-05 | Phase 20 | Complete |
 | MILL-01 | Phase 21 | Pending |
 | MILL-02 | Phase 21 | Pending |
 | MILL-03 | Phase 21 | Pending |

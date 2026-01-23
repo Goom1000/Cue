@@ -40,9 +40,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 20-01-PLAN.md — Type system & game menu dropdown
-- [ ] 20-02-PLAN.md — Game container & Quick Quiz refactor
-- [ ] 20-03-PLAN.md — Integration & CSS animations
+- [x] 20-01-PLAN.md — Type system & game menu dropdown
+- [x] 20-02-PLAN.md — Game container & Quick Quiz refactor
+- [x] 20-03-PLAN.md — Integration & CSS animations
 
 ### Phase 21: Millionaire Game
 
@@ -161,7 +161,7 @@ Phases execute in numeric order: 20 → 21 → 22 → 23 → 24 → 25 → 26
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 20. Game Foundation & Type System | 0/3 | Ready | - |
+| 20. Game Foundation & Type System | 3/3 | ✓ Complete | 2026-01-23 |
 | 21. Millionaire Game | 0/TBD | Not started | - |
 | 22. AI Integration | 0/TBD | Not started | - |
 | 23. The Chase | 0/TBD | Not started | - |
