@@ -59,10 +59,10 @@ Requirements for the Quiz Game Variety milestone. Each maps to roadmap phases.
 
 ### AI Integration
 
-- [ ] **AI-01**: Questions generated from current lesson/slide content
-- [ ] **AI-02**: A-E grade difficulty system integrated (teacher can target difficulty)
-- [ ] **AI-03**: Game-specific question prompts (Millionaire needs 15 increasing difficulty, Chase needs quick-fire)
-- [ ] **AI-04**: Questions include correct answer and 3 plausible distractors
+- [x] **AI-01**: Questions generated from current lesson/slide content
+- [x] **AI-02**: A-E grade difficulty system integrated (teacher can target difficulty)
+- [x] **AI-03**: Game-specific question prompts (Millionaire needs 15 increasing difficulty, Chase needs quick-fire)
+- [x] **AI-04**: Questions include correct answer and 3 plausible distractors
 
 ### Student View
 
@@ -114,10 +114,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MILL-06 | Phase 21 | Complete |
 | MILL-07 | Phase 21 | Complete |
 | MILL-08 | Phase 21 | Complete |
-| AI-01 | Phase 22 | Pending |
-| AI-02 | Phase 22 | Pending |
-| AI-03 | Phase 22 | Pending |
-| AI-04 | Phase 22 | Pending |
+| AI-01 | Phase 22 | Complete |
+| AI-02 | Phase 22 | Complete |
+| AI-03 | Phase 22 | Complete |
+| AI-04 | Phase 22 | Complete |
 | CHASE-01 | Phase 23 | Pending |
 | CHASE-02 | Phase 23 | Pending |
 | CHASE-03 | Phase 23 | Pending |
