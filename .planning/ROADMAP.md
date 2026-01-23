@@ -101,11 +101,17 @@ Plans:
   8. Game ends with "Home Safe" message if contestant reaches bottom first
   9. Teacher can choose AI-controlled chaser or manual control mode
   10. Final Chase round allows pushback mechanic with correct answers
-**Plans**: TBD
+**Plans**: 8 plans
 
 Plans:
-- [ ] 23-01: TBD
-- [ ] 23-02: TBD
+- [ ] 23-01-PLAN.md — TheChaseState types & useTimer hook
+- [ ] 23-02-PLAN.md — GameBoard component & useChaserAI hook
+- [ ] 23-03-PLAN.md — Cash Builder round with 60s timer
+- [ ] 23-04-PLAN.md — Offer Selection with class voting
+- [ ] 23-05-PLAN.md — Head-to-Head chase mechanics
+- [ ] 23-06-PLAN.md — Final Chase with pushback mechanic
+- [ ] 23-07-PLAN.md — TheChaseGame orchestrator & integration
+- [ ] 23-08-PLAN.md — Student view for all Chase phases
 
 ### Phase 24: Beat the Chaser
 
@@ -168,7 +174,7 @@ Phases execute in numeric order: 20 → 21 → 22 → 23 → 24 → 25 → 26
 | 20. Game Foundation & Type System | 3/3 | ✓ Complete | 2026-01-23 |
 | 21. Millionaire Game | 4/4 | ✓ Complete | 2026-01-23 |
 | 22. AI Integration | 4/4 | ✓ Complete | 2026-01-23 |
-| 23. The Chase | 0/TBD | Not started | - |
+| 23. The Chase | 0/8 | Not started | - |
 | 24. Beat the Chaser | 0/TBD | Not started | - |
 | 25. Competition Modes | 0/TBD | Not started | - |
 | 26. Student View Integration | 0/TBD | Not started | - |
