@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 
 ## Current Position
 
-Phase: 24 of 26 (Beat the Chaser)
-Plan: 5 of 5 complete
-Status: Phase complete
-Last activity: 2026-01-23 - Completed 24-05-PLAN.md (Student View)
+Phase: 25 of 26 (Competition Modes)
+Plan: 1 of 5 complete
+Status: In progress
+Last activity: 2026-01-23 - Completed 25-01-PLAN.md (Type System & Team Names)
 
-Progress: █████░░░░░░░░░░░░░░░░ 25% (v3.0 Quiz Game Variety)
+Progress: █████░░░░░░░░░░░░░░░░ 26% (v3.0 Quiz Game Variety)
 
 ## Performance Metrics
 
@@ -28,13 +28,13 @@ Progress: █████░░░░░░░░░░░░░░░░ 25% (v
 - v2.3: 4 plans, 2 days
 - v2.4: 9 plans, 2 days
 - v2.5: 2 plans, 1 day
-- v3.0: Phase 20 complete (3 plans, 43min), Phase 21 complete (4 plans, 15min), Phase 22 complete (4 plans: 01=4min, 02=2min, 03=4min, 04=2min), Phase 23 complete (01=2min, 02=2min, 03=1min, 04=1.5min, 05=2.9min, 06=2min, 07=3.8min, 08=2min), Phase 24 complete (01=3min, 02=1min, 03=2min, 04=2min, 05=2min)
+- v3.0: Phase 20 complete (3 plans, 43min), Phase 21 complete (4 plans, 15min), Phase 22 complete (4 plans: 01=4min, 02=2min, 03=4min, 04=2min), Phase 23 complete (01=2min, 02=2min, 03=1min, 04=1.5min, 05=2.9min, 06=2min, 07=3.8min, 08=2min), Phase 24 complete (01=3min, 02=1min, 03=2min, 04=2min, 05=2min), Phase 25 (01=1.5min)
 
 **Project Totals:**
 - Milestones shipped: 9 (v1.0, v1.1, v1.2, v2.0, v2.1, v2.2, v2.3, v2.4, v2.5)
 - Total phases: 24 completed
-- Total plans: 98 complete
-- Total LOC: ~13,900 TypeScript
+- Total plans: 99 complete
+- Total LOC: ~14,000 TypeScript
 
 ## Completed Milestones
 
@@ -212,6 +212,13 @@ v3.0 key decisions:
 - Game Over displays final times as seconds (not formatted) for immediate clarity
 - Setup phase shows GameSplash with waiting message (consistent with other games)
 
+25-01 decisions (Competition mode types and team names):
+- Team uses UUID for stable React keys (not array index)
+- activeTeamIndex tracks which team's turn (managed by orchestrator)
+- playerName can be empty string (defaults to "Player" in UI)
+- In-memory word lists (20 adjectives x 20 nouns = 400 combinations) for instant regeneration
+- Fisher-Yates shuffle ensures true randomness in team name generation
+
 All decisions logged in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -224,11 +231,11 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-23 16:55:19 UTC
-Stopped at: Completed 24-05-PLAN.md (Student View)
+Last session: 2026-01-23 20:47:31 UTC
+Stopped at: Completed 25-01-PLAN.md (Type System & Team Names)
 Resume file: None
-Next: Phase 25
+Next: 25-02
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-23 - Phase 24 complete (Beat the Chaser)*
+*Last updated: 2026-01-23 - Phase 25 in progress (Competition Modes)*
