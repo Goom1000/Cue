@@ -1,9 +1,11 @@
 import React from 'react';
-import { GameState, MillionaireState, assertNever } from '../types';
+import { GameState, MillionaireState, TheChaseState, assertNever } from '../types';
 import GameSplash from './games/shared/GameSplash';
 import ResultScreen from './games/shared/ResultScreen';
 import MoneyTree from './games/millionaire/MoneyTree';
 import { MONEY_TREE_CONFIGS } from './games/millionaire/millionaireConfig';
+import GameBoard from './games/the-chase/GameBoard';
+import VotingWidget from './games/the-chase/VotingWidget';
 
 interface StudentGameViewProps {
   gameState: GameState;
@@ -61,7 +63,11 @@ const StudentGameView: React.FC<StudentGameViewProps> = ({ gameState }) => {
     return <MillionaireStudentView state={gameState} />;
   }
 
-  // Placeholder games (the-chase, beat-the-chaser)
+  if (gameState.gameType === 'the-chase') {
+    return <TheChaseStudentView state={gameState} />;
+  }
+
+  // Placeholder games (beat-the-chaser)
   return <PlaceholderStudentView gameType={gameState.gameType} />;
 };
 
@@ -247,8 +253,300 @@ const MillionaireStudentView: React.FC<{ state: MillionaireState }> = ({ state }
   );
 };
 
+// The Chase student view component - displays phase-specific game state
+const TheChaseStudentView: React.FC<{ state: TheChaseState }> = ({ state }) => {
+  const currentQuestion = state.questions[state.currentQuestionIndex];
+
+  // Cash Builder phase - show timer, score, and current question
+  if (state.phase === 'cash-builder') {
+    return (
+      <div className="h-screen w-screen bg-gradient-to-br from-red-900 via-slate-900 to-slate-800 flex flex-col items-center justify-center p-6 font-poppins text-white">
+        {/* Timer and Score */}
+        <div className="flex gap-8 mb-8">
+          <div className="text-center">
+            <div className={`text-6xl font-bold ${state.cashBuilderTimeRemaining <= 10 ? 'text-red-500 animate-pulse' : 'text-white'}`}>
+              {state.cashBuilderTimeRemaining}s
+            </div>
+            <div className="text-slate-400 text-sm uppercase tracking-wider">Time Remaining</div>
+          </div>
+          <div className="text-center">
+            <div className="text-6xl font-bold text-amber-400">
+              ${state.cashBuilderScore.toLocaleString()}
+            </div>
+            <div className="text-slate-400 text-sm uppercase tracking-wider">Prize Pot</div>
+          </div>
+        </div>
+
+        {/* Current Question */}
+        {currentQuestion && (
+          <div className="w-full max-w-4xl">
+            <div className="bg-slate-800/60 p-8 rounded-2xl border-2 border-slate-600 mb-6">
+              <p className="text-3xl font-bold text-center">
+                {currentQuestion.question}
+              </p>
+            </div>
+
+            {/* Answer options */}
+            <div className="grid grid-cols-2 gap-4">
+              {currentQuestion.options.map((opt, idx) => {
+                const isContestantAnswer = state.contestantAnswer === idx;
+                const isCorrect = idx === currentQuestion.correctAnswerIndex;
+                const showResult = state.currentQuestionAnswered;
+
+                return (
+                  <div
+                    key={idx}
+                    className={`
+                      p-6 rounded-xl border-2 transition-all text-xl font-bold
+                      ${isContestantAnswer && !showResult ? 'bg-blue-500 border-blue-400 text-white' : 'bg-slate-700/50 border-slate-600 text-white'}
+                      ${showResult && isCorrect ? 'bg-green-600 border-green-400 animate-flash-correct' : ''}
+                      ${showResult && isContestantAnswer && !isCorrect ? 'bg-red-600 border-red-400' : ''}
+                      ${showResult && !isCorrect && !isContestantAnswer ? 'opacity-40' : ''}
+                    `}
+                  >
+                    {opt}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Offer Selection phase - show voting widget when open
+  if (state.phase === 'offer-selection') {
+    if (state.isVotingOpen) {
+      return <VotingWidget />;
+    }
+
+    // Show offers waiting for teacher to start vote
+    return (
+      <div className="h-screen w-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col items-center justify-center p-6 font-poppins text-white">
+        <h2 className="text-4xl font-black text-amber-400 mb-8 uppercase tracking-widest">
+          The Offers
+        </h2>
+
+        <div className="flex gap-6 max-w-4xl">
+          {state.offers.map((offer, idx) => (
+            <div
+              key={idx}
+              className="flex-1 p-8 rounded-2xl border-4 border-slate-600 bg-slate-800/60"
+            >
+              {/* Position indicator */}
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4 ${
+                idx === 0 ? 'bg-red-600 text-white' :
+                idx === 1 ? 'bg-amber-500 text-amber-950' :
+                'bg-green-600 text-white'
+              }`}>
+                {7 - offer.position}
+              </div>
+
+              {/* Amount */}
+              <div className="text-4xl font-bold text-white text-center mb-2">
+                ${offer.amount.toLocaleString()}
+              </div>
+
+              {/* Label */}
+              <p className="text-slate-400 text-center text-sm">{offer.label}</p>
+            </div>
+          ))}
+        </div>
+
+        <p className="mt-8 text-xl text-slate-400">Waiting for vote to begin...</p>
+      </div>
+    );
+  }
+
+  // Head-to-Head phase - show game board with positions
+  if (state.phase === 'head-to-head') {
+    return (
+      <div className="h-screen w-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center gap-12 p-6 font-poppins text-white">
+        {/* Game Board */}
+        <GameBoard
+          contestantPosition={state.contestantPosition}
+          chaserPosition={state.chaserPosition}
+          className="scale-150"
+        />
+
+        {/* Current Question */}
+        {currentQuestion && (
+          <div className="flex-1 max-w-2xl">
+            <div className="bg-slate-800/60 p-8 rounded-2xl border-2 border-slate-600 mb-6">
+              <p className="text-2xl font-bold text-center">
+                {currentQuestion.question}
+              </p>
+            </div>
+
+            {/* Answer options */}
+            <div className="grid grid-cols-2 gap-4">
+              {currentQuestion.options.map((opt, idx) => {
+                const isContestantAnswer = state.contestantAnswer === idx;
+                const isChaserAnswer = state.chaserAnswer === idx;
+                const isCorrect = idx === currentQuestion.correctAnswerIndex;
+                const showResult = state.currentQuestionAnswered;
+
+                return (
+                  <div
+                    key={idx}
+                    className={`
+                      p-4 rounded-xl border-2 transition-all font-bold
+                      ${isContestantAnswer && !showResult ? 'bg-blue-500 border-blue-400 text-white' : ''}
+                      ${isChaserAnswer && state.showChaserAnswer && !showResult ? 'bg-red-500 border-red-400 text-white' : ''}
+                      ${!isContestantAnswer && !isChaserAnswer ? 'bg-slate-700/50 border-slate-600 text-white' : ''}
+                      ${showResult && isCorrect ? 'bg-green-600 border-green-400' : ''}
+                      ${showResult && !isCorrect && (isContestantAnswer || isChaserAnswer) ? 'bg-slate-700/30 opacity-50' : ''}
+                      ${showResult && !isCorrect && !isContestantAnswer && !isChaserAnswer ? 'opacity-30' : ''}
+                    `}
+                  >
+                    {opt}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Final Chase phases - show dual timers and scores
+  if (state.phase === 'final-chase-contestant' || state.phase === 'final-chase-chaser') {
+    const isContestantPhase = state.phase === 'final-chase-contestant';
+
+    return (
+      <div className="h-screen w-screen bg-gradient-to-br from-blue-950 via-slate-900 to-red-950 flex flex-col items-center justify-center p-6 font-poppins text-white">
+        {/* Phase indicator */}
+        <div className="mb-8 text-center">
+          <h2 className="text-4xl font-black text-amber-400 uppercase tracking-widest">
+            Final Chase
+          </h2>
+          <p className="text-xl text-slate-400 mt-2">
+            {isContestantPhase ? 'Contestant Round' : 'Chaser Round'}
+          </p>
+        </div>
+
+        {/* Scores and Timers */}
+        <div className="flex gap-12 mb-8">
+          {/* Contestant */}
+          <div className={`text-center p-6 rounded-2xl ${isContestantPhase ? 'bg-blue-900/50 border-2 border-blue-500' : 'bg-slate-800/30'}`}>
+            <div className="text-6xl font-bold text-blue-400">
+              {state.finalChaseContestantScore}
+            </div>
+            <div className="text-slate-400 text-sm uppercase tracking-wider mb-4">Contestant</div>
+            <div className={`text-4xl font-bold ${state.finalChaseContestantTime <= 10 && isContestantPhase ? 'text-red-500 animate-pulse' : 'text-white'}`}>
+              {state.finalChaseContestantTime}s
+            </div>
+          </div>
+
+          {/* Chaser */}
+          <div className={`text-center p-6 rounded-2xl ${!isContestantPhase ? 'bg-red-900/50 border-2 border-red-500' : 'bg-slate-800/30'}`}>
+            <div className="text-6xl font-bold text-red-400">
+              {state.finalChaseChaserScore}
+            </div>
+            <div className="text-slate-400 text-sm uppercase tracking-wider mb-4">Chaser</div>
+            <div className={`text-4xl font-bold ${state.finalChaseChaserTime <= 10 && !isContestantPhase ? 'text-red-500 animate-pulse' : 'text-white'}`}>
+              {state.finalChaseChaserTime}s
+            </div>
+          </div>
+        </div>
+
+        {/* Current Question */}
+        {currentQuestion && (
+          <div className="w-full max-w-3xl">
+            <div className="bg-slate-800/60 p-6 rounded-2xl border-2 border-slate-600 mb-4">
+              <p className="text-2xl font-bold text-center">
+                {currentQuestion.question}
+              </p>
+            </div>
+
+            {/* Answer options */}
+            <div className="grid grid-cols-2 gap-3">
+              {currentQuestion.options.map((opt, idx) => {
+                const isAnswer = isContestantPhase ? state.contestantAnswer === idx : state.chaserAnswer === idx;
+                const isCorrect = idx === currentQuestion.correctAnswerIndex;
+                const showResult = state.currentQuestionAnswered;
+
+                return (
+                  <div
+                    key={idx}
+                    className={`
+                      p-4 rounded-xl border-2 transition-all font-bold text-lg
+                      ${isAnswer && !showResult ? (isContestantPhase ? 'bg-blue-500 border-blue-400' : 'bg-red-500 border-red-400') : 'bg-slate-700/50 border-slate-600'}
+                      ${showResult && isCorrect ? 'bg-green-600 border-green-400' : ''}
+                      ${showResult && !isCorrect && isAnswer ? 'bg-slate-700/30 opacity-50' : ''}
+                      ${showResult && !isCorrect && !isAnswer ? 'opacity-30' : ''}
+                    `}
+                  >
+                    {opt}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Game Over phase - show win/loss result
+  if (state.phase === 'game-over') {
+    const contestantWon = state.finalChaseContestantScore > state.finalChaseChaserScore ||
+                          (state.finalChaseChaserScore < state.chaserTargetScore);
+
+    return (
+      <div className={`h-screen w-screen flex flex-col items-center justify-center p-6 font-poppins text-white ${
+        contestantWon ? 'bg-gradient-to-br from-green-900 via-slate-900 to-green-900' : 'bg-gradient-to-br from-red-900 via-slate-900 to-red-900'
+      }`}>
+        {/* Result */}
+        <div className="text-center mb-8">
+          <h1 className={`text-8xl font-black mb-4 ${contestantWon ? 'text-green-400' : 'text-red-400'}`}>
+            {contestantWon ? 'VICTORY!' : 'CAUGHT!'}
+          </h1>
+          <p className="text-3xl text-white">
+            {contestantWon ? 'The contestant escaped the chaser!' : 'The chaser caught the contestant!'}
+          </p>
+        </div>
+
+        {/* Final Scores */}
+        <div className="flex gap-12">
+          <div className="text-center p-8 rounded-2xl bg-blue-900/50 border-2 border-blue-500">
+            <div className="text-6xl font-bold text-blue-400 mb-2">
+              {state.finalChaseContestantScore}
+            </div>
+            <div className="text-slate-300 uppercase tracking-wider">Contestant</div>
+          </div>
+
+          <div className="text-6xl font-bold text-slate-500">vs</div>
+
+          <div className="text-center p-8 rounded-2xl bg-red-900/50 border-2 border-red-500">
+            <div className="text-6xl font-bold text-red-400 mb-2">
+              {state.finalChaseChaserScore}
+            </div>
+            <div className="text-slate-300 uppercase tracking-wider">Chaser</div>
+          </div>
+        </div>
+
+        {contestantWon && (
+          <div className="mt-8 text-2xl text-amber-400 font-bold animate-pulse">
+            🎉 Prize Won: ${state.cashBuilderScore.toLocaleString()} 🎉
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Fallback for unexpected phase
+  return (
+    <div className="h-screen w-screen bg-slate-900 flex items-center justify-center">
+      <p className="text-white text-xl">Preparing game...</p>
+    </div>
+  );
+};
+
 // Placeholder for upcoming games - show splash with waiting message
-const PlaceholderStudentView: React.FC<{ gameType: 'the-chase' | 'beat-the-chaser' }> = ({ gameType }) => {
+const PlaceholderStudentView: React.FC<{ gameType: 'beat-the-chaser' }> = ({ gameType }) => {
   return (
     <div className="h-screen w-screen bg-slate-900 flex items-center justify-center">
       <div className="text-center">
