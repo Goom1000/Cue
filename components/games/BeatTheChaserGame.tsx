@@ -63,8 +63,14 @@ const BeatTheChaserGame: React.FC<BeatTheChaserGameProps> = ({
     });
   }, [updateState]);
 
-  // Show loading screen while questions are being generated
-  if (state.status === 'loading' || state.questions.length === 0) {
+  // Show loading screen while questions are being generated OR times aren't set
+  // This prevents the game from starting with 0 seconds
+  const isLoading = state.status === 'loading' ||
+                    state.questions.length === 0 ||
+                    state.contestantTime <= 0 ||
+                    state.chaserTime <= 0;
+
+  if (isLoading) {
     return (
       <div className="w-full h-full bg-gradient-to-br from-blue-950 via-slate-900 to-red-950 flex flex-col items-center justify-center">
         <div className="text-center">
