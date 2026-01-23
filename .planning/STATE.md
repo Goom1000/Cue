@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 ## Current Position
 
 Phase: 21 of 26 (Millionaire Game)
-Plan: 2 of 4 (In progress)
+Plan: 3 of 4 (In progress)
 Status: In progress
-Last activity: 2026-01-23 — Completed 21-02-PLAN.md (Millionaire question display and core game flow)
+Last activity: 2026-01-23 — Completed 21-03-PLAN.md (Millionaire lifeline implementations)
 
-Progress: ███░░░░░░░░░░░░░░░░░░ 13% (v3.0 Quiz Game Variety)
+Progress: ███░░░░░░░░░░░░░░░░░░ 14% (v3.0 Quiz Game Variety)
 
 ## Performance Metrics
 
@@ -28,13 +28,13 @@ Progress: ███░░░░░░░░░░░░░░░░░░ 13% (v
 - v2.3: 4 plans, 2 days
 - v2.4: 9 plans, 2 days
 - v2.5: 2 plans, 1 day
-- v3.0: Phase 20 complete (3 plans, 43min)
+- v3.0: Phase 20 complete (3 plans, 43min), Phase 21 in progress (3 plans, 11min)
 
 **Project Totals:**
 - Milestones shipped: 9 (v1.0, v1.1, v1.2, v2.0, v2.1, v2.2, v2.3, v2.4, v2.5)
 - Total phases: 20 completed (phases 21-26 planned)
-- Total plans: 73 complete
-- Total LOC: ~10,400 TypeScript
+- Total plans: 76 complete
+- Total LOC: ~10,800 TypeScript
 
 ## Completed Milestones
 
@@ -90,6 +90,13 @@ v3.0 key decisions:
 - Victory detection: currentQuestionIndex === questions.length - 1 AND correct answer
 - Game over shows safe haven amount (calculated from passed safe havens)
 
+21-03 decisions (Millionaire lifeline implementations):
+- 50:50 eliminates exactly 2 of 3 wrong answers randomly (preserves correct answer)
+- Audience poll percentages scale with difficulty: 60-80% correct for early questions, 25-35% for late questions
+- Phone-a-Friend AI genuinely reasons about questions (not given correct answer) for realistic gameplay
+- AI response varies style randomly (confident, reasoning, elimination, uncertain) with ~15% intentional errors
+- Lifeline data persists in state after overlay dismissal for student view synchronization
+
 All decisions logged in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -102,11 +109,11 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-23 07:53:33 UTC
-Stopped at: Completed 21-02-PLAN.md (Millionaire question display and core game flow)
+Last session: 2026-01-23 08:01:26 UTC
+Stopped at: Completed 21-03-PLAN.md (Millionaire lifeline implementations)
 Resume file: None
-Next: 21-03 - Millionaire lifeline implementations
+Next: 21-04 - Final Millionaire integration and polish
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-23 - Phase 21 Plan 02 complete (Millionaire question display and core game flow)*
+*Last updated: 2026-01-23 - Phase 21 Plan 03 complete (Millionaire lifeline implementations)*
