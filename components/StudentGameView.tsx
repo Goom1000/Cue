@@ -290,6 +290,7 @@ const MillionaireStudentView: React.FC<{ state: MillionaireState }> = ({ state }
               const isSelected = state.selectedOption === idx;
               const isCorrect = idx === currentQuestion.correctAnswerIndex;
               const showResult = state.status === 'reveal' || state.status === 'result';
+              const isNeutralWrong = showResult && !isCorrect && !isSelected;
 
               if (isEliminated) {
                 return (
@@ -305,6 +306,7 @@ const MillionaireStudentView: React.FC<{ state: MillionaireState }> = ({ state }
                     ${isSelected && !showResult ? 'bg-amber-500 border-amber-400 text-amber-950' : 'bg-blue-900/50 border-blue-400/30 text-white'}
                     ${showResult && isCorrect ? 'bg-green-600 border-green-400 animate-flash-correct' : ''}
                     ${showResult && isSelected && !isCorrect ? 'bg-red-600 border-red-400 animate-wrong-answer' : ''}
+                    ${isNeutralWrong ? 'opacity-30' : ''}
                   `}
                 >
                   <span className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold">
