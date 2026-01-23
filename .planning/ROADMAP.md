@@ -166,10 +166,13 @@ Plans:
   2. Answer options remain hidden until teacher clicks reveal button
   3. Timer displays are visible and synchronized on student view
   4. Current game state is always clear (whose turn, scores, positions displayed)
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 26-01: TBD
+- [ ] 26-01-PLAN.md — CSS animations & shared component enhancements
+- [ ] 26-02-PLAN.md — The Chase student view with banners & large timers
+- [ ] 26-03-PLAN.md — Beat the Chaser student view enhancements
+- [ ] 26-04-PLAN.md — Final verification & answer reveal polish
 
 ## Progress
 
@@ -184,4 +187,4 @@ Phases execute in numeric order: 20 -> 21 -> 22 -> 23 -> 24 -> 25 -> 26
 | 23. The Chase | 8/8 | Complete | 2026-01-23 |
 | 24. Beat the Chaser | 5/5 | Complete | 2026-01-24 |
 | 25. Competition Modes | 5/5 | Complete | 2026-01-24 |
-| 26. Student View Integration | 0/TBD | Not started | - |
+| 26. Student View Integration | 0/4 | Not started | - |
