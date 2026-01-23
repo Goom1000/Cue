@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { CompetitionMode } from '../../../types';
 
 interface ScoreDisplayProps {
@@ -9,8 +9,30 @@ interface ScoreDisplayProps {
  * Student-side score display (read-only).
  * Positioned in top-right corner during gameplay.
  * Shows player name (individual) or team scores (team) with active team highlighted.
+ * Animates score changes with brief scale + color pulse.
  */
 const ScoreDisplay: React.FC<ScoreDisplayProps> = ({ competitionMode }) => {
+  const [animatingTeams, setAnimatingTeams] = useState<Set<string>>(new Set());
+  const prevScoresRef = useRef<Record<string, number>>({});
+
+  // Detect score changes and trigger animations
+  useEffect(() => {
+    if (competitionMode.mode !== 'team') return;
+
+    const newAnimating = new Set<string>();
+    competitionMode.teams.forEach(team => {
+      if (prevScoresRef.current[team.id] !== undefined &&
+          prevScoresRef.current[team.id] !== team.score) {
+        newAnimating.add(team.id);
+      }
+      prevScoresRef.current[team.id] = team.score;
+    });
+
+    if (newAnimating.size > 0) {
+      setAnimatingTeams(newAnimating);
+      setTimeout(() => setAnimatingTeams(new Set()), 200);
+    }
+  }, [competitionMode]);
   if (competitionMode.mode === 'individual') {
     // Individual mode - show player name badge
     const displayName = competitionMode.playerName || 'Player';
@@ -32,6 +54,7 @@ const ScoreDisplay: React.FC<ScoreDisplayProps> = ({ competitionMode }) => {
     <div className="fixed top-4 right-4 z-40 flex flex-wrap gap-3 max-w-lg">
       {teams.map((team, index) => {
         const isActive = index === activeTeamIndex;
+        const isAnimating = animatingTeams.has(team.id);
 
         return (
           <div
@@ -51,8 +74,13 @@ const ScoreDisplay: React.FC<ScoreDisplayProps> = ({ competitionMode }) => {
               {team.name}
             </div>
 
-            {/* Score */}
-            <div className="text-2xl font-bold text-white">{team.score}</div>
+            {/* Score with animation on change */}
+            <div className={`
+              text-2xl font-bold transition-all duration-200
+              ${isAnimating ? 'scale-125 text-amber-400' : 'scale-100 text-white'}
+            `}>
+              {team.score}
+            </div>
           </div>
         );
       })}
