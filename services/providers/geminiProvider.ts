@@ -1,4 +1,4 @@
-import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES, GenerationInput } from '../aiProvider';
+import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES, GenerationInput, GameQuestionRequest } from '../aiProvider';
 import { Slide, LessonResource } from '../../types';
 import {
   QuizQuestion,
@@ -122,6 +122,14 @@ export class GeminiProvider implements AIProviderInterface {
     } catch (error) {
       throw this.wrapError(error);
     }
+  }
+
+  async generateGameQuestions(request: GameQuestionRequest): Promise<QuizQuestion[]> {
+    // TODO: Implement in Phase 22-02 (Gemini game question generation)
+    throw new AIProviderError(
+      'Game question generation not yet implemented for Gemini',
+      'UNKNOWN_ERROR'
+    );
   }
 
   /**

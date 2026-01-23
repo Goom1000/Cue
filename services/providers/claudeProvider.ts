@@ -1,4 +1,4 @@
-import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode } from '../aiProvider';
+import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest } from '../aiProvider';
 import { Slide, LessonResource } from '../../types';
 import { QuizQuestion, QuestionWithAnswer } from '../geminiService';
 
@@ -586,5 +586,13 @@ Do not include any text before or after the JSON.
         answer: "Please try again"
       };
     }
+  }
+
+  async generateGameQuestions(request: GameQuestionRequest): Promise<QuizQuestion[]> {
+    // TODO: Implement in Phase 22-03 (Claude game question generation)
+    throw new AIProviderError(
+      'Game question generation not yet implemented for Claude',
+      'UNKNOWN_ERROR'
+    );
   }
 }

@@ -1,4 +1,4 @@
-import { Slide, LessonResource, AIProvider } from '../types';
+import { Slide, LessonResource, AIProvider, GameType, GameDifficulty } from '../types';
 import { QuizQuestion, QuestionWithAnswer } from './geminiService';
 import { GeminiProvider } from './providers/geminiProvider';
 import { ClaudeProvider } from './providers/claudeProvider';
@@ -13,6 +13,42 @@ export interface GenerationInput {
   presentationImages?: string[];
   mode: GenerationMode;
 }
+
+// Context from slides for question generation
+export interface SlideContext {
+  lessonTopic: string;           // From first slide title
+  cumulativeContent: string;     // All slides up to current, formatted
+  currentSlideTitle: string;     // Current slide title
+  currentSlideContent: string[]; // Current slide bullets
+}
+
+// Request structure for game-specific question generation
+export interface GameQuestionRequest {
+  gameType: 'millionaire' | 'the-chase' | 'beat-the-chaser';
+  difficulty: GameDifficulty;    // For Chase/Beat the Chaser (ignored for Millionaire)
+  questionCount: number;         // 3/5/10 for Millionaire, ~10 for Chase
+  slideContext: SlideContext;
+  optionalHints?: string;        // Teacher's focus hints ("focus on vocabulary")
+}
+
+// Bloom's taxonomy mapping for consistent difficulty calibration
+export const BLOOM_DIFFICULTY_MAP = {
+  easy: {
+    levels: ['Remember', 'Understand'],
+    questionTypes: '"What is...", "Name the...", "Give an example of..."',
+    description: 'Basic recall and comprehension questions'
+  },
+  medium: {
+    levels: ['Apply', 'Analyze'],
+    questionTypes: '"How would you...", "What would happen if...", "Compare..."',
+    description: 'Application and analysis questions'
+  },
+  hard: {
+    levels: ['Evaluate', 'Create'],
+    questionTypes: '"Why does X affect Y?", "What is the best strategy for..."',
+    description: 'Evaluation and synthesis questions requiring reasoning'
+  }
+} as const;
 
 // Error codes for unified error handling across all providers
 export type AIErrorCode =
@@ -85,6 +121,10 @@ export interface AIProviderInterface {
     slideContent: string[],
     difficulty: 'A' | 'B' | 'C' | 'D' | 'E'
   ): Promise<QuestionWithAnswer>;
+  // Game-specific question generation with difficulty progression
+  generateGameQuestions(
+    request: GameQuestionRequest
+  ): Promise<QuizQuestion[]>;
 }
 
 // Factory function to create the appropriate provider instance
