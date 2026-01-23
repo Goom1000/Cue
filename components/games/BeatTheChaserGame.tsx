@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { BeatTheChaserState, BeatTheChaserPhase } from '../../types';
+import { BeatTheChaserState, BeatTheChaserPhase, CompetitionMode } from '../../types';
 import SetupModal from './beat-the-chaser/SetupModal';
 import CashBuilderPhase from './beat-the-chaser/CashBuilderPhase';
 import TimedBattlePhase from './beat-the-chaser/TimedBattlePhase';
@@ -44,7 +44,8 @@ const BeatTheChaserGame: React.FC<BeatTheChaserGameProps> = ({
   // Setup complete -> Start Cash Builder
   const handleSetupComplete = useCallback((
     selectedDifficulty: BeatTheChaserDifficulty,
-    aiControlled: boolean
+    aiControlled: boolean,
+    compMode?: CompetitionMode
   ) => {
     setDifficulty(selectedDifficulty);
     setIsAIControlled(aiControlled);
@@ -56,7 +57,8 @@ const BeatTheChaserGame: React.FC<BeatTheChaserGameProps> = ({
       isAIControlled: aiControlled,
       accumulatedTime: 0,
       cashBuilderQuestionsAnswered: 0,
-      cashBuilderCorrectAnswers: 0
+      cashBuilderCorrectAnswers: 0,
+      competitionMode: compMode
     });
   }, [updateState]);
 
