@@ -2,19 +2,19 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-01-22)
+See: .planning/PROJECT.md (updated 2026-01-24)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** v3.0 Quiz Game Variety complete - ready for milestone audit
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 26 of 26 (Student View Integration)
-Plan: 4 of 4 complete
-Status: Complete
-Last activity: 2026-01-24 - Completed Phase 26 (Student View Integration)
+Phase: Not started
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-01-24 - v3.0 milestone complete
 
-Progress: █████████████████████ 100% (v3.0 Quiz Game Variety)
+Progress: ████████████████████████████ 100% (v3.0 shipped)
 
 ## Performance Metrics
 
@@ -28,16 +28,17 @@ Progress: █████████████████████ 100% (
 - v2.3: 4 plans, 2 days
 - v2.4: 9 plans, 2 days
 - v2.5: 2 plans, 1 day
-- v3.0: Phase 20 complete (3 plans, 43min), Phase 21 complete (4 plans, 15min), Phase 22 complete (4 plans: 01=4min, 02=2min, 03=4min, 04=2min), Phase 23 complete (01=2min, 02=2min, 03=1min, 04=1.5min, 05=2.9min, 06=2min, 07=3.8min, 08=2min), Phase 24 complete (01=3min, 02=1min, 03=2min, 04=2min, 05=2min), Phase 25 complete (01=1.5min, 02=1min, 03=1min, 04=2min, 05=4min), Phase 26 complete (01=2min, 02=2min, 03=4.4min, 04=90min with bug fixes)
+- v3.0: 33 plans, 2 days
 
 **Project Totals:**
-- Milestones shipped: 9 (v1.0, v1.1, v1.2, v2.0, v2.1, v2.2, v2.3, v2.4, v2.5)
+- Milestones shipped: 10 (v1.0, v1.1, v1.2, v2.0, v2.1, v2.2, v2.3, v2.4, v2.5, v3.0)
 - Total phases: 26 completed
-- Total plans: 114 complete
+- Total plans: 83 complete
 - Total LOC: ~15,000 TypeScript
 
 ## Completed Milestones
 
+- v3.0 Quiz Game Variety (2026-01-24) - 7 phases, 33 plans
 - v2.5 Rebrand to Cue (2026-01-22) - 1 phase, 2 plans
 - v2.4 Targeted Questioning (2026-01-22) - 4 phases, 9 plans
 - v2.3 Bug Fixes (2026-01-21) - 3 phases, 4 plans
@@ -52,223 +53,13 @@ Progress: █████████████████████ 100% (
 
 ### Decisions
 
-v3.0 key decisions:
-- Unified game architecture to prevent state silos (discriminated unions)
-- Build Millionaire first (simplest, proves framework)
+All v3.0 decisions archived to PROJECT.md Key Decisions table.
+
+Key architectural decisions from v3.0:
+- Discriminated union game state architecture for type-safe routing
 - Atomic BroadcastChannel state snapshots (no incremental actions)
-- Zero new runtime dependencies (React 19, Vite, Tailwind sufficient)
-
-20-01 decisions (Game type system):
-- Use discriminated unions with gameType literal for type-safe game state handling
-- Keep GameSyncState for backward compatibility until Plan 02 refactoring
-- PresentationMessage GAME_STATE_UPDATE now uses unified GameState type
-- Discriminated unions pattern: Each game state extends BaseGameState with unique gameType literal for exhaustive type narrowing
-- assertNever helper for compile-time exhaustiveness checking in switch statements
-
-20-02 decisions (GameContainer router):
-- GameContainer uses exhaustive switch without assertNever in default case (TypeScript non-strict mode limitation)
-- QuickQuizGame preserves exact UI from QuizOverlay play mode (Kahoot-style)
-- Placeholder games show specific phase numbers ("Coming in Phase N") for clarity
-- Shared GameSplash and ResultScreen components serve all game types
-
-20-03 decisions (Game system integration):
-- Removed QuizOverlay component entirely, replaced with GameContainer architecture
-- Quick Quiz launches with loading state before question generation completes
-- Placeholder games show splash screen immediately (no generation needed)
-- Confirmation dialog prevents accidental mid-game switches
-- Game state factories (createQuickQuizState, createPlaceholderState) ensure consistent initial states
-
-21-01 decisions (Millionaire game foundation):
-- Money tree prizes and safe havens configured as data structures for 3/5/10 question variants
-- MoneyTree component uses flex-col-reverse to display highest prize at top (classic Millionaire layout)
-- Safe haven amounts calculated dynamically based on current position
-
-21-02 decisions (Millionaire question display and core game flow):
-- Sequential reveal animation uses nested setTimeout pattern for dramatic timing (300ms between options, 800ms before result)
-- Question count selection (3/5/10) happens before question generation in modal
-- GameContainer extended with Millionaire-specific props for proper handler routing
-- Victory detection: currentQuestionIndex === questions.length - 1 AND correct answer
-- Game over shows safe haven amount (calculated from passed safe havens)
-
-21-03 decisions (Millionaire lifeline implementations):
-- 50:50 eliminates exactly 2 of 3 wrong answers randomly (preserves correct answer)
-- Audience poll percentages scale with difficulty: 60-80% correct for early questions, 25-35% for late questions
-- Phone-a-Friend AI genuinely reasons about questions (not given correct answer) for realistic gameplay
-- AI response varies style randomly (confident, reasoning, elimination, uncertain) with ~15% intentional errors
-- Lifeline data persists in state after overlay dismissal for student view synchronization
-
-21-04 decisions (Millionaire student view and celebrations):
-- Safe haven celebrations trigger on entering next question after passing safe haven position (avoids disrupting reveal)
-- Audio defaults to OFF with visible mute/unmute toggle per classroom needs
-- Confetti implemented with CSS animations (zero dependencies, performant, sufficient visual impact)
-- Wrong answer shows dramatic overlay with correct answer reveal before dismissing to result screen
-
-22-01 decisions (Game question type system):
-- GameDifficulty type uses simple presets (easy/medium/hard) mapping to Bloom's taxonomy levels
-- SlideContext captures both cumulative lesson content and current slide for question context
-- Stub implementations throw 'not yet implemented' errors for type-safe provider contracts
-- Bloom's difficulty mapping: easy=Remember/Understand, medium=Apply/Analyze, hard=Evaluate/Create
-
-22-02 decisions (Gemini game question generation):
-- Millionaire uses Bloom's taxonomy for progressive difficulty across question count
-- 3-question: 1 easy, 1 medium, 1 hard; 5-question: 2 easy, 2 medium, 1 hard; 10-question: 3 easy, 3 medium, 4 hard
-- Chase/Beat the Chaser uses consistent difficulty from BLOOM_DIFFICULTY_MAP
-- Content constraint in prompts prevents hallucination (questions only from slides)
-- Returns empty array on error - caller (Plan 04) handles retries
-
-22-03 decisions (Claude game question generation):
-- Uses tool_use pattern with forced tool_choice for reliable structured JSON output
-- Millionaire progression rules match GeminiProvider exactly for consistent cross-provider behavior
-- Fallback text parsing if tool_use unexpectedly returns text block
-- Private helper methods (getErrorMessage, getErrorCode) for error handling consistency
-
-22-04 decisions (Game question integration):
-- withRetry only retries NETWORK_ERROR, RATE_LIMIT, SERVER_ERROR (not AUTH_ERROR, PARSE_ERROR)
-- buildSlideContext uses all slides up to and including current index for cumulative content
-- Millionaire passes difficulty='medium' to generateGameQuestions but it's ignored (progressive handled internally)
-- Empty questions array throws PARSE_ERROR to trigger user-friendly error message
-
-23-01 decisions (The Chase type system and timer):
-- ChasePhase union type covers all game phases including game-over state
-- Timer hook supports both internal and external control for flexibility
-- Urgency threshold defaults to 10 seconds with red pulsing animation
-- Kept legacy isChasing field for backward compatibility
-
-23-02 decisions (Game board and chaser AI):
-- Use translateY CSS transform for smooth 500ms position animations (GPU-accelerated)
-- AI accuracy based on weighted random Math.random() < accuracy threshold
-- 1500ms default thinking delay for dramatic tension before chaser answer reveal
-- Game board vertical orientation: chaser at top (position 0), home at bottom (position 6)
-
-23-03 decisions (Cash Builder round):
-- $1000 per correct answer for Cash Builder prize pot
-- 300ms feedback delay before next question auto-advance
-- Keyboard shortcuts (1-4) for rapid answer selection
-- Timer urgency styling activates at 10 seconds (red, pulse)
-- Full-screen green/red flash animations for answer feedback
-
-23-04 decisions (Offer selection and voting):
-- Teacher manually edits offer amounts and positions before starting vote
-- Vote tallies calculated on-demand via getVoteCount(index) filtering votes Map
-- Majority winner via tallies.indexOf(Math.max(...tallies)) - ties go to first offer
-- VotingWidget hidden (returns null) when not in voting mode
-- Optional name input on VotingWidget if studentName prop not provided
-
-23-05 decisions (Head-to-Head chase phase):
-- Turn phases use sequential state machine for clear gameplay flow control
-- Game end detection uses nested setState callbacks to ensure position updates complete
-- 600ms delay after position changes allows CSS animations to complete before checking game end
-- Victory/defeat overlays use 2-second delay before calling onComplete for celebration visibility
-- Turn indicator uses color-coded dots with pulse animation for active player clarity
-
-23-06 decisions (Final Chase round):
-- FinalPhase type is component-local for internal UI state management (separate from global ChasePhase)
-- Pushbacks increase effective lead by 1 - chaser must beat (contestantScore + pushbacksEarned) to win
-- 2-minute timers for both contestant and chaser phases with 10-second urgency threshold
-- Pushback opportunity pauses chaser timer until resolved
-- Contestant phase has keyboard shortcuts (1-4) for rapid answering
-- Auto-triggers AI chaser answers when entering chaser-round phase
-
-23-07 decisions (Chase orchestrator integration):
-- TheChaseGame orchestrator uses local phase state management for teacher-side phase tracking
-- Setup modal combines difficulty selection with AI/manual control toggle in single UI
-- Generate 40 questions for complete Chase game (Cash Builder + Head-to-Head + Final Chase)
-- Control mode toggle defaults to AI-Controlled for automated gameplay
-
-23-08 decisions (Chase student view):
-- Cash Builder displays timer with urgency styling at 10s threshold
-- Offer Selection shows VotingWidget when voting open, offer display when waiting
-- Head-to-Head shows GameBoard scaled up with current question sidebar
-- Final Chase shows dual timers/scores with phase-specific highlighting
-- Game Over calculates win/loss from final scores and displays prize if won
-
-24-01 decisions (Beat the Chaser setup):
-- BeatTheChaserPhase includes setup phase before Cash Builder (unlike Chase which starts at cash-builder)
-- Difficulty affects both time ratio (0.8/1.0/1.2) and AI accuracy ranges for balanced gameplay
-- Cash Builder awards 5 seconds per correct answer with 60-second cap
-- Setup modal defaults to Medium difficulty and AI-Controlled for optimal classroom experience
-
-24-02 decisions (Cash Builder phase):
-- Green color scheme for time bank (vs amber for money in The Chase)
-- No countdown timer - phase ends after 10 questions exhausted
-- Progress dots show full answer history (green=correct, red=incorrect, blue=current)
-
-24-03 decisions (Timed Battle phase):
-- Turn-based mechanics: contestant answers first, then chaser on same question (sequential play)
-- Only active player's timer counts down - timers pause during answer feedback
-- Catch-up mechanic: +5s added to contestant timer when chaser answers incorrectly (capped at 120s)
-- Instant loss: Timer reaching 0 immediately triggers game over for that player
-- End condition: Timer expiry OR questions exhausted (winner = most time remaining)
-
-24-04 decisions (Game orchestrator):
-- BeatTheChaserGame uses local phase state management for teacher-side control
-- Questions split: first 10 for Cash Builder, remaining for Timed Battle
-- State updates broadcast to student view via onStateUpdate callback
-- Final times tracked separately for game-over result display
-
-24-05 decisions (Student view):
-- Cash Builder uses green color scheme for time bank (vs amber for money in The Chase)
-- Timed Battle shows dual timers with ring highlight and scale animation for active player
-- Game Over displays final times as seconds (not formatted) for immediate clarity
-- Setup phase shows GameSplash with waiting message (consistent with other games)
-
-25-01 decisions (Competition mode types and team names):
-- Team uses UUID for stable React keys (not array index)
-- activeTeamIndex tracks which team's turn (managed by orchestrator)
-- playerName can be empty string (defaults to "Player" in UI)
-- In-memory word lists (20 adjectives x 20 nouns = 400 combinations) for instant regeneration
-- Fisher-Yates shuffle ensures true randomness in team name generation
-
-25-02 decisions (Competition mode UI component):
-- Collapsible by default to keep setup modals compact
-- 2-10 team count range with +/- stepper controls
-- Regenerate Names button creates entirely new teams with new UUIDs
-- Team name inputs editable inline for teacher customization
-- Individual mode defaults with empty player name
-
-25-03 decisions (Score display components):
-- ScoreOverlay (teacher) includes +/- buttons for manual score correction
-- ScoreDisplay (student) uses larger fonts for classroom visibility from back of room
-- Active team highlighted with amber glow ring (ring-2 teacher, ring-4 student)
-- Fixed top-right positioning for non-intrusive overlay during gameplay
-- Individual mode shows player name badge; team mode shows all teams with scores
-
-25-04 decisions (Setup modal integration):
-- Quick Quiz now shows setup modal instead of launching directly
-- Competition mode state resets to individual mode when setup modals are cancelled
-- Competition mode state initialized to individual mode with empty player name
-
-25-05 decisions (Game state integration):
-- competitionMode field optional in BaseGameState for backward compatibility
-- Score rotation happens on question completion, not during answer reveal
-- ScoreOverlay and ScoreDisplay conditionally rendered when competitionMode present
-- All game state factories accept optional competitionMode parameter
-- Competition mode syncs to student view via BroadcastChannel (game state updates)
-
-26-01 decisions (Visual enhancement foundation):
-- Screen glow renders as fixed inset overlay (pointer-events-none, z-30) outside timer component
-- Classroom timer uses animate-rapid-pulse (0.3s scale to 1.08) vs regular animate-pulse for urgency
-- Score animations track previous values via useRef to detect changes without prop comparisons
-- Animation duration 200ms for score pulse (scale-125 + text-amber-400)
-
-26-02 decisions (Chase student view enhancement):
-- PhaseBanner uses fixed top positioning with pointer-events-none for always-visible non-intrusive overlay
-- UrgentTimer formats as M:SS with text-7xl/8xl size for classroom visibility from back of room
-- Screen glow at <=10 seconds with isActive check prevents dual glows in Final Chase
-- Head-to-Head turn logic determines turn from contestantAnswer and showChaserAnswer state
-- Only active timer shows urgency effects (screen glow, pulse, red) in dual-timer Final Chase
-
-26-03 decisions (Beat the Chaser student view enhancement):
-- PhaseBanner component dependency from plan 26-02 (was blocking - added as Rule 3 deviation)
-- Cash Builder uses PhaseBanner instead of inline heading for consistency
-- Timed Battle turn indicator syncs with activePlayer state (CONTESTANT'S TURN / CHASER'S TURN)
-- Screen glow only shows when active player's timer is urgent (not both timers)
-- Ring color changed from yellow to amber (ring-amber-400) for brand consistency
-- Urgency animation changed from animate-pulse to animate-rapid-pulse for visibility
-- Active timer gets amber shadow glow (shadow-amber-400/30) for depth
-- Beat the Chaser doesn't need answer reveal dimming (rapid-fire + turn-based gameplay)
-
-All decisions logged in PROJECT.md Key Decisions table.
+- Bloom's taxonomy mapping for difficulty levels
+- Fisher-Yates shuffle for answer position randomization
 
 ### Pending Todos
 
@@ -280,11 +71,11 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-24 10:30 UTC
-Stopped at: Completed Phase 26 and v3.0 milestone
+Last session: 2026-01-24
+Stopped at: Completed v3.0 milestone
 Resume file: None
-Next: Milestone audit or archive
+Next: /gsd:new-milestone for v3.1 or new direction
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-24 - Phase 26 complete (v3.0 milestone ready for audit)*
+*Last updated: 2026-01-24 - v3.0 milestone shipped*

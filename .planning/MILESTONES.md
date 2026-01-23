@@ -1,5 +1,33 @@
 # Project Milestones: Cue
 
+## v3.0 Quiz Game Variety (Shipped: 2026-01-24)
+
+**Delivered:** Transformed Cue from a single-game quiz tool into a multi-game platform with TV show-style formats (Who Wants to Be a Millionaire, Beat the Chaser), unified game architecture, AI-generated questions from lesson content, and individual/team competition modes.
+
+**Phases completed:** 20-26 (33 plans total)
+
+**Key accomplishments:**
+
+- Unified game architecture with discriminated union types enabling 4 game formats without state silos
+- Who Wants to Be a Millionaire with 3/5/10 question variants, money tree, safe havens, and 3 functional lifelines (50:50, Audience Poll, AI Phone-a-Friend)
+- Beat the Chaser with dual independent countdown timers, catch-up mechanics, and AI-controlled chaser
+- AI question generation from lesson content with progressive difficulty (Bloom's taxonomy mapping)
+- Competition modes (individual/team) with score tracking and auto-generated team names
+- Student view synchronization with classroom-optimized display (large timers, phase banners, urgency effects)
+
+**Stats:**
+
+- 132 files created/modified
+- ~27,000 lines added (net)
+- 7 phases, 33 plans
+- 2 days (2026-01-23 → 2026-01-24)
+
+**Git range:** `bd38f2f` → `fc39bd4`
+
+**What's next:** TBD with /gsd:new-milestone
+
+---
+
 ## v2.5 Rebrand to Cue (Shipped: 2026-01-22)
 
 **Delivered:** Complete rebrand from PiPi to Cue across UI, file format (.cue extension with .pipi backward compatibility), and GitHub repository with deployment at https://goom1000.github.io/Cue/

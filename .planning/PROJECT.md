@@ -4,21 +4,11 @@
 
 A presentation tool for teachers that transforms PDF lesson plans into interactive slideshows with AI-generated content, a teleprompter script for the teacher, and progressive bullet reveal. Teachers upload their existing lesson plans, select student age/grade level, and the AI creates an engaging presentation with speaker notes that guide the teacher through natural, conversational delivery.
 
-**v2.5 shipped:** Complete rebrand from PiPi to Cue with .cue file format (backward compatible with .pipi), deployed at https://goom1000.github.io/Cue/
+**v3.0 shipped:** Multi-game platform with TV show-style quiz games (Millionaire, Beat the Chaser), unified game architecture, AI question generation, and competition modes. Deployed at https://goom1000.github.io/Cue/
 
-## Current Milestone: v3.0 Quiz Game Variety
+## Current State
 
-**Goal:** Add multiple TV show-style quiz games (The Chase, Beat the Chaser, Who Wants to Be a Millionaire) with a unified game selection menu, integrated with the existing A-E grade difficulty system.
-
-**Target features:**
-- Game selection menu replacing current Kahoot button
-- The Chase game with AI-controlled or teacher-controlled chaser
-- Beat the Chaser variant with different mechanics
-- Who Wants to Be a Millionaire with functional lifelines (50:50, Ask the Audience, Phone-a-Friend)
-- Individual or team competition modes (teacher chooses)
-- AI-generated questions from lesson content
-- Grade-level integration for difficulty targeting
-- Game board display on student view with teacher-controlled answer reveals
+Shipped v3.0 with ~15,000 LOC TypeScript. Added 4 game formats (Quick Quiz, Millionaire, Beat the Chaser + disabled The Chase) with unified architecture preventing state silos. AI generates progressive-difficulty questions from lesson content. Team/individual competition modes with score tracking.
 
 ## Core Value
 
@@ -91,16 +81,17 @@ Students see only the presentation; teachers see the presentation plus a telepro
 - ✓ App header, browser tab, favicon show "Cue" branding — v2.5
 - ✓ Save files use `.cue` extension (backward compatible with `.pipi`) — v2.5
 - ✓ GitHub repo renamed with deployment at https://goom1000.github.io/Cue/ — v2.5
+- ✓ Game selection menu with all quiz game options — v3.0
+- ✓ Who Wants to Be a Millionaire with functional lifelines (50:50, Audience, Phone-a-Friend) — v3.0
+- ✓ Beat the Chaser with dual independent timers and catch-up mechanics — v3.0
+- ✓ The Chase game format (AI or teacher-controlled chaser) — v3.0 (disabled in UI, code preserved)
+- ✓ Individual vs team competition modes with score tracking — v3.0
+- ✓ AI question generation integrated with Bloom's taxonomy difficulty — v3.0
+- ✓ Game board synced to student view with answer reveal control — v3.0
 
 ### Active
 
-- [ ] Game selection menu with all quiz game options
-- [ ] The Chase game format (AI or teacher-controlled chaser)
-- [ ] Beat the Chaser game format
-- [ ] Who Wants to Be a Millionaire with functional lifelines
-- [ ] Individual vs team competition modes
-- [ ] AI question generation integrated with A-E grade difficulty
-- [ ] Game board synced to student view with answer reveal control
+(None — define with /gsd:new-milestone)
 
 ### Deferred (v3.0+)
 
@@ -128,18 +119,18 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Current State
 
-Shipped v2.5 with ~9,400 LOC TypeScript.
+Shipped v3.0 with ~15,000 LOC TypeScript.
 Tech stack: React 19, Vite, Gemini/Claude API, Tailwind CSS, react-rnd.
 Client-side only (no backend).
 Deployed at: https://goom1000.github.io/Cue/
 
-v2.5 delivered Rebrand to Cue:
-- Complete UI rebrand from "PiPi" to "Cue" (header, tab, landing, footer)
-- File format migration to .cue with backward compatibility for .pipi
-- TypeScript types renamed (CueFile, CueFileContent, createCueFile, readCueFile)
-- AI prompts reference "Cue-style" presentation format
-- GitHub repository renamed to "Cue"
-- GitHub Pages deployment at professional URL
+v3.0 delivered Quiz Game Variety:
+- Unified game architecture with discriminated union types (GameState, GameType)
+- 4 game formats: Quick Quiz, Millionaire, Beat the Chaser, The Chase (disabled)
+- AI question generation with Bloom's taxonomy difficulty progression
+- Competition modes (individual/team) with auto-generated team names
+- Student view with large timers, phase banners, urgency effects
+- BroadcastChannel game state sync with atomic snapshots
 
 ### Technical Environment
 
@@ -213,6 +204,14 @@ v2.5 delivered Rebrand to Cue:
 | Backward compatible file format | Accept both .cue and .pipi extensions | ✓ Good — v2.5 |
 | Internal identifiers preserved | localStorage/BroadcastChannel keep pipi- prefix | ✓ Good — v2.5 |
 | Repository name "Cue" | Simple, matches brand, short URL | ✓ Good — v2.5 |
+| Discriminated union game state | Type-safe routing with exhaustive switch | ✓ Good — v3.0 |
+| Game state factories | Consistent initial state creation per game type | ✓ Good — v3.0 |
+| Atomic state snapshots | Full game state sync prevents race conditions | ✓ Good — v3.0 |
+| Bloom's taxonomy difficulty | Maps easy/medium/hard to cognitive depth levels | ✓ Good — v3.0 |
+| Fisher-Yates answer shuffle | Unbiased randomization of correct answer position | ✓ Good — v3.0 |
+| useRef for shown-state tracking | Prevents re-render loops in overlay components | ✓ Good — v3.0 |
+| Turn-based timer mechanics | Only active player's timer counts down | ✓ Good — v3.0 |
+| The Chase disabled in UI | Code preserved but removed from menu per user preference | ✓ Good — v3.0 |
 
 ---
-*Last updated: 2026-01-22 after v3.0 milestone started*
+*Last updated: 2026-01-24 after v3.0 milestone*
