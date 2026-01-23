@@ -1,4 +1,4 @@
-import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest } from '../aiProvider';
+import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP } from '../aiProvider';
 import { Slide, LessonResource } from '../../types';
 import { QuizQuestion, QuestionWithAnswer } from '../geminiService';
 
@@ -212,6 +212,29 @@ function extractJSON<T>(text: string): T {
   } catch (e) {
     throw new AIProviderError(USER_ERROR_MESSAGES.PARSE_ERROR, 'PARSE_ERROR', e);
   }
+}
+
+/**
+ * Get Millionaire progression rules based on question count.
+ * Returns Bloom's taxonomy-based difficulty progression for the prompt.
+ */
+function getMillionaireProgressionRules(count: 3 | 5 | 10): string {
+  if (count === 3) {
+    return `
+Question 1: EASY (Remember/Understand) - "What is...", "Name the..."
+Question 2: MEDIUM (Apply/Analyze) - "How would...", "What would happen..."
+Question 3: HARD (Evaluate/Create) - "Why does...", "What is the best..."`;
+  }
+  if (count === 5) {
+    return `
+Questions 1-2: EASY (Remember/Understand) - "What is...", "Name the..."
+Questions 3-4: MEDIUM (Apply/Analyze) - "How would...", "What would happen..."
+Question 5: HARD (Evaluate/Create) - "Why does...", "What is the best..."`;
+  }
+  return `
+Questions 1-3: EASY (Remember/Understand) - "What is...", "Name the..."
+Questions 4-6: MEDIUM (Apply/Analyze) - "How would...", "What would happen..."
+Questions 7-10: HARD (Evaluate/Create) - "Why does...", "What is the best..."`;
 }
 
 /**
@@ -588,11 +611,181 @@ Do not include any text before or after the JSON.
     }
   }
 
-  async generateGameQuestions(request: GameQuestionRequest): Promise<QuizQuestion[]> {
-    // TODO: Implement in Phase 22-03 (Claude game question generation)
-    throw new AIProviderError(
-      'Game question generation not yet implemented for Claude',
-      'UNKNOWN_ERROR'
-    );
+  async generateGameQuestions(
+    request: GameQuestionRequest
+  ): Promise<QuizQuestion[]> {
+    // Build system prompt based on game type
+    let systemPrompt: string;
+
+    if (request.gameType === 'millionaire') {
+      systemPrompt = `You are a quiz master creating "Who Wants to Be a Millionaire" style questions for Year 6 students (10-11 years old).
+
+PROGRESSIVE DIFFICULTY RULES (Bloom's Taxonomy):
+${getMillionaireProgressionRules(request.questionCount as 3 | 5 | 10)}
+
+DISTRACTOR RULES (CRITICAL):
+- All 4 options must be similar in length and specificity
+- Distractors must be plausible misconceptions a student might have
+- Never include "All of the above" or "None of the above"
+- Avoid using negatives in questions ("Which is NOT...")
+
+CONTENT CONSTRAINT (CRITICAL):
+- Generate questions ONLY from the provided lesson content
+- Do NOT use external knowledge beyond what is in the slides
+- If content is thin, focus on what IS there rather than inventing new facts`;
+    } else {
+      const difficultyConfig = BLOOM_DIFFICULTY_MAP[request.difficulty];
+      systemPrompt = `You are a quiz master creating rapid-fire questions for "The Chase" style game for Year 6 students (10-11 years old).
+
+DIFFICULTY: ${request.difficulty.toUpperCase()}
+${difficultyConfig.description}
+Question types: ${difficultyConfig.questionTypes}
+
+ALL questions must be at ${request.difficulty} level. No progression - consistent difficulty throughout.
+
+QUICK-FIRE RULES:
+- Questions should be answerable in 5-10 seconds
+- Single concept per question, no multi-part questions
+- Avoid ambiguous wording
+- Keep options short (1-5 words each when possible)
+
+DISTRACTOR RULES:
+- All 4 options must be plausible
+- Distractors should reflect common misconceptions
+- Similar length and specificity across all options
+
+CONTENT CONSTRAINT (CRITICAL):
+- Generate questions ONLY from the provided lesson content
+- Do NOT use external knowledge beyond what is in the slides`;
+    }
+
+    // Build user prompt with slide context
+    let userPrompt = `LESSON CONTENT (Generate questions from this material only):
+Topic: ${request.slideContext.lessonTopic}
+
+${request.slideContext.cumulativeContent}
+
+Current slide focus: ${request.slideContext.currentSlideTitle}
+Key points: ${request.slideContext.currentSlideContent.join('; ')}`;
+
+    if (request.optionalHints) {
+      userPrompt += `\n\nTEACHER HINTS: ${request.optionalHints}`;
+    }
+
+    userPrompt += `\n\nGenerate exactly ${request.questionCount} questions using the quiz_questions tool.`;
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': this.apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 4096,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: userPrompt }],
+          tools: [{
+            name: 'quiz_questions',
+            description: 'Output quiz questions in structured format',
+            input_schema: {
+              type: 'object',
+              properties: {
+                questions: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      question: { type: 'string' },
+                      options: {
+                        type: 'array',
+                        items: { type: 'string' },
+                        minItems: 4,
+                        maxItems: 4
+                      },
+                      correctAnswerIndex: { type: 'integer', minimum: 0, maximum: 3 },
+                      explanation: { type: 'string' }
+                    },
+                    required: ['question', 'options', 'correctAnswerIndex', 'explanation']
+                  }
+                }
+              },
+              required: ['questions']
+            }
+          }],
+          tool_choice: { type: 'tool', name: 'quiz_questions' }
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new AIProviderError(
+          this.getErrorMessage(response.status, errorText),
+          this.getErrorCode(response.status),
+          errorText
+        );
+      }
+
+      const data = await response.json();
+
+      // Extract from tool_use response
+      const toolUse = data.content?.find((block: any) => block.type === 'tool_use');
+      if (toolUse?.input?.questions) {
+        return toolUse.input.questions;
+      }
+
+      // Fallback: try to extract from text if tool_use failed
+      const textBlock = data.content?.find((block: any) => block.type === 'text');
+      if (textBlock?.text) {
+        try {
+          const jsonMatch = textBlock.text.match(/\[[\s\S]*\]/);
+          if (jsonMatch) {
+            return JSON.parse(jsonMatch[0]);
+          }
+        } catch {
+          // Fall through to empty array
+        }
+      }
+
+      return [];
+    } catch (error) {
+      if (error instanceof AIProviderError) {
+        throw error;
+      }
+      throw new AIProviderError(
+        USER_ERROR_MESSAGES.NETWORK_ERROR,
+        'NETWORK_ERROR',
+        error
+      );
+    }
+  }
+
+  /**
+   * Helper to get user-friendly error message from HTTP status.
+   */
+  private getErrorMessage(status: number, body: string): string {
+    const code = this.getErrorCode(status);
+    try {
+      const errorBody = JSON.parse(body);
+      const apiMessage = errorBody?.error?.message;
+      return apiMessage
+        ? `${USER_ERROR_MESSAGES[code]} (${apiMessage})`
+        : USER_ERROR_MESSAGES[code];
+    } catch {
+      return USER_ERROR_MESSAGES[code];
+    }
+  }
+
+  /**
+   * Helper to get error code from HTTP status.
+   */
+  private getErrorCode(status: number): AIErrorCode {
+    if (status === 429) return 'RATE_LIMIT';
+    if (status === 401 || status === 403) return 'AUTH_ERROR';
+    if (status >= 500 || status === 529) return 'SERVER_ERROR';
+    return 'UNKNOWN_ERROR';
   }
 }
