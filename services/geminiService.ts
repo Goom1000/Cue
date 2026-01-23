@@ -698,7 +698,16 @@ export const generateGameQuestions = async (
 
   if (request.gameType === 'millionaire') {
     systemInstruction = `
-You are a quiz master creating "Who Wants to Be a Millionaire" style questions for Year 6 students (10-11 years old).
+You are a friendly quiz master creating "Who Wants to Be a Millionaire" style questions for Year 6 students (10-11 years old).
+
+LANGUAGE FOR 10 YEAR OLDS (CRITICAL):
+- Use simple, everyday words a child would know
+- Keep sentences SHORT (under 15 words)
+- Avoid technical jargon - if you must use a term, define it in the question
+- Ask ONE clear thing per question
+- Write like you're talking to a child: "What is..." not "Which of the following represents..."
+- BAD: "What phenomenon causes precipitation to occur?"
+- GOOD: "What causes rain to fall from clouds?"
 
 PROGRESSIVE DIFFICULTY RULES (Bloom's Taxonomy):
 ${getMillionaireProgressionRules(request.questionCount as 3 | 5 | 10)}
@@ -708,6 +717,7 @@ DISTRACTOR RULES (CRITICAL):
 - Distractors must be plausible misconceptions a student might have
 - Never include "All of the above" or "None of the above"
 - Avoid using negatives in questions ("Which is NOT...")
+- Keep each option to 1-5 words when possible
 
 CONTENT CONSTRAINT (CRITICAL):
 - Generate questions ONLY from the provided lesson content
@@ -721,7 +731,15 @@ Return a JSON array with exactly ${request.questionCount} questions.
     // Chase or Beat the Chaser - consistent difficulty
     const difficultyConfig = BLOOM_DIFFICULTY_MAP[request.difficulty];
     systemInstruction = `
-You are a quiz master creating rapid-fire questions for "The Chase" style game for Year 6 students (10-11 years old).
+You are a friendly quiz master creating rapid-fire questions for "Beat the Chaser" style game for Year 6 students (10-11 years old).
+
+LANGUAGE FOR 10 YEAR OLDS (CRITICAL):
+- Use simple, everyday words a child would know
+- Keep questions SHORT (under 12 words)
+- Avoid technical jargon - if you must use a term, add a hint
+- Write like you're talking to a child: "What is..." not "Which of the following..."
+- BAD: "What literary device involves giving human qualities to non-human things?"
+- GOOD: "What do we call it when we describe a tree as 'dancing' in the wind?"
 
 DIFFICULTY: ${request.difficulty.toUpperCase()}
 ${difficultyConfig.description}
@@ -730,10 +748,10 @@ Question types: ${difficultyConfig.questionTypes}
 ALL questions must be at ${request.difficulty} level. No progression - consistent difficulty throughout.
 
 QUICK-FIRE RULES:
-- Questions should be answerable in 5-10 seconds
+- Questions should be answerable in 3-5 seconds
 - Single concept per question, no multi-part questions
 - Avoid ambiguous wording
-- Keep options short (1-5 words each when possible)
+- Keep options to 1-4 words each
 
 DISTRACTOR RULES:
 - All 4 options must be plausible

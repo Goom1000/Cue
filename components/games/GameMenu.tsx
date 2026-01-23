@@ -37,7 +37,6 @@ const GameMenu: React.FC<GameMenuProps> = ({ onSelectGame, disabled }) => {
   const games: { type: GameType; icon: string; name: string; description: string }[] = [
     { type: 'quick-quiz', icon: '🎯', name: 'Quick Quiz', description: 'Kahoot-style questions' },
     { type: 'millionaire', icon: '💰', name: 'Millionaire', description: '15 questions to the top' },
-    { type: 'the-chase', icon: '🏃', name: 'The Chase', description: 'Outrun the chaser' },
     { type: 'beat-the-chaser', icon: '⚡', name: 'Beat the Chaser', description: 'Race against time' },
   ];
 

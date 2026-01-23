@@ -113,6 +113,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
   const [showQuickQuizSetup, setShowQuickQuizSetup] = useState(false);
   const [showMillionaireSetup, setShowMillionaireSetup] = useState(false);
   const [showChaseSetup, setShowChaseSetup] = useState(false);
+  const [showBeatTheChaserSetup, setShowBeatTheChaserSetup] = useState(false);
   const [lifelineLoading, setLifelineLoading] = useState<'phoneAFriend' | null>(null);
 
   // Competition Mode State
@@ -333,6 +334,34 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
     };
   }, []);
 
+  const createBeatTheChaserState = useCallback((
+    questions: QuizQuestion[],
+    difficulty: 'easy' | 'medium' | 'hard',
+    isAIControlled: boolean,
+    compMode?: CompetitionMode
+  ): BeatTheChaserState => {
+    return {
+      gameType: 'beat-the-chaser',
+      status: 'playing',
+      questions,
+      currentQuestionIndex: 0,
+      phase: 'setup',
+      accumulatedTime: 0,
+      cashBuilderQuestionsAnswered: 0,
+      cashBuilderCorrectAnswers: 0,
+      contestantTime: 0,
+      chaserTime: 0,
+      activePlayer: 'contestant',
+      chaserDifficulty: difficulty,
+      isAIControlled,
+      contestantAnswer: null,
+      chaserAnswer: null,
+      showTimeBonusEffect: false,
+      winner: null,
+      competitionMode: compMode,
+    };
+  }, []);
+
   const createPlaceholderState = useCallback((gameType: GameType, compMode?: CompetitionMode): GameState => {
     const base = {
       status: 'splash' as const,
@@ -516,6 +545,69 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
     }
   }, [provider, slides, currentIndex, createChaseState, onRequestAI, onError, competitionMode]);
 
+  // Launch Beat the Chaser (async question generation)
+  const launchBeatTheChaser = useCallback(async (difficulty: 'easy' | 'medium' | 'hard', isAIControlled: boolean) => {
+    if (!provider) {
+      onRequestAI('start Beat the Chaser game');
+      return;
+    }
+
+    // Close setup modal
+    setShowBeatTheChaserSetup(false);
+
+    // Show loading state immediately
+    setActiveGame({
+      gameType: 'beat-the-chaser',
+      status: 'loading',
+      questions: [],
+      currentQuestionIndex: 0,
+      phase: 'setup',
+      accumulatedTime: 0,
+      cashBuilderQuestionsAnswered: 0,
+      cashBuilderCorrectAnswers: 0,
+      contestantTime: 0,
+      chaserTime: 0,
+      activePlayer: 'contestant',
+      chaserDifficulty: difficulty,
+      isAIControlled,
+      contestantAnswer: null,
+      chaserAnswer: null,
+      showTimeBonusEffect: false,
+      winner: null,
+      competitionMode,
+    });
+
+    try {
+      const slideContext = buildSlideContext(slides, currentIndex);
+      const request: GameQuestionRequest = {
+        gameType: 'beat-the-chaser',
+        difficulty,
+        questionCount: 30, // Generate ~30 questions for full game
+        slideContext,
+      };
+
+      const questions = await withRetry<QuizQuestion[]>(
+        () => provider.generateGameQuestions(request),
+        3,  // max retries
+        1000 // initial delay
+      );
+
+      if (questions.length === 0) {
+        throw new AIProviderError('No questions generated', 'PARSE_ERROR');
+      }
+
+      setActiveGame(createBeatTheChaserState(questions, difficulty, isAIControlled, competitionMode));
+    } catch (e) {
+      console.error(e);
+      if (e instanceof AIProviderError) {
+        onError('Quiz Generation Failed', e.userMessage);
+      } else {
+        onError('Quiz Generation Failed', 'An unexpected error occurred');
+      }
+      setActiveGame(null);
+    }
+  }, [provider, slides, currentIndex, createBeatTheChaserState, onRequestAI, onError, competitionMode]);
+
   // Game selection handler with confirmation dialog
   const handleSelectGame = useCallback((gameType: GameType) => {
     // If game is active and not finished, confirm switch
@@ -530,8 +622,11 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
       // Show question count selection modal
       setShowMillionaireSetup(true);
     } else if (gameType === 'the-chase') {
-      // Show Chase setup modal (difficulty + AI/manual control)
-      setShowChaseSetup(true);
+      // The Chase is disabled - show Beat the Chaser instead
+      setShowBeatTheChaserSetup(true);
+    } else if (gameType === 'beat-the-chaser') {
+      // Show Beat the Chaser setup modal (difficulty + AI/manual control)
+      setShowBeatTheChaserSetup(true);
     } else {
       // Launch placeholder game directly
       setActiveGame(createPlaceholderState(gameType, competitionMode));
@@ -1637,6 +1732,133 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
             <button
               onClick={() => {
                 setShowChaseSetup(false);
+                setCompetitionMode({ mode: 'individual', playerName: '' });
+              }}
+              className="w-full py-2 text-sm text-slate-400 hover:text-white transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Beat the Chaser Setup Modal */}
+      {showBeatTheChaserSetup && (
+        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center animate-fade-in">
+          <div className="bg-slate-800 rounded-2xl p-8 max-w-xl w-full border-2 border-emerald-400/30 shadow-2xl">
+            <h3 className="text-3xl font-black text-white mb-2 text-center">Beat the Chaser</h3>
+            <p className="text-slate-300 text-center mb-6">Race against time to beat the chaser</p>
+
+            <CompetitionModeSection
+              value={competitionMode}
+              onChange={setCompetitionMode}
+            />
+
+            {/* Control Mode Toggle */}
+            <div className="mb-6 p-4 bg-slate-700/50 rounded-xl">
+              <label className="text-sm font-bold text-slate-300 mb-3 block">Chaser Control</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => {
+                    const btn = document.getElementById('beat-ai-mode') as HTMLButtonElement;
+                    if (btn) btn.dataset.selected = 'true';
+                    const manual = document.getElementById('beat-manual-mode') as HTMLButtonElement;
+                    if (manual) manual.dataset.selected = 'false';
+                  }}
+                  id="beat-ai-mode"
+                  data-selected="true"
+                  className="py-3 px-4 rounded-lg font-bold transition-all data-[selected=true]:bg-emerald-600 data-[selected=true]:text-white data-[selected=false]:bg-slate-600 data-[selected=false]:text-slate-300"
+                >
+                  AI-Controlled
+                </button>
+                <button
+                  onClick={() => {
+                    const btn = document.getElementById('beat-manual-mode') as HTMLButtonElement;
+                    if (btn) btn.dataset.selected = 'true';
+                    const ai = document.getElementById('beat-ai-mode') as HTMLButtonElement;
+                    if (ai) ai.dataset.selected = 'false';
+                  }}
+                  id="beat-manual-mode"
+                  data-selected="false"
+                  className="py-3 px-4 rounded-lg font-bold transition-all data-[selected=true]:bg-emerald-600 data-[selected=true]:text-white data-[selected=false]:bg-slate-600 data-[selected=false]:text-slate-300"
+                >
+                  Manual Control
+                </button>
+              </div>
+              <p className="text-xs text-slate-400 mt-2 text-center">
+                AI-Controlled: Computer plays the chaser | Manual: Teacher selects answers
+              </p>
+            </div>
+
+            {/* Difficulty Selection */}
+            <div className="mb-6">
+              <label className="text-sm font-bold text-slate-300 mb-3 block">Chaser Difficulty</label>
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    const aiMode = (document.getElementById('beat-ai-mode') as HTMLButtonElement)?.dataset.selected === 'true';
+                    launchBeatTheChaser('easy', aiMode);
+                  }}
+                  disabled={!isAIAvailable}
+                  className={`w-full py-4 text-lg font-bold rounded-xl transition-all text-left px-6 ${
+                    isAIAvailable
+                      ? 'bg-green-700 hover:bg-green-600 text-white hover:scale-105'
+                      : 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>Easy</span>
+                    <span className="text-sm font-normal">More time, slower chaser</span>
+                  </div>
+                  <p className="text-xs font-normal opacity-80 mt-1">Chaser gets less time and 60% accuracy</p>
+                </button>
+                <button
+                  onClick={() => {
+                    const aiMode = (document.getElementById('beat-ai-mode') as HTMLButtonElement)?.dataset.selected === 'true';
+                    launchBeatTheChaser('medium', aiMode);
+                  }}
+                  disabled={!isAIAvailable}
+                  className={`w-full py-4 text-lg font-bold rounded-xl transition-all text-left px-6 ${
+                    isAIAvailable
+                      ? 'bg-amber-600 hover:bg-amber-500 text-white hover:scale-105'
+                      : 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>Medium</span>
+                    <span className="text-sm font-normal">Balanced challenge</span>
+                  </div>
+                  <p className="text-xs font-normal opacity-80 mt-1">Equal time ratio and 75% accuracy</p>
+                </button>
+                <button
+                  onClick={() => {
+                    const aiMode = (document.getElementById('beat-ai-mode') as HTMLButtonElement)?.dataset.selected === 'true';
+                    launchBeatTheChaser('hard', aiMode);
+                  }}
+                  disabled={!isAIAvailable}
+                  className={`w-full py-4 text-lg font-bold rounded-xl transition-all text-left px-6 ${
+                    isAIAvailable
+                      ? 'bg-red-600 hover:bg-red-500 text-white hover:scale-105'
+                      : 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>Hard</span>
+                    <span className="text-sm font-normal">Less time, faster chaser</span>
+                  </div>
+                  <p className="text-xs font-normal opacity-80 mt-1">Chaser gets more time and 90% accuracy</p>
+                </button>
+              </div>
+            </div>
+
+            {!isAIAvailable && (
+              <p className="text-sm text-amber-400 text-center mb-4">
+                Add an API key in Settings to enable
+              </p>
+            )}
+            <button
+              onClick={() => {
+                setShowBeatTheChaserSetup(false);
                 setCompetitionMode({ mode: 'individual', playerName: '' });
               }}
               className="w-full py-2 text-sm text-slate-400 hover:text-white transition-colors"
