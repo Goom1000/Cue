@@ -24,6 +24,78 @@ export interface PresentationState {
   slides: Slide[];
 }
 
+// ============================================================================
+// UNIFIED GAME TYPE SYSTEM
+// ============================================================================
+
+// Game type union - all supported game formats
+export type GameType = 'quick-quiz' | 'millionaire' | 'the-chase' | 'beat-the-chaser';
+
+// Game status state machine
+export type GameStatus = 'loading' | 'splash' | 'playing' | 'reveal' | 'result';
+
+// Base properties shared across all game types
+export interface BaseGameState {
+  gameType: GameType;
+  status: GameStatus;
+  questions: QuizQuestion[];
+  currentQuestionIndex: number;
+}
+
+// Quick Quiz state (Kahoot-style)
+export interface QuickQuizState extends BaseGameState {
+  gameType: 'quick-quiz';
+  isAnswerRevealed: boolean;
+}
+
+// Millionaire state (15 questions to the top)
+export interface MillionaireState extends BaseGameState {
+  gameType: 'millionaire';
+  selectedOption: number | null;
+  lifelines: {
+    fiftyFifty: boolean;
+    phoneAFriend: boolean;
+    askTheAudience: boolean;
+  };
+  prizeLadder: number[];
+  currentPrize: number;
+}
+
+// The Chase state (outrun the chaser)
+export interface TheChaseState extends BaseGameState {
+  gameType: 'the-chase';
+  chaserPosition: number;
+  contestantPosition: number;
+  isChasing: boolean;
+}
+
+// Beat the Chaser state (race against time)
+export interface BeatTheChaserState extends BaseGameState {
+  gameType: 'beat-the-chaser';
+  contestantTime: number;
+  chaserTime: number;
+  activePlayer: 'contestant' | 'chaser';
+}
+
+// Unified game state discriminated union
+export type GameState =
+  | QuickQuizState
+  | MillionaireState
+  | TheChaseState
+  | BeatTheChaserState;
+
+// Helper type for nullable game state
+export type ActiveGameState = GameState | null;
+
+// Exhaustive type checking helper
+export function assertNever(x: never): never {
+  throw new Error(`Unexpected value: ${x}`);
+}
+
+// ============================================================================
+// LEGACY TYPES (for backward compatibility - will be removed in Plan 02)
+// ============================================================================
+
 // Game state synchronized from teacher to student view
 // Note: Only sync 'loading', 'play', 'summary' modes - NOT 'setup' (teacher-only configuration screen)
 export interface GameSyncState {
@@ -40,7 +112,7 @@ export type PresentationMessage =
   | { type: 'HEARTBEAT'; timestamp: number }
   | { type: 'HEARTBEAT_ACK'; timestamp: number }
   | { type: 'CLOSE_STUDENT' }
-  | { type: 'GAME_STATE_UPDATE'; payload: GameSyncState }
+  | { type: 'GAME_STATE_UPDATE'; payload: GameState }
   | { type: 'GAME_CLOSE' }
   | { type: 'STUDENT_SELECT'; payload: { studentName: string } }
   | { type: 'STUDENT_CLEAR' };
