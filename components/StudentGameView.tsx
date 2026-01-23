@@ -704,21 +704,31 @@ const BeatTheChaserStudentView: React.FC<{ state: BeatTheChaserState }> = ({ sta
   if (state.phase === 'timed-battle') {
     const isUrgent = (time: number) => time <= 10;
     const isContestantActive = state.activePlayer === 'contestant';
+    const contestantUrgent = isUrgent(state.contestantTime) && state.activePlayer === 'contestant';
+    const chaserUrgent = isUrgent(state.chaserTime) && state.activePlayer === 'chaser';
 
     return (
       <div className="h-screen w-screen bg-gradient-to-br from-blue-950 via-slate-900 to-red-950 flex flex-col items-center justify-center p-6 font-poppins text-white">
+        <PhaseBanner phase="Timed Battle" turn={state.activePlayer} />
+
+        {/* Screen edge glow for active urgent timer */}
+        {(contestantUrgent || chaserUrgent) && (
+          <div className="fixed inset-0 pointer-events-none z-30 animate-urgency-glow" />
+        )}
         {/* Dual Timers */}
         <div className="flex gap-6 md:gap-12 mb-8 w-full max-w-5xl">
           {/* Contestant Timer */}
           <div className={`flex-1 p-6 md:p-8 rounded-3xl transition-all duration-300 ${
             isContestantActive
-              ? 'bg-blue-900/60 ring-4 ring-yellow-400 scale-105'
+              ? 'bg-blue-900/60 ring-4 ring-amber-400 shadow-lg shadow-amber-400/30 scale-105'
               : 'bg-blue-900/30 opacity-50 scale-95'
           }`}>
             <div className="text-center">
               <div className="text-sm uppercase tracking-wider text-blue-300 mb-2">Contestant</div>
               <div className={`text-6xl md:text-8xl font-black ${
-                isUrgent(state.contestantTime) ? 'text-red-500 animate-pulse' : 'text-white'
+                isUrgent(state.contestantTime) && state.activePlayer === 'contestant'
+                  ? 'text-red-500 animate-rapid-pulse'
+                  : 'text-white'
               }`}>
                 {formatTime(state.contestantTime)}
               </div>
@@ -738,13 +748,15 @@ const BeatTheChaserStudentView: React.FC<{ state: BeatTheChaserState }> = ({ sta
           {/* Chaser Timer */}
           <div className={`flex-1 p-6 md:p-8 rounded-3xl transition-all duration-300 ${
             !isContestantActive
-              ? 'bg-red-900/60 ring-4 ring-yellow-400 scale-105'
+              ? 'bg-red-900/60 ring-4 ring-amber-400 shadow-lg shadow-amber-400/30 scale-105'
               : 'bg-red-900/30 opacity-50 scale-95'
           }`}>
             <div className="text-center">
               <div className="text-sm uppercase tracking-wider text-red-300 mb-2">Chaser</div>
               <div className={`text-6xl md:text-8xl font-black ${
-                isUrgent(state.chaserTime) ? 'text-red-500 animate-pulse' : 'text-white'
+                isUrgent(state.chaserTime) && state.activePlayer === 'chaser'
+                  ? 'text-red-500 animate-rapid-pulse'
+                  : 'text-white'
               }`}>
                 {formatTime(state.chaserTime)}
               </div>
