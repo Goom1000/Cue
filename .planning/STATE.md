@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** Phase 20 - Game Foundation & Type System
+**Current focus:** Phase 21 - Millionaire Game
 
 ## Current Position
 
-Phase: 20 of 26 (Game Foundation & Type System)
-Plan: 3 of 3 (Phase complete)
-Status: Phase complete
-Last activity: 2026-01-23 — Completed 20-03-PLAN.md (Game system integration)
+Phase: 21 of 26 (Millionaire Game)
+Plan: 1 of 4 (In progress)
+Status: In progress
+Last activity: 2026-01-23 — Completed 21-01-PLAN.md (Millionaire game foundation)
 
-Progress: ███░░░░░░░░░░░░░░░░░░ 11% (v3.0 Quiz Game Variety)
+Progress: ███░░░░░░░░░░░░░░░░░░ 12% (v3.0 Quiz Game Variety)
 
 ## Performance Metrics
 
@@ -33,8 +33,8 @@ Progress: ███░░░░░░░░░░░░░░░░░░ 11% (v
 **Project Totals:**
 - Milestones shipped: 9 (v1.0, v1.1, v1.2, v2.0, v2.1, v2.2, v2.3, v2.4, v2.5)
 - Total phases: 20 completed (phases 21-26 planned)
-- Total plans: 71 complete
-- Total LOC: ~9,900 TypeScript
+- Total plans: 72 complete
+- Total LOC: ~10,000 TypeScript
 
 ## Completed Milestones
 
@@ -78,6 +78,11 @@ v3.0 key decisions:
 - Confirmation dialog prevents accidental mid-game switches
 - Game state factories (createQuickQuizState, createPlaceholderState) ensure consistent initial states
 
+21-01 decisions (Millionaire game foundation):
+- Money tree prizes and safe havens configured as data structures for 3/5/10 question variants
+- MoneyTree component uses flex-col-reverse to display highest prize at top (classic Millionaire layout)
+- Safe haven amounts calculated dynamically based on current position
+
 All decisions logged in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -90,11 +95,11 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-23 02:11:19 UTC
-Stopped at: Completed 20-03-PLAN.md (Game system integration) - Phase 20 complete
+Last session: 2026-01-23 07:45:51 UTC
+Stopped at: Completed 21-01-PLAN.md (Millionaire game foundation)
 Resume file: None
-Next: Phase 21 - Millionaire Game (first full game implementation)
+Next: 21-02 - Millionaire lifeline implementations
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-23 - Phase 20 complete (Game Foundation & Type System)*
+*Last updated: 2026-01-23 - Phase 21 Plan 01 complete (Millionaire game foundation)*
