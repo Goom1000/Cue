@@ -34,6 +34,17 @@ export type GameType = 'quick-quiz' | 'millionaire' | 'the-chase' | 'beat-the-ch
 // Game difficulty presets for AI question generation
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
 
+// Competition mode for team/individual play
+export interface Team {
+  id: string;      // crypto.randomUUID()
+  name: string;
+  score: number;
+}
+
+export type CompetitionMode =
+  | { mode: 'individual'; playerName: string }
+  | { mode: 'team'; teams: Team[]; activeTeamIndex: number };
+
 // Game status state machine
 export type GameStatus = 'loading' | 'splash' | 'playing' | 'reveal' | 'result';
 
