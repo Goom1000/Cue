@@ -18,6 +18,8 @@ interface GameContainerProps {
   onMillionaireNext?: () => void;
   onMillionaireUseLifeline?: (lifeline: 'fiftyFifty' | 'askTheAudience' | 'phoneAFriend') => void;
   isLifelineLoading?: 'phoneAFriend' | null;
+  // Chase-specific handler
+  onChaseStateUpdate?: (updates: Partial<import('../../types').TheChaseState>) => void;
 }
 
 /**
@@ -35,6 +37,7 @@ const GameContainer: React.FC<GameContainerProps> = ({
   onMillionaireNext,
   onMillionaireUseLifeline,
   isLifelineLoading,
+  onChaseStateUpdate,
 }) => {
   // Show splash screen during loading
   if (state.status === 'loading' || state.status === 'splash') {
@@ -91,6 +94,7 @@ const GameContainer: React.FC<GameContainerProps> = ({
         <TheChaseGame
           state={state}
           onClose={onClose}
+          onStateUpdate={onChaseStateUpdate}
         />
       );
 

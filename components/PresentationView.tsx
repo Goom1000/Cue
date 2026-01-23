@@ -109,6 +109,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
   const [pendingGameType, setPendingGameType] = useState<GameType | null>(null);
   const gameWasOpenRef = useRef(false);
   const [showMillionaireSetup, setShowMillionaireSetup] = useState(false);
+  const [showChaseSetup, setShowChaseSetup] = useState(false);
   const [lifelineLoading, setLifelineLoading] = useState<'phoneAFriend' | null>(null);
 
   // Question Generation State
@@ -283,6 +284,41 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
     };
   }, []);
 
+  const createChaseState = useCallback((
+    questions: QuizQuestion[],
+    difficulty: 'easy' | 'medium' | 'hard',
+    isAIControlled: boolean
+  ): TheChaseState => {
+    return {
+      gameType: 'the-chase',
+      status: 'playing',
+      questions,
+      currentQuestionIndex: 0,
+      phase: 'cash-builder',
+      cashBuilderScore: 0,
+      cashBuilderTimeRemaining: 60,
+      offers: [],
+      selectedOfferIndex: null,
+      votes: {},
+      isVotingOpen: false,
+      contestantPosition: 4,
+      chaserPosition: 0,
+      chaserDifficulty: difficulty,
+      isAIControlled,
+      isChaserThinking: false,
+      finalChaseContestantScore: 0,
+      finalChaseContestantTime: 120,
+      finalChaseChaserScore: 0,
+      finalChaseChaserTime: 120,
+      chaserTargetScore: 0,
+      currentQuestionAnswered: false,
+      contestantAnswer: null,
+      chaserAnswer: null,
+      showChaserAnswer: false,
+      isChasing: false,
+    };
+  }, []);
+
   const createPlaceholderState = useCallback((gameType: GameType): GameState => {
     const base = {
       status: 'splash' as const,
@@ -295,7 +331,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
       case 'millionaire':
         return { ...base, gameType: 'millionaire', selectedOption: null, lifelines: { fiftyFifty: true, phoneAFriend: true, askTheAudience: true }, prizeLadder: [], currentPrize: 0, eliminatedOptions: [], audiencePoll: null, phoneHint: null, safeHavenAmount: 0, questionCount: 5 };
       case 'the-chase':
-        return { ...base, gameType: 'the-chase', chaserPosition: 0, contestantPosition: 0, isChasing: false };
+        return { ...base, gameType: 'the-chase', phase: 'cash-builder', cashBuilderScore: 0, cashBuilderTimeRemaining: 60, offers: [], selectedOfferIndex: null, votes: {}, isVotingOpen: false, contestantPosition: 4, chaserPosition: 0, chaserDifficulty: 'medium', isAIControlled: true, isChaserThinking: false, finalChaseContestantScore: 0, finalChaseContestantTime: 120, finalChaseChaserScore: 0, finalChaseChaserTime: 120, chaserTargetScore: 0, currentQuestionAnswered: false, contestantAnswer: null, chaserAnswer: null, showChaserAnswer: false, isChasing: false };
       case 'beat-the-chaser':
         return { ...base, gameType: 'beat-the-chaser', contestantTime: 0, chaserTime: 0, activePlayer: 'contestant' };
     }
@@ -391,6 +427,77 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
     }
   }, [provider, slides, currentIndex, createMillionaireState, onRequestAI, onError]);
 
+  // Launch The Chase (async question generation)
+  const launchTheChase = useCallback(async (difficulty: 'easy' | 'medium' | 'hard', isAIControlled: boolean) => {
+    if (!provider) {
+      onRequestAI('start The Chase game');
+      return;
+    }
+
+    // Close setup modal
+    setShowChaseSetup(false);
+
+    // Show loading state immediately
+    setActiveGame({
+      gameType: 'the-chase',
+      status: 'loading',
+      questions: [],
+      currentQuestionIndex: 0,
+      phase: 'cash-builder',
+      cashBuilderScore: 0,
+      cashBuilderTimeRemaining: 60,
+      offers: [],
+      selectedOfferIndex: null,
+      votes: {},
+      isVotingOpen: false,
+      contestantPosition: 4,
+      chaserPosition: 0,
+      chaserDifficulty: difficulty,
+      isAIControlled,
+      isChaserThinking: false,
+      finalChaseContestantScore: 0,
+      finalChaseContestantTime: 120,
+      finalChaseChaserScore: 0,
+      finalChaseChaserTime: 120,
+      chaserTargetScore: 0,
+      currentQuestionAnswered: false,
+      contestantAnswer: null,
+      chaserAnswer: null,
+      showChaserAnswer: false,
+      isChasing: false,
+    });
+
+    try {
+      const slideContext = buildSlideContext(slides, currentIndex);
+      const request: GameQuestionRequest = {
+        gameType: 'the-chase',
+        difficulty,
+        questionCount: 40, // Generate ~40 questions for full game
+        slideContext,
+      };
+
+      const questions = await withRetry<QuizQuestion[]>(
+        () => provider.generateGameQuestions(request),
+        3,  // max retries
+        1000 // initial delay
+      );
+
+      if (questions.length === 0) {
+        throw new AIProviderError('No questions generated', 'PARSE_ERROR');
+      }
+
+      setActiveGame(createChaseState(questions, difficulty, isAIControlled));
+    } catch (e) {
+      console.error(e);
+      if (e instanceof AIProviderError) {
+        onError('Quiz Generation Failed', e.userMessage);
+      } else {
+        onError('Quiz Generation Failed', 'An unexpected error occurred');
+      }
+      setActiveGame(null);
+    }
+  }, [provider, slides, currentIndex, createChaseState, onRequestAI, onError]);
+
   // Game selection handler with confirmation dialog
   const handleSelectGame = useCallback((gameType: GameType) => {
     // If game is active and not finished, confirm switch
@@ -406,6 +513,9 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
     } else if (gameType === 'millionaire') {
       // Show question count selection modal
       setShowMillionaireSetup(true);
+    } else if (gameType === 'the-chase') {
+      // Show Chase setup modal (difficulty + AI/manual control)
+      setShowChaseSetup(true);
     } else {
       // Launch placeholder game directly
       setActiveGame(createPlaceholderState(gameType));
@@ -594,6 +704,14 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
       }
     }
   }, [activeGame, provider]);
+
+  // Chase state update handler
+  const handleChaseStateUpdate = useCallback((updates: Partial<TheChaseState>) => {
+    setActiveGame(prev => {
+      if (prev?.gameType !== 'the-chase') return prev;
+      return { ...prev, ...updates };
+    });
+  }, []);
 
   const handleGenerateQuestion = async (level: 'A' | 'B' | 'C' | 'D' | 'E', studentName?: string) => {
       if (!provider) {
@@ -920,6 +1038,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
               onMillionaireNext={handleMillionaireNext}
               onMillionaireUseLifeline={handleUseLifeline}
               isLifelineLoading={lifelineLoading}
+              onChaseStateUpdate={handleChaseStateUpdate}
             />
           </div>,
           document.body
@@ -1282,6 +1401,125 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
             <button
               onClick={() => setShowMillionaireSetup(false)}
               className="w-full mt-4 py-2 text-sm text-slate-400 hover:text-white transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Chase Setup Modal */}
+      {showChaseSetup && (
+        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center animate-fade-in">
+          <div className="bg-slate-800 rounded-2xl p-8 max-w-xl w-full border-2 border-red-400/30 shadow-2xl">
+            <h3 className="text-3xl font-black text-white mb-2 text-center">The Chase</h3>
+            <p className="text-slate-300 text-center mb-6">Configure game settings</p>
+
+            {/* Control Mode Toggle */}
+            <div className="mb-6 p-4 bg-slate-700/50 rounded-xl">
+              <label className="text-sm font-bold text-slate-300 mb-3 block">Chaser Control</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => {
+                    const btn = document.getElementById('chase-ai-mode') as HTMLButtonElement;
+                    if (btn) btn.dataset.selected = 'true';
+                    const manual = document.getElementById('chase-manual-mode') as HTMLButtonElement;
+                    if (manual) manual.dataset.selected = 'false';
+                  }}
+                  id="chase-ai-mode"
+                  data-selected="true"
+                  className="py-3 px-4 rounded-lg font-bold transition-all data-[selected=true]:bg-red-600 data-[selected=true]:text-white data-[selected=false]:bg-slate-600 data-[selected=false]:text-slate-300"
+                >
+                  AI-Controlled
+                </button>
+                <button
+                  onClick={() => {
+                    const btn = document.getElementById('chase-manual-mode') as HTMLButtonElement;
+                    if (btn) btn.dataset.selected = 'true';
+                    const ai = document.getElementById('chase-ai-mode') as HTMLButtonElement;
+                    if (ai) ai.dataset.selected = 'false';
+                  }}
+                  id="chase-manual-mode"
+                  data-selected="false"
+                  className="py-3 px-4 rounded-lg font-bold transition-all data-[selected=true]:bg-red-600 data-[selected=true]:text-white data-[selected=false]:bg-slate-600 data-[selected=false]:text-slate-300"
+                >
+                  Manual Control
+                </button>
+              </div>
+              <p className="text-xs text-slate-400 mt-2 text-center">
+                AI-Controlled: Computer plays the chaser | Manual: Teacher selects answers
+              </p>
+            </div>
+
+            {/* Difficulty Selection */}
+            <div className="mb-6">
+              <label className="text-sm font-bold text-slate-300 mb-3 block">Chaser Difficulty</label>
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    const aiMode = (document.getElementById('chase-ai-mode') as HTMLButtonElement)?.dataset.selected === 'true';
+                    launchTheChase('easy', aiMode);
+                  }}
+                  disabled={!isAIAvailable}
+                  className={`w-full py-4 text-lg font-bold rounded-xl transition-all text-left px-6 ${
+                    isAIAvailable
+                      ? 'bg-green-700 hover:bg-green-600 text-white hover:scale-105'
+                      : 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>Easy</span>
+                    <span className="text-sm font-normal">60% accuracy</span>
+                  </div>
+                  <p className="text-xs font-normal opacity-80 mt-1">Chaser answers correctly 60% of the time</p>
+                </button>
+                <button
+                  onClick={() => {
+                    const aiMode = (document.getElementById('chase-ai-mode') as HTMLButtonElement)?.dataset.selected === 'true';
+                    launchTheChase('medium', aiMode);
+                  }}
+                  disabled={!isAIAvailable}
+                  className={`w-full py-4 text-lg font-bold rounded-xl transition-all text-left px-6 ${
+                    isAIAvailable
+                      ? 'bg-amber-600 hover:bg-amber-500 text-white hover:scale-105'
+                      : 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>Medium</span>
+                    <span className="text-sm font-normal">75% accuracy</span>
+                  </div>
+                  <p className="text-xs font-normal opacity-80 mt-1">Chaser answers correctly 75% of the time</p>
+                </button>
+                <button
+                  onClick={() => {
+                    const aiMode = (document.getElementById('chase-ai-mode') as HTMLButtonElement)?.dataset.selected === 'true';
+                    launchTheChase('hard', aiMode);
+                  }}
+                  disabled={!isAIAvailable}
+                  className={`w-full py-4 text-lg font-bold rounded-xl transition-all text-left px-6 ${
+                    isAIAvailable
+                      ? 'bg-red-600 hover:bg-red-500 text-white hover:scale-105'
+                      : 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>Hard</span>
+                    <span className="text-sm font-normal">90% accuracy</span>
+                  </div>
+                  <p className="text-xs font-normal opacity-80 mt-1">Chaser answers correctly 90% of the time</p>
+                </button>
+              </div>
+            </div>
+
+            {!isAIAvailable && (
+              <p className="text-sm text-amber-400 text-center mb-4">
+                Add an API key in Settings to enable
+              </p>
+            )}
+            <button
+              onClick={() => setShowChaseSetup(false)}
+              className="w-full py-2 text-sm text-slate-400 hover:text-white transition-colors"
             >
               Cancel
             </button>
