@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 
 ## Current Position
 
-Phase: 22 of 26 (AI Integration)
-Plan: 3 of 4 complete
-Status: In progress
-Last activity: 2026-01-23 - Completed 22-03-PLAN.md (Claude game question generation)
+Phase: 22 of 26 (AI Integration) - COMPLETE
+Plan: 4 of 4 complete
+Status: Phase complete
+Last activity: 2026-01-23 - Completed 22-04-PLAN.md (Game question integration)
 
-Progress: █████░░░░░░░░░░░░░░░░ 18% (v3.0 Quiz Game Variety)
+Progress: █████░░░░░░░░░░░░░░░░ 20% (v3.0 Quiz Game Variety)
 
 ## Performance Metrics
 
@@ -28,12 +28,12 @@ Progress: █████░░░░░░░░░░░░░░░░ 18% (v
 - v2.3: 4 plans, 2 days
 - v2.4: 9 plans, 2 days
 - v2.5: 2 plans, 1 day
-- v3.0: Phase 20 complete (3 plans, 43min), Phase 21 complete (4 plans, 15min), Phase 22 plan 01 (4min), plan 02 (2min), plan 03 (4min)
+- v3.0: Phase 20 complete (3 plans, 43min), Phase 21 complete (4 plans, 15min), Phase 22 complete (4 plans: 01=4min, 02=2min, 03=4min, 04=2min)
 
 **Project Totals:**
 - Milestones shipped: 9 (v1.0, v1.1, v1.2, v2.0, v2.1, v2.2, v2.3, v2.4, v2.5)
-- Total phases: 21 completed (phase 22 in progress, 23-26 planned)
-- Total plans: 81 complete
+- Total phases: 22 completed (phases 23-26 planned)
+- Total plans: 85 complete
 - Total LOC: ~11,350 TypeScript
 
 ## Completed Milestones
@@ -122,6 +122,12 @@ v3.0 key decisions:
 - Fallback text parsing if tool_use unexpectedly returns text block
 - Private helper methods (getErrorMessage, getErrorCode) for error handling consistency
 
+22-04 decisions (Game question integration):
+- withRetry only retries NETWORK_ERROR, RATE_LIMIT, SERVER_ERROR (not AUTH_ERROR, PARSE_ERROR)
+- buildSlideContext uses all slides up to and including current index for cumulative content
+- Millionaire passes difficulty='medium' to generateGameQuestions but it's ignored (progressive handled internally)
+- Empty questions array throws PARSE_ERROR to trigger user-friendly error message
+
 All decisions logged in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -134,11 +140,11 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-23 11:19:00 UTC
-Stopped at: Completed 22-03-PLAN.md (Claude game question generation)
+Last session: 2026-01-23 09:25:00 UTC
+Stopped at: Completed 22-04-PLAN.md (Game question integration)
 Resume file: None
-Next: Phase 22-04 - Integration testing with game flows
+Next: Phase 23 - The Chase game implementation
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-23 - Phase 22 plan 03 complete (Claude game question generation)*
+*Last updated: 2026-01-23 - Phase 22 complete (AI Integration)*
