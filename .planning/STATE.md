@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** Phase 22 - AI Integration
+**Current focus:** Phase 23 - The Chase
 
 ## Current Position
 
-Phase: 22 of 26 (AI Integration) - COMPLETE
-Plan: 4 of 4 complete
-Status: Phase complete
-Last activity: 2026-01-23 - Completed 22-04-PLAN.md (Game question integration)
+Phase: 23 of 26 (The Chase) - IN PROGRESS
+Plan: 1 of 7 complete
+Status: In progress
+Last activity: 2026-01-23 - Completed 23-01-PLAN.md (Type system and timer foundation)
 
-Progress: █████░░░░░░░░░░░░░░░░ 20% (v3.0 Quiz Game Variety)
+Progress: █████░░░░░░░░░░░░░░░░ 21% (v3.0 Quiz Game Variety)
 
 ## Performance Metrics
 
@@ -28,13 +28,13 @@ Progress: █████░░░░░░░░░░░░░░░░ 20% (v
 - v2.3: 4 plans, 2 days
 - v2.4: 9 plans, 2 days
 - v2.5: 2 plans, 1 day
-- v3.0: Phase 20 complete (3 plans, 43min), Phase 21 complete (4 plans, 15min), Phase 22 complete (4 plans: 01=4min, 02=2min, 03=4min, 04=2min)
+- v3.0: Phase 20 complete (3 plans, 43min), Phase 21 complete (4 plans, 15min), Phase 22 complete (4 plans: 01=4min, 02=2min, 03=4min, 04=2min), Phase 23 in progress (01=2min)
 
 **Project Totals:**
 - Milestones shipped: 9 (v1.0, v1.1, v1.2, v2.0, v2.1, v2.2, v2.3, v2.4, v2.5)
-- Total phases: 22 completed (phases 23-26 planned)
-- Total plans: 85 complete
-- Total LOC: ~11,350 TypeScript
+- Total phases: 22 completed (phase 23 in progress, phases 24-26 planned)
+- Total plans: 86 complete
+- Total LOC: ~11,540 TypeScript
 
 ## Completed Milestones
 
@@ -128,6 +128,12 @@ v3.0 key decisions:
 - Millionaire passes difficulty='medium' to generateGameQuestions but it's ignored (progressive handled internally)
 - Empty questions array throws PARSE_ERROR to trigger user-friendly error message
 
+23-01 decisions (The Chase type system and timer):
+- ChasePhase union type covers all game phases including game-over state
+- Timer hook supports both internal and external control for flexibility
+- Urgency threshold defaults to 10 seconds with red pulsing animation
+- Kept legacy isChasing field for backward compatibility
+
 All decisions logged in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -140,11 +146,11 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-23 09:25:00 UTC
-Stopped at: Completed 22-04-PLAN.md (Game question integration)
+Last session: 2026-01-23 10:47:38 UTC
+Stopped at: Completed 23-01-PLAN.md (Type system and timer foundation)
 Resume file: None
-Next: Phase 23 - The Chase game implementation
+Next: 23-02 - Cash Builder implementation
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-23 - Phase 22 complete (AI Integration)*
+*Last updated: 2026-01-23 - Phase 23 in progress (The Chase)*
