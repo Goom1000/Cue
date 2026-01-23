@@ -552,7 +552,7 @@ export const generateImpromptuQuiz = async (
     const systemInstruction = `
         You are a fun and energetic Game Show Host for a Year 6 classroom.
         Generate a set of multiple-choice questions based strictly on the provided lesson content.
-        
+
         RULES:
         1. Questions must be suitable for 10-11 year olds.
         2. Create ${numQuestions} questions.
@@ -595,5 +595,72 @@ export const generateImpromptuQuiz = async (
     } catch (error) {
         console.error("Quiz Gen Error", error);
         return [];
+    }
+};
+
+export interface PhoneAFriendResponse {
+    confidence: 'high' | 'medium' | 'low';
+    response: string;
+}
+
+export const generatePhoneAFriendHint = async (
+    apiKey: string,
+    question: string,
+    options: string[]
+): Promise<PhoneAFriendResponse> => {
+    const ai = new GoogleGenAI({ apiKey });
+    const model = "gemini-3-flash-preview";
+
+    const systemInstruction = `
+You are a helpful friend receiving a phone call on "Who Wants to Be a Millionaire."
+You have 30 seconds to help.
+
+IMPORTANT: Vary your response style randomly. Pick ONE of these approaches:
+1. CONFIDENT: "I'm pretty sure it's [X] because..."
+2. REASONING: "Well, I know that [fact], so it might be..."
+3. ELIMINATION: "I don't think it's [X] or [Y], so maybe..."
+4. UNCERTAIN: "Hmm, this is tricky. My best guess would be..."
+
+RULES:
+- Keep response under 50 words (it's a timed call!)
+- Sound natural, like a real phone conversation
+- Never say "I am an AI" or break character
+- Sometimes be intentionally wrong or uncertain (maybe 15% of the time for realism)
+- Match response style to confidence level randomly
+- You should genuinely reason about the question - DO NOT just pick randomly
+    `;
+
+    const prompt = `
+Question: ${question}
+Options:
+A) ${options[0]}
+B) ${options[1]}
+C) ${options[2]}
+D) ${options[3]}
+
+Provide your phone-a-friend response.
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model,
+            contents: prompt,
+            config: {
+                systemInstruction,
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        confidence: { type: Type.STRING, enum: ['high', 'medium', 'low'] },
+                        response: { type: Type.STRING, description: "Natural phone conversation response, under 50 words" }
+                    },
+                    required: ['confidence', 'response']
+                }
+            }
+        });
+
+        return JSON.parse(response.text || '{"confidence":"low","response":"Sorry, I\'m not sure on this one."}');
+    } catch (e) {
+        return { confidence: 'low', response: "The connection cut out! I couldn't hear the question properly." };
     }
 };
