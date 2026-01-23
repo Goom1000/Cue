@@ -293,7 +293,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
       case 'quick-quiz':
         return { ...base, gameType: 'quick-quiz', isAnswerRevealed: false };
       case 'millionaire':
-        return { ...base, gameType: 'millionaire', selectedOption: null, lifelines: { fiftyFifty: true, phoneAFriend: true, askTheAudience: true }, prizeLadder: [], currentPrize: 0 };
+        return { ...base, gameType: 'millionaire', selectedOption: null, lifelines: { fiftyFifty: true, phoneAFriend: true, askTheAudience: true }, prizeLadder: [], currentPrize: 0, eliminatedOptions: [], audiencePoll: null, phoneHint: null, safeHavenAmount: 0, questionCount: 5 };
       case 'the-chase':
         return { ...base, gameType: 'the-chase', chaserPosition: 0, contestantPosition: 0, isChasing: false };
       case 'beat-the-chaser':

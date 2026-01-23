@@ -31,6 +31,9 @@ export interface PresentationState {
 // Game type union - all supported game formats
 export type GameType = 'quick-quiz' | 'millionaire' | 'the-chase' | 'beat-the-chaser';
 
+// Game difficulty presets for AI question generation
+export type GameDifficulty = 'easy' | 'medium' | 'hard';
+
 // Game status state machine
 export type GameStatus = 'loading' | 'splash' | 'playing' | 'reveal' | 'result';
 
