@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 ## Current Position
 
 Phase: 24 of 26 (Beat the Chaser)
-Plan: 2 of 4 complete
+Plan: 3 of 4 complete
 Status: In progress
-Last activity: 2026-01-23 - Completed 24-02-PLAN.md (Cash Builder phase)
+Last activity: 2026-01-23 - Completed 24-03-PLAN.md (Timed Battle phase)
 
 Progress: █████░░░░░░░░░░░░░░░░ 25% (v3.0 Quiz Game Variety)
 
@@ -28,13 +28,13 @@ Progress: █████░░░░░░░░░░░░░░░░ 25% (v
 - v2.3: 4 plans, 2 days
 - v2.4: 9 plans, 2 days
 - v2.5: 2 plans, 1 day
-- v3.0: Phase 20 complete (3 plans, 43min), Phase 21 complete (4 plans, 15min), Phase 22 complete (4 plans: 01=4min, 02=2min, 03=4min, 04=2min), Phase 23 complete (01=2min, 02=2min, 03=1min, 04=1.5min, 05=2.9min, 06=2min, 07=3.8min, 08=2min), Phase 24 in progress (01=3min, 02=1min)
+- v3.0: Phase 20 complete (3 plans, 43min), Phase 21 complete (4 plans, 15min), Phase 22 complete (4 plans: 01=4min, 02=2min, 03=4min, 04=2min), Phase 23 complete (01=2min, 02=2min, 03=1min, 04=1.5min, 05=2.9min, 06=2min, 07=3.8min, 08=2min), Phase 24 in progress (01=3min, 02=1min, 03=2min)
 
 **Project Totals:**
 - Milestones shipped: 9 (v1.0, v1.1, v1.2, v2.0, v2.1, v2.2, v2.3, v2.4, v2.5)
 - Total phases: 23 completed (phase 24 in progress)
-- Total plans: 95 complete
-- Total LOC: ~13,210 TypeScript
+- Total plans: 96 complete
+- Total LOC: ~13,625 TypeScript
 
 ## Completed Milestones
 
@@ -193,6 +193,13 @@ v3.0 key decisions:
 - No countdown timer - phase ends after 10 questions exhausted
 - Progress dots show full answer history (green=correct, red=incorrect, blue=current)
 
+24-03 decisions (Timed Battle phase):
+- Turn-based mechanics: contestant answers first, then chaser on same question (sequential play)
+- Only active player's timer counts down - timers pause during answer feedback
+- Catch-up mechanic: +5s added to contestant timer when chaser answers incorrectly (capped at 120s)
+- Instant loss: Timer reaching 0 immediately triggers game over for that player
+- End condition: Timer expiry OR questions exhausted (winner = most time remaining)
+
 All decisions logged in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -205,11 +212,11 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-23 16:43:57 UTC
-Stopped at: Completed 24-02-PLAN.md (Cash Builder phase)
+Last session: 2026-01-23 16:45:44 UTC
+Stopped at: Completed 24-03-PLAN.md (Timed Battle phase)
 Resume file: None
-Next: 24-03-PLAN.md (Timed Battle phase)
+Next: 24-04-PLAN.md (Result Screen)
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-23 - Phase 24 plan 02 complete (Cash Builder phase)*
+*Last updated: 2026-01-23 - Phase 24 plan 03 complete (Timed Battle phase)*
