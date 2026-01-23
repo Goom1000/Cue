@@ -351,19 +351,16 @@ const TheChaseStudentView: React.FC<{ state: TheChaseState }> = ({ state }) => {
   if (state.phase === 'cash-builder') {
     return (
       <div className="h-screen w-screen bg-gradient-to-br from-red-900 via-slate-900 to-slate-800 flex flex-col items-center justify-center p-6 font-poppins text-white">
+        <PhaseBanner phase="Cash Builder" />
+
         {/* Timer and Score */}
         <div className="flex gap-8 mb-8">
+          <UrgentTimer seconds={state.cashBuilderTimeRemaining} label="Time Remaining" />
           <div className="text-center">
-            <div className={`text-6xl font-bold ${state.cashBuilderTimeRemaining <= 10 ? 'text-red-500 animate-pulse' : 'text-white'}`}>
-              {state.cashBuilderTimeRemaining}s
-            </div>
-            <div className="text-slate-400 text-sm uppercase tracking-wider">Time Remaining</div>
-          </div>
-          <div className="text-center">
-            <div className="text-6xl font-bold text-amber-400">
+            <div className="text-sm text-slate-400 uppercase tracking-wider mb-2">Prize Pot</div>
+            <div className="text-7xl md:text-8xl font-black text-amber-400">
               ${state.cashBuilderScore.toLocaleString()}
             </div>
-            <div className="text-slate-400 text-sm uppercase tracking-wider">Prize Pot</div>
           </div>
         </div>
 
@@ -451,8 +448,18 @@ const TheChaseStudentView: React.FC<{ state: TheChaseState }> = ({ state }) => {
 
   // Head-to-Head phase - show game board with positions
   if (state.phase === 'head-to-head') {
+    // Determine turn for banner
+    let turn: 'contestant' | 'chaser' | undefined = 'contestant';
+    if (state.contestantAnswer !== null && !state.currentQuestionAnswered) {
+      turn = 'chaser'; // Contestant answered, showing chaser's turn
+    } else if (state.showChaserAnswer) {
+      turn = 'chaser'; // Chaser's turn to answer
+    }
+
     return (
       <div className="h-screen w-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center gap-12 p-6 font-poppins text-white">
+        <PhaseBanner phase="Head-to-Head" turn={turn} />
+
         {/* Game Board */}
         <GameBoard
           contestantPosition={state.contestantPosition}
@@ -507,38 +514,32 @@ const TheChaseStudentView: React.FC<{ state: TheChaseState }> = ({ state }) => {
 
     return (
       <div className="h-screen w-screen bg-gradient-to-br from-blue-950 via-slate-900 to-red-950 flex flex-col items-center justify-center p-6 font-poppins text-white">
-        {/* Phase indicator */}
-        <div className="mb-8 text-center">
-          <h2 className="text-4xl font-black text-amber-400 uppercase tracking-widest">
-            Final Chase
-          </h2>
-          <p className="text-xl text-slate-400 mt-2">
-            {isContestantPhase ? 'Contestant Round' : 'Chaser Round'}
-          </p>
-        </div>
+        <PhaseBanner phase="Final Chase" turn={isContestantPhase ? 'contestant' : 'chaser'} />
 
         {/* Scores and Timers */}
         <div className="flex gap-12 mb-8">
           {/* Contestant */}
           <div className={`text-center p-6 rounded-2xl ${isContestantPhase ? 'bg-blue-900/50 border-2 border-blue-500' : 'bg-slate-800/30'}`}>
-            <div className="text-6xl font-bold text-blue-400">
+            <div className="text-6xl font-bold text-blue-400 mb-4">
               {state.finalChaseContestantScore}
             </div>
-            <div className="text-slate-400 text-sm uppercase tracking-wider mb-4">Contestant</div>
-            <div className={`text-4xl font-bold ${state.finalChaseContestantTime <= 10 && isContestantPhase ? 'text-red-500 animate-pulse' : 'text-white'}`}>
-              {state.finalChaseContestantTime}s
-            </div>
+            <UrgentTimer
+              seconds={state.finalChaseContestantTime}
+              label="Contestant"
+              isActive={isContestantPhase}
+            />
           </div>
 
           {/* Chaser */}
           <div className={`text-center p-6 rounded-2xl ${!isContestantPhase ? 'bg-red-900/50 border-2 border-red-500' : 'bg-slate-800/30'}`}>
-            <div className="text-6xl font-bold text-red-400">
+            <div className="text-6xl font-bold text-red-400 mb-4">
               {state.finalChaseChaserScore}
             </div>
-            <div className="text-slate-400 text-sm uppercase tracking-wider mb-4">Chaser</div>
-            <div className={`text-4xl font-bold ${state.finalChaseChaserTime <= 10 && !isContestantPhase ? 'text-red-500 animate-pulse' : 'text-white'}`}>
-              {state.finalChaseChaserTime}s
-            </div>
+            <UrgentTimer
+              seconds={state.finalChaseChaserTime}
+              label="Chaser"
+              isActive={!isContestantPhase}
+            />
           </div>
         </div>
 
