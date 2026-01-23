@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 ## Current Position
 
 Phase: 26 of 26 (Student View Integration)
-Plan: 1 of 5 complete
+Plan: 2 of 5 complete
 Status: In progress
-Last activity: 2026-01-23 - Completed 26-01-PLAN.md (Visual Enhancement Foundation)
+Last activity: 2026-01-23 - Completed 26-02-PLAN.md (Chase Student View Enhancement)
 
-Progress: ██████████████████░░░ 87% (v3.0 Quiz Game Variety)
+Progress: ██████████████████░░░ 88% (v3.0 Quiz Game Variety)
 
 ## Performance Metrics
 
@@ -28,12 +28,12 @@ Progress: ██████████████████░░░ 87% (v
 - v2.3: 4 plans, 2 days
 - v2.4: 9 plans, 2 days
 - v2.5: 2 plans, 1 day
-- v3.0: Phase 20 complete (3 plans, 43min), Phase 21 complete (4 plans, 15min), Phase 22 complete (4 plans: 01=4min, 02=2min, 03=4min, 04=2min), Phase 23 complete (01=2min, 02=2min, 03=1min, 04=1.5min, 05=2.9min, 06=2min, 07=3.8min, 08=2min), Phase 24 complete (01=3min, 02=1min, 03=2min, 04=2min, 05=2min), Phase 25 complete (01=1.5min, 02=1min, 03=1min, 04=2min, 05=4min), Phase 26 in progress (01=2min)
+- v3.0: Phase 20 complete (3 plans, 43min), Phase 21 complete (4 plans, 15min), Phase 22 complete (4 plans: 01=4min, 02=2min, 03=4min, 04=2min), Phase 23 complete (01=2min, 02=2min, 03=1min, 04=1.5min, 05=2.9min, 06=2min, 07=3.8min, 08=2min), Phase 24 complete (01=3min, 02=1min, 03=2min, 04=2min, 05=2min), Phase 25 complete (01=1.5min, 02=1min, 03=1min, 04=2min, 05=4min), Phase 26 in progress (01=2min, 02=2min)
 
 **Project Totals:**
 - Milestones shipped: 9 (v1.0, v1.1, v1.2, v2.0, v2.1, v2.2, v2.3, v2.4, v2.5)
 - Total phases: 25 completed
-- Total plans: 108 complete
+- Total plans: 109 complete
 - Total LOC: ~14,000 TypeScript
 
 ## Completed Milestones
@@ -251,6 +251,13 @@ v3.0 key decisions:
 - Score animations track previous values via useRef to detect changes without prop comparisons
 - Animation duration 200ms for score pulse (scale-125 + text-amber-400)
 
+26-02 decisions (Chase student view enhancement):
+- PhaseBanner uses fixed top positioning with pointer-events-none for always-visible non-intrusive overlay
+- UrgentTimer formats as M:SS with text-7xl/8xl size for classroom visibility from back of room
+- Screen glow at <=10 seconds with isActive check prevents dual glows in Final Chase
+- Head-to-Head turn logic determines turn from contestantAnswer and showChaserAnswer state
+- Only active timer shows urgency effects (screen glow, pulse, red) in dual-timer Final Chase
+
 All decisions logged in PROJECT.md Key Decisions table.
 
 ### Pending Todos
@@ -263,10 +270,10 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-23 21:39:00 UTC
-Stopped at: Completed 26-01-PLAN.md (Visual Enhancement Foundation)
+Last session: 2026-01-23 21:43:00 UTC
+Stopped at: Completed 26-02-PLAN.md (Chase Student View Enhancement)
 Resume file: None
-Next: Continue Phase 26 - plan 02 (Quick Quiz student view)
+Next: Continue Phase 26 - plan 03 (Quick Quiz student view)
 
 ---
 *State initialized: 2026-01-18*
