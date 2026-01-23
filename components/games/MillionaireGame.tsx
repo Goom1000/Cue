@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { MillionaireState } from '../../types';
 import MoneyTree from './millionaire/MoneyTree';
 import MillionaireQuestion from './millionaire/MillionaireQuestion';
+import LifelinePanel from './millionaire/LifelinePanel';
+import AudiencePollOverlay from './millionaire/AudiencePollOverlay';
+import PhoneAFriendOverlay from './millionaire/PhoneAFriendOverlay';
 import { MONEY_TREE_CONFIGS, getSafeHavenAmount } from './millionaire/millionaireConfig';
 import ResultScreen from './shared/ResultScreen';
 
@@ -13,6 +16,7 @@ interface MillionaireGameProps {
   onNextQuestion?: () => void;
   onUseLifeline?: (lifeline: 'fiftyFifty' | 'askTheAudience' | 'phoneAFriend') => void;
   onRestart?: () => void;
+  isLifelineLoading?: 'phoneAFriend' | null;
 }
 
 const MillionaireGame: React.FC<MillionaireGameProps> = ({
@@ -23,12 +27,15 @@ const MillionaireGame: React.FC<MillionaireGameProps> = ({
   onNextQuestion,
   onUseLifeline,
   onRestart,
+  isLifelineLoading,
 }) => {
   const [revealState, setRevealState] = useState({
     isRevealing: false,
     revealedCount: 0,
     showResult: false,
   });
+  const [showAudiencePoll, setShowAudiencePoll] = useState(false);
+  const [showPhoneHint, setShowPhoneHint] = useState(false);
 
   const currentQuestion = state.questions[state.currentQuestionIndex];
   const config = MONEY_TREE_CONFIGS[state.questionCount];
@@ -63,6 +70,19 @@ const MillionaireGame: React.FC<MillionaireGameProps> = ({
       setRevealState({ isRevealing: false, revealedCount: 0, showResult: false });
     }
   }, [state.status, state.currentQuestionIndex]);
+
+  // Show overlays when state data is set
+  useEffect(() => {
+    if (state.audiencePoll && !showAudiencePoll) {
+      setShowAudiencePoll(true);
+    }
+  }, [state.audiencePoll, showAudiencePoll]);
+
+  useEffect(() => {
+    if (state.phoneHint && !showPhoneHint) {
+      setShowPhoneHint(true);
+    }
+  }, [state.phoneHint, showPhoneHint]);
 
   // Build answeredCorrectly array for MoneyTree
   const answeredCorrectly = new Array(state.questions.length).fill(false);
@@ -134,52 +154,17 @@ const MillionaireGame: React.FC<MillionaireGameProps> = ({
           />
         </div>
 
-        {/* Lifelines (placeholder for Plan 03) */}
-        <div className="bg-slate-900/60 backdrop-blur-sm rounded-2xl p-4 border border-indigo-400/20">
-          <h3 className="text-sm font-bold text-indigo-300 mb-3 text-center uppercase tracking-wider">
+        {/* Lifelines */}
+        <div className="bg-slate-900/60 backdrop-blur-sm rounded-2xl p-6 border border-indigo-400/20">
+          <h3 className="text-sm font-bold text-indigo-300 mb-4 text-center uppercase tracking-wider">
             Lifelines
           </h3>
-          <div className="flex flex-col gap-2">
-            <button
-              disabled={!state.lifelines.fiftyFifty}
-              className={`
-                py-2 px-3 text-sm font-bold rounded-lg transition-colors
-                ${state.lifelines.fiftyFifty
-                  ? 'bg-indigo-600 hover:bg-indigo-500 text-white'
-                  : 'bg-slate-700 text-slate-500 cursor-not-allowed line-through'
-                }
-              `}
-            >
-              50:50
-            </button>
-            <button
-              disabled={!state.lifelines.phoneAFriend}
-              className={`
-                py-2 px-3 text-sm font-bold rounded-lg transition-colors
-                ${state.lifelines.phoneAFriend
-                  ? 'bg-indigo-600 hover:bg-indigo-500 text-white'
-                  : 'bg-slate-700 text-slate-500 cursor-not-allowed line-through'
-                }
-              `}
-            >
-              Phone a Friend
-            </button>
-            <button
-              disabled={!state.lifelines.askTheAudience}
-              className={`
-                py-2 px-3 text-sm font-bold rounded-lg transition-colors
-                ${state.lifelines.askTheAudience
-                  ? 'bg-indigo-600 hover:bg-indigo-500 text-white'
-                  : 'bg-slate-700 text-slate-500 cursor-not-allowed line-through'
-                }
-              `}
-            >
-              Ask the Audience
-            </button>
-          </div>
-          <p className="text-xs text-slate-400 text-center mt-3 italic">
-            Coming in Phase 21 Plan 03
-          </p>
+          <LifelinePanel
+            lifelines={state.lifelines}
+            onUseLifeline={onUseLifeline || (() => {})}
+            disabled={state.status !== 'playing'}
+            isLoading={isLifelineLoading}
+          />
         </div>
       </div>
 
@@ -228,6 +213,22 @@ const MillionaireGame: React.FC<MillionaireGameProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Audience Poll Overlay */}
+      {showAudiencePoll && state.audiencePoll && (
+        <AudiencePollOverlay
+          percentages={state.audiencePoll}
+          onClose={() => setShowAudiencePoll(false)}
+        />
+      )}
+
+      {/* Phone a Friend Overlay */}
+      {showPhoneHint && state.phoneHint && (
+        <PhoneAFriendOverlay
+          hint={state.phoneHint}
+          onClose={() => setShowPhoneHint(false)}
+        />
+      )}
     </div>
   );
 };

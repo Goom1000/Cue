@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Slide, PresentationMessage, BROADCAST_CHANNEL_NAME, GameState, GameType, QuickQuizState, ActiveGameState, MillionaireState, TheChaseState, BeatTheChaserState, GradeLevel, StudentWithGrade } from '../types';
 import Button from './Button';
 import { MarkdownText, SlideContentRenderer } from './SlideRenderers';
-import { QuizQuestion } from '../services/geminiService';
+import { QuizQuestion, generatePhoneAFriendHint } from '../services/geminiService';
 import { AIProviderInterface, AIProviderError } from '../services/aiProvider';
 import useBroadcastSync from '../hooks/useBroadcastSync';
 import useWindowManagement from '../hooks/useWindowManagement';
@@ -109,6 +109,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
   const [pendingGameType, setPendingGameType] = useState<GameType | null>(null);
   const gameWasOpenRef = useRef(false);
   const [showMillionaireSetup, setShowMillionaireSetup] = useState(false);
+  const [lifelineLoading, setLifelineLoading] = useState<'phoneAFriend' | null>(null);
 
   // Question Generation State
   const [quickQuestion, setQuickQuestion] = useState<{
@@ -484,6 +485,103 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
     }
   }, [activeGame]);
 
+  const handleUseLifeline = useCallback(async (lifeline: 'fiftyFifty' | 'askTheAudience' | 'phoneAFriend') => {
+    if (activeGame?.gameType !== 'millionaire') return;
+    const state = activeGame;
+    if (state.status !== 'playing') return;
+
+    // Mark lifeline as used
+    const updatedLifelines = {
+      ...state.lifelines,
+      [lifeline]: false,
+    };
+
+    if (lifeline === 'fiftyFifty') {
+      // Randomly eliminate 2 of 3 wrong answers
+      const currentQuestion = state.questions[state.currentQuestionIndex];
+      const correctIndex = currentQuestion.correctAnswerIndex;
+      const wrongIndices = [0, 1, 2, 3].filter(i => i !== correctIndex);
+      const shuffled = wrongIndices.sort(() => Math.random() - 0.5);
+      const eliminated = [shuffled[0], shuffled[1]];
+
+      setActiveGame({
+        ...state,
+        lifelines: updatedLifelines,
+        eliminatedOptions: eliminated,
+      });
+
+    } else if (lifeline === 'askTheAudience') {
+      // Generate difficulty-based poll percentages
+      const currentQuestion = state.questions[state.currentQuestionIndex];
+      const correctIndex = currentQuestion.correctAnswerIndex;
+      const questionProgress = state.currentQuestionIndex / state.questions.length;
+
+      // Later questions = harder = more scattered votes
+      const difficulty = questionProgress < 0.3 ? 'easy' : questionProgress < 0.7 ? 'medium' : 'hard';
+
+      const correctRange = difficulty === 'easy' ? [60, 80]
+        : difficulty === 'medium' ? [40, 55]
+        : [25, 35];
+
+      const correctPercent = Math.floor(
+        Math.random() * (correctRange[1] - correctRange[0]) + correctRange[0]
+      );
+      let remaining = 100 - correctPercent;
+
+      // Distribute remaining among wrong answers
+      const wrongIndices = [0, 1, 2, 3].filter(i => i !== correctIndex);
+      const percentages: [number, number, number, number] = [0, 0, 0, 0];
+      percentages[correctIndex] = correctPercent;
+
+      wrongIndices.forEach((idx, i) => {
+        if (i === wrongIndices.length - 1) {
+          percentages[idx] = remaining;
+        } else {
+          const portion = Math.floor(Math.random() * remaining * 0.6);
+          percentages[idx] = portion;
+          remaining -= portion;
+        }
+      });
+
+      setActiveGame({
+        ...state,
+        lifelines: updatedLifelines,
+        audiencePoll: percentages,
+      });
+
+    } else if (lifeline === 'phoneAFriend') {
+      if (!provider) return;
+
+      // Set loading state
+      setActiveGame({
+        ...state,
+        lifelines: updatedLifelines,
+      });
+      setLifelineLoading('phoneAFriend');
+
+      const currentQuestion = state.questions[state.currentQuestionIndex];
+      try {
+        const hint = await generatePhoneAFriendHint(
+          provider.apiKey,
+          currentQuestion.question,
+          currentQuestion.options
+        );
+
+        setActiveGame(prev => {
+          if (prev?.gameType !== 'millionaire') return prev;
+          return { ...prev, phoneHint: hint };
+        });
+      } catch (e) {
+        setActiveGame(prev => {
+          if (prev?.gameType !== 'millionaire') return prev;
+          return { ...prev, phoneHint: { confidence: 'low', response: "The line went dead! Try another lifeline." } };
+        });
+      } finally {
+        setLifelineLoading(null);
+      }
+    }
+  }, [activeGame, provider]);
+
   const handleGenerateQuestion = async (level: 'A' | 'B' | 'C' | 'D' | 'E', studentName?: string) => {
       if (!provider) {
           onRequestAI(`generate a Grade ${level} question`);
@@ -807,6 +905,8 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
               onMillionaireSelectOption={handleMillionaireSelectOption}
               onMillionaireLockIn={handleMillionaireLockIn}
               onMillionaireNext={handleMillionaireNext}
+              onMillionaireUseLifeline={handleUseLifeline}
+              isLifelineLoading={lifelineLoading}
             />
           </div>,
           document.body

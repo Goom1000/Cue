@@ -16,6 +16,8 @@ interface GameContainerProps {
   onMillionaireSelectOption?: (idx: number) => void;
   onMillionaireLockIn?: () => void;
   onMillionaireNext?: () => void;
+  onMillionaireUseLifeline?: (lifeline: 'fiftyFifty' | 'askTheAudience' | 'phoneAFriend') => void;
+  isLifelineLoading?: 'phoneAFriend' | null;
 }
 
 /**
@@ -31,6 +33,8 @@ const GameContainer: React.FC<GameContainerProps> = ({
   onMillionaireSelectOption,
   onMillionaireLockIn,
   onMillionaireNext,
+  onMillionaireUseLifeline,
+  isLifelineLoading,
 }) => {
   // Show splash screen during loading
   if (state.status === 'loading' || state.status === 'splash') {
@@ -77,6 +81,8 @@ const GameContainer: React.FC<GameContainerProps> = ({
           onLockIn={onMillionaireLockIn}
           onNextQuestion={onMillionaireNext}
           onRestart={onRestart}
+          onUseLifeline={onMillionaireUseLifeline}
+          isLifelineLoading={isLifelineLoading}
         />
       );
 
