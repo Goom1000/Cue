@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MillionaireState } from '../../types';
 import MoneyTree from './millionaire/MoneyTree';
 import MillionaireQuestion from './millionaire/MillionaireQuestion';
@@ -39,6 +39,8 @@ const MillionaireGame: React.FC<MillionaireGameProps> = ({
   });
   const [showAudiencePoll, setShowAudiencePoll] = useState(false);
   const [showPhoneHint, setShowPhoneHint] = useState(false);
+  const shownAudiencePollRef = useRef(false);
+  const shownPhoneHintRef = useRef(false);
   const [soundEnabled, setSoundEnabled] = useState(false); // OFF by default per CONTEXT.md
   const [showSafeHaven, setShowSafeHaven] = useState(false);
   const [showWrongAnswer, setShowWrongAnswer] = useState(false);
@@ -79,18 +81,20 @@ const MillionaireGame: React.FC<MillionaireGameProps> = ({
     }
   }, [state.status, state.currentQuestionIndex]);
 
-  // Show overlays when state data is set
+  // Show overlays when state data is set (only once per lifeline use)
   useEffect(() => {
-    if (state.audiencePoll && !showAudiencePoll) {
+    if (state.audiencePoll && !shownAudiencePollRef.current) {
+      shownAudiencePollRef.current = true;
       setShowAudiencePoll(true);
     }
-  }, [state.audiencePoll, showAudiencePoll]);
+  }, [state.audiencePoll]);
 
   useEffect(() => {
-    if (state.phoneHint && !showPhoneHint) {
+    if (state.phoneHint && !shownPhoneHintRef.current) {
+      shownPhoneHintRef.current = true;
       setShowPhoneHint(true);
     }
-  }, [state.phoneHint, showPhoneHint]);
+  }, [state.phoneHint]);
 
   // Trigger safe haven celebration when reaching a safe haven position
   useEffect(() => {
