@@ -105,14 +105,17 @@ const TimedBattlePhase: React.FC<TimedBattlePhaseProps> = ({
     // Handle chaser's turn (AI or manual)
     if (isAIControlled) {
       const chaserIdx = await getChaserAnswer(currentQuestion);
-      handleChaserAnswer(chaserIdx);
+      handleChaserAnswer(chaserIdx, true); // Skip phase check since we just set it
     }
     // If manual control, wait for teacher to click answer
   }, [turnPhase, gameEnded, currentQuestion, contestantTimer, chaserTimer, isAIControlled, getChaserAnswer]);
 
   // Handle chaser answer
-  const handleChaserAnswer = useCallback(async (selectedIndex: number) => {
-    if (turnPhase !== 'chaser-thinking' || gameEnded) return;
+  // Note: skipPhaseCheck is used when called directly from handleContestantAnswer
+  // because React state updates are async and turnPhase may not have updated yet
+  const handleChaserAnswer = useCallback(async (selectedIndex: number, skipPhaseCheck = false) => {
+    if (!skipPhaseCheck && turnPhase !== 'chaser-thinking') return;
+    if (gameEnded) return;
 
     chaserTimer.pause();
     setChaserAnswer(selectedIndex);

@@ -65,6 +65,35 @@ export function buildSlideContext(slides: Slide[], currentIndex: number): SlideC
   };
 }
 
+/**
+ * Shuffle quiz question options so correct answer isn't always "A".
+ * Uses Fisher-Yates shuffle and updates correctAnswerIndex accordingly.
+ */
+export function shuffleQuestionOptions(questions: QuizQuestion[]): QuizQuestion[] {
+  return questions.map(q => {
+    // Create array of indices [0, 1, 2, 3]
+    const indices = q.options.map((_, i) => i);
+
+    // Fisher-Yates shuffle
+    for (let i = indices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+
+    // Reorder options according to shuffled indices
+    const shuffledOptions = indices.map(i => q.options[i]);
+
+    // Find new position of correct answer
+    const newCorrectIndex = indices.indexOf(q.correctAnswerIndex);
+
+    return {
+      ...q,
+      options: shuffledOptions,
+      correctAnswerIndex: newCorrectIndex
+    };
+  });
+}
+
 // Helper for auto-retry with exponential backoff
 export async function withRetry<T>(
   operation: () => Promise<T>,

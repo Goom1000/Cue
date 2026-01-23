@@ -1,4 +1,4 @@
-import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP } from '../aiProvider';
+import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions } from '../aiProvider';
 import { Slide, LessonResource } from '../../types';
 import { QuizQuestion, QuestionWithAnswer } from '../geminiService';
 
@@ -752,7 +752,8 @@ Key points: ${request.slideContext.currentSlideContent.join('; ')}`;
       // Extract from tool_use response
       const toolUse = data.content?.find((block: any) => block.type === 'tool_use');
       if (toolUse?.input?.questions) {
-        return toolUse.input.questions;
+        // Shuffle options so correct answer isn't always "A"
+        return shuffleQuestionOptions(toolUse.input.questions);
       }
 
       // Fallback: try to extract from text if tool_use failed
@@ -761,7 +762,9 @@ Key points: ${request.slideContext.currentSlideContent.join('; ')}`;
         try {
           const jsonMatch = textBlock.text.match(/\[[\s\S]*\]/);
           if (jsonMatch) {
-            return JSON.parse(jsonMatch[0]);
+            const questions = JSON.parse(jsonMatch[0]);
+            // Shuffle options so correct answer isn't always "A"
+            return shuffleQuestionOptions(questions);
           }
         } catch {
           // Fall through to empty array

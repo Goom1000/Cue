@@ -1,7 +1,7 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 import { Slide, LessonResource } from "../types";
-import { GenerationInput, GenerationMode, AIProviderError, USER_ERROR_MESSAGES, GameQuestionRequest, SlideContext, BLOOM_DIFFICULTY_MAP } from './aiProvider';
+import { GenerationInput, GenerationMode, AIProviderError, USER_ERROR_MESSAGES, GameQuestionRequest, SlideContext, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions } from './aiProvider';
 
 // Shared teleprompter rules used across all generation modes
 const TELEPROMPTER_RULES = `
@@ -808,7 +808,9 @@ Key points: ${request.slideContext.currentSlideContent.join('; ')}
       }
     });
 
-    return JSON.parse(response.text || "[]");
+    const questions = JSON.parse(response.text || "[]");
+    // Shuffle options so correct answer isn't always "A"
+    return shuffleQuestionOptions(questions);
   } catch (error) {
     console.error("Game Question Gen Error", error);
     return [];
