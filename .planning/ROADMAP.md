@@ -15,8 +15,8 @@ Add a three-level verbosity toggle to the teleprompter panel, allowing teachers 
 **Plans:** 2 plans
 
 Plans:
-- [ ] 27-01-PLAN.md — Add verbosity-aware teleprompter regeneration to AI service layer
-- [ ] 27-02-PLAN.md — Add verbosity selector UI to teleprompter panel
+- [x] 27-01-PLAN.md — Add verbosity-aware teleprompter regeneration to AI service layer
+- [x] 27-02-PLAN.md — Add verbosity selector UI to teleprompter panel
 
 **Requirements:**
 - VERB-01: Teacher can see three verbosity levels (Concise / Standard / Detailed) in teleprompter panel
@@ -61,11 +61,11 @@ Plans:
 
 | Phase | Name | Status | Plans |
 |-------|------|--------|-------|
-| 27 | Verbosity UI & Generation | Planned | 0/2 |
+| 27 | Verbosity UI & Generation | ✓ Complete | 2/2 |
 | 28 | Caching & Backward Compatibility | Pending | 0/? |
 
-**Milestone Progress:** 0/2 phases complete
+**Milestone Progress:** 1/2 phases complete
 
 ---
 *Roadmap created: 2026-01-24*
-*Last updated: 2026-01-24*
+*Last updated: 2026-01-24 — Phase 27 complete*
