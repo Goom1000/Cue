@@ -1,7 +1,10 @@
 import { Slide, LessonResource, AIProvider, GameType, GameDifficulty } from '../types';
-import { QuizQuestion, QuestionWithAnswer } from './geminiService';
+import { QuizQuestion, QuestionWithAnswer, VerbosityLevel } from './geminiService';
 import { GeminiProvider } from './providers/geminiProvider';
 import { ClaudeProvider } from './providers/claudeProvider';
+
+// Re-export VerbosityLevel for consumers
+export type { VerbosityLevel } from './geminiService';
 
 // Generation mode types for multi-source slide generation
 export type GenerationMode = 'fresh' | 'refine' | 'blend';
@@ -200,6 +203,11 @@ export interface AIProviderInterface {
   generateGameQuestions(
     request: GameQuestionRequest
   ): Promise<QuizQuestion[]>;
+  // Regenerate teleprompter script at specified verbosity level
+  regenerateTeleprompter(
+    slide: Slide,
+    verbosity: VerbosityLevel
+  ): Promise<string>;
 }
 
 // Factory function to create the appropriate provider instance

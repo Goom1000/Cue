@@ -1,4 +1,4 @@
-import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions } from '../aiProvider';
+import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, VerbosityLevel } from '../aiProvider';
 import { Slide, LessonResource } from '../../types';
 import { QuizQuestion, QuestionWithAnswer } from '../geminiService';
 
@@ -22,6 +22,45 @@ The speaker notes must use "pointing_right" as a delimiter.
 - Segment 1 (for Bullet 1): Elaborate on Bullet 1.
 - Segment 2 (for Bullet 2): Elaborate on Bullet 2 (Do not repeat Segment 1).
 - The number of "pointing_right" segments MUST be exactly (Number of Bullets + 1).
+`.replace(/pointing_right/g, '\u{1F449}');
+
+const TELEPROMPTER_RULES_CONCISE = `
+CONCISE SPEAKER NOTES (BULLET-POINT STYLE):
+The teacher wants MINIMAL guidance - just key prompts to jog memory.
+
+RULES:
+- Output 2-3 short phrases per segment (not full sentences)
+- Use comma-separated points, not prose
+- Focus on: key term, quick example, one action
+- NO transitions, NO elaborate explanations
+
+FORMATTING:
+Use "pointing_right" as delimiter. Segments = Bullets + 1.
+- Segment 0: One-liner setup (5-8 words)
+- Segment N: 2-3 comma-separated prompts
+
+EXAMPLE OUTPUT:
+"Quick review of fractions pointing_right denominator = parts total, numerator = parts we have pointing_right example: 3/4 pizza, draw on board pointing_right check: ask which is bigger, 1/2 or 1/4"
+`.replace(/pointing_right/g, '\u{1F449}');
+
+const TELEPROMPTER_RULES_DETAILED = `
+DETAILED SPEAKER NOTES (SCRIPT STYLE):
+The teacher wants a FULL SCRIPT they can read verbatim for confident delivery.
+
+RULES:
+- Write complete sentences in conversational tone
+- Include transition phrases: "Now let's look at...", "As you can see...", "So what does this mean?"
+- Add prompts for student interaction: "[PAUSE for questions]", "[Wait for responses]"
+- Include teacher actions: "[Point to diagram]", "[Write on board]"
+- Each segment should be 3-5 sentences
+
+FORMATTING:
+Use "pointing_right" as delimiter. Segments = Bullets + 1.
+- Segment 0: Full introduction with hook and preview
+- Segment N: Complete teaching script with examples and checks
+
+EXAMPLE OUTPUT:
+"Alright everyone, today we're going to explore something really interesting - fractions! [PAUSE] Has anyone ever shared a pizza with friends? That's exactly what fractions help us understand. pointing_right So when we look at this first point, the denominator - that's the number on the bottom - tells us how many equal parts we've divided something into. Think of it like cutting a cake into slices. If we cut it into 4 pieces, our denominator is 4. [Point to example on board] Does that make sense so far? pointing_right ..."
 `.replace(/pointing_right/g, '\u{1F449}');
 
 // JSON output format instructions shared across all modes
@@ -782,6 +821,31 @@ Key points: ${request.slideContext.currentSlideContent.join('; ')}`;
         error
       );
     }
+  }
+
+  async regenerateTeleprompter(slide: Slide, verbosity: VerbosityLevel): Promise<string> {
+    const rules = verbosity === 'concise'
+        ? TELEPROMPTER_RULES_CONCISE
+        : verbosity === 'detailed'
+        ? TELEPROMPTER_RULES_DETAILED
+        : TELEPROMPTER_RULES; // standard
+
+    const systemPrompt = `
+You are regenerating teleprompter notes for an existing slide.
+The slide has ${slide.content.length} bullet points.
+
+${rules}
+
+CRITICAL: Output ONLY the speaker notes text as plain text. No JSON, no markdown code blocks, no explanations.
+`;
+
+    const messages: ClaudeMessage[] = [{
+        role: 'user',
+        content: `Slide Title: ${slide.title}\nSlide Content:\n${slide.content.map((b, i) => `${i + 1}. ${b}`).join('\n')}\n\nGenerate speaker notes in ${verbosity} style.`
+    }];
+
+    const response = await callClaude(this.apiKey, messages, systemPrompt, 2048);
+    return response.trim();
   }
 
   /**
