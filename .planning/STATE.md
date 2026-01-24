@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-24)
 
 ## Current Position
 
-Phase: 27 - Verbosity UI & Generation
-Plan: 2 of 2 (Verbosity UI Components)
+Phase: 28 - Caching & Backward Compatibility
+Plan: 1 of 1 (Verbosity Caching)
 Status: Phase complete
-Last activity: 2026-01-24 — Completed 27-02-PLAN.md
+Last activity: 2026-01-24 — Completed 28-01-PLAN.md
 
-Progress: ██░░░░░░░░░░░░░░░░░░░░░░░░░░ 2/84 (2%)
+Progress: ███░░░░░░░░░░░░░░░░░░░░░░░░░ 3/84 (4%)
 
 ## Performance Metrics
 
@@ -32,8 +32,8 @@ Progress: ██░░░░░░░░░░░░░░░░░░░░░�
 
 **Project Totals:**
 - Milestones shipped: 10 (v1.0, v1.1, v1.2, v2.0, v2.1, v2.2, v2.3, v2.4, v2.5, v3.0)
-- Total phases: 27 completed
-- Total plans: 85 complete
+- Total phases: 28 completed
+- Total plans: 86 complete
 - Total LOC: ~15,000 TypeScript
 
 ## Completed Milestones
@@ -69,6 +69,12 @@ v3.1 Phase 27 (Verbosity UI & Generation):
 - Standard is default and resets automatically on slide change
 - Non-standard buttons disabled when AI provider unavailable
 
+v3.1 Phase 28 (Caching & Backward Compatibility):
+- Cache only concise/detailed (standard uses speakerNotes directly)
+- Clear cache when content or title changes (invalidation strategy)
+- Maintain verbosity selection during slide navigation
+- File format v2 with optional verbosityCache field (no migration logic needed)
+
 ### Pending Todos
 
 Check `.planning/todos/pending/` for ideas captured during development.
@@ -80,10 +86,10 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-24
-Stopped at: Completed 27-02-PLAN.md (Verbosity UI Components) - Phase 27 complete
+Stopped at: Completed 28-01-PLAN.md (Verbosity Caching) - Phase 28 complete
 Resume file: None
-Next: Phase 28 (per ROADMAP.md)
+Next: v3.1 complete (Phases 27-28), check ROADMAP.md for next milestone
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-24 - Phase 27 complete (2 plans)*
+*Last updated: 2026-01-24 - Phase 28 complete (1 plan)*
