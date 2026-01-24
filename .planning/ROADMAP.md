@@ -43,10 +43,10 @@ Plans:
   2. Regenerated script respects current verbosity level (Concise/Standard/Detailed)
   3. Regeneration uses surrounding slides for context coherence
   4. Cache updates without losing existing verbosity levels
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 29-01: [TBD during phase planning]
+- [ ] 29-01: Extend AI provider signature and add Regen button UI
 
 #### Phase 30: Elaborate Slide Insertion
 **Goal**: Teachers can insert AI-generated depth content expanding on current slide
@@ -101,7 +101,7 @@ Phases execute in numeric order: 29 → 30 → 31 → 32
 |-------|----------------|--------|-----------|
 | 27. Verbosity UI | 1/1 | Complete | 2026-01-24 |
 | 28. Caching | 1/1 | Complete | 2026-01-25 |
-| 29. Single Regeneration | 0/? | Not started | - |
+| 29. Single Regeneration | 0/1 | Planned | - |
 | 30. Elaborate Slides | 0/? | Not started | - |
 | 31. Work Together Slides | 0/? | Not started | - |
 | 32. Class Challenge Slides | 0/? | Not started | - |
