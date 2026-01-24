@@ -1,800 +1,1275 @@
-# Domain Pitfalls: Browser Permission Request UX
+# Domain Pitfalls: Adding Pedagogical Slide Types to Cue
 
-**Domain:** Browser permission request UX for Window Management API
-**Project:** PiPi v1.2 - Permission Flow Fix
-**Researched:** 2026-01-18
-**Confidence:** HIGH (verified against MDN, Chrome DevDocs, W3C, and web.dev best practices)
+**Domain:** AI-generated contextual slides, live interactive features, partial content regeneration
+**Project:** Cue v3.2 - Pedagogical Slide Types
+**Researched:** 2026-01-25
+**Confidence:** HIGH (based on existing Cue architecture analysis, verbosity caching patterns, BroadcastChannel implementation, and 2026 web research)
 
 ---
 
 ## Executive Summary
 
-This research identifies pitfalls specific to browser permission request UX, with focus on the Window Management API and classroom/SmartBoard environments. The four issues identified in PiPi (race condition, visibility, feedback, recovery) are common patterns with well-documented solutions.
+This research identifies pitfalls specific to adding four new features to Cue's existing 17,000 LOC presentation system:
+1. **Elaborate slides** - AI-generated contextual expansion slides
+2. **Work Together slides** - AI-generated collaborative activity slides
+3. **Class Challenge slides** - Live interactive slides capturing student contributions
+4. **Single teleprompter regenerate** - Partial content regeneration for manually-edited slides
 
-**Key insight:** Chrome data shows 77% of permission prompts shown without user interaction result in only 12% acceptance. With user interaction, acceptance rises to 30%. Timing is critical.
+**Critical insight:** All four features integrate with existing systems (AI generation, BroadcastChannel sync, slide state management, caching). Integration complexity is higher than greenfield development. The verbosity caching system (v3.1) provides a successful pattern to follow, but also reveals pitfalls around cache invalidation and state synchronization.
 
 ---
 
 ## Critical Pitfalls
 
-Mistakes that cause the permission flow to fail or leave users unable to use the feature.
+Mistakes that cause data loss, broken presentations, or require architectural rewrites.
 
 ---
 
-### Pitfall 1: Permission Check Race Condition on Initial Render
+### Pitfall 1: Cache Invalidation on Manual Edit Creates Orphaned Data
 
 **What goes wrong:**
-Permission status check completes AFTER the initial React render. The UI renders with stale state (assuming "prompt" or unknown), then the async permission check returns, but by then:
-- The component has already rendered without the permission-aware UI
-- State updates trigger a re-render, but the permission priming UI moment is lost
-- User sees a flash of incorrect UI or nothing at all
+When adding "single teleprompter regenerate" to slides that were manually edited, the cache invalidation logic conflicts with manual overrides:
 
-**Your current code vulnerability:**
 ```typescript
-// Likely pattern in Dashboard.tsx
-useEffect(() => {
-  // This runs AFTER first render
-  navigator.permissions.query({ name: 'window-management' })
-    .then(status => setPermissionState(status.state));
-}, []);
+// Current v3.1 cache invalidation (App.tsx:321-334)
+const contentChanged = updates.content !== undefined || updates.title !== undefined;
+const isOnlyCacheUpdate = Object.keys(updates).length === 1 && updates.verbosityCache !== undefined;
 
-// First render: permissionState is undefined/null
-// Second render: permissionState is 'prompt'|'granted'|'denied'
-// But user already saw the first render!
+return {
+  ...s,
+  ...updates,
+  verbosityCache: contentChanged && !isOnlyCacheUpdate
+    ? undefined  // CLEARS entire cache
+    : (updates.verbosityCache ?? s.verbosityCache),
+};
 ```
 
+**The trap with single regenerate:**
+1. Teacher manually edits slide content
+2. Cache gets cleared (verbosityCache becomes undefined)
+3. Teacher clicks "Regenerate Teleprompter" button
+4. AI generates new teleprompter based on manually-edited content
+5. Where does this new teleprompter go? speakerNotes or verbosityCache.standard?
+6. If speakerNotes: next verbosity switch regenerates from scratch (loses manual context)
+7. If verbosityCache.standard: contradicts current pattern (standard = speakerNotes)
+
 **Why it happens:**
-- `useEffect` runs after paint, not before
-- `navigator.permissions.query()` is async
-- React's default behavior is to render immediately, update later
-- No loading state means stale UI is shown
+- v3.1 assumed speakerNotes is immutable (original AI generation)
+- v3.1 cache pattern: standard = speakerNotes, cache only concise/detailed
+- Single regenerate breaks this assumption (speakerNotes becomes mutable)
+- No concept of "manual override flag" vs "AI-generated flag"
 
 **Consequences:**
-- Permission priming UI never appears (user sees launch button immediately)
-- "Auto-Place on Projector" popup appears after user has already mentally moved on
-- Teachers miss the permission opportunity entirely
-- Feature appears broken ("it used to work, now it doesn't")
+- Regenerated teleprompter disappears on next content edit
+- Verbosity switching produces inconsistent results
+- Teacher loses AI-regenerated work after manual edits
+- Cache and source-of-truth diverge
 
-**Warning signs in code review:**
-- Permission check in `useEffect` without loading state
-- No `isLoading` or `isCheckingPermission` state
-- Permission-dependent UI renders before permission state is known
-- Missing dependency array or stale closure issues
+**Warning signs in code:**
+- Reusing verbosityCache for single regenerate without extending the pattern
+- No tracking of which teleprompter source is "canonical"
+- Clearing entire cache on any content change
+- Assumption that speakerNotes is always the "original" version
 
 **Prevention strategy:**
+
+Option A: Extend cache to track manual regeneration
 ```typescript
-// 1. Start with explicit loading state
-const [permissionStatus, setPermissionStatus] = useState<{
-  state: PermissionState | null;
-  isLoading: boolean;
-}>({ state: null, isLoading: true });
-
-// 2. Check permission before first meaningful render
-useEffect(() => {
-  let isMounted = true;
-
-  const checkPermission = async () => {
-    try {
-      const status = await navigator.permissions.query({
-        name: 'window-management' as PermissionName
-      });
-      if (isMounted) {
-        setPermissionStatus({ state: status.state, isLoading: false });
-
-        // Subscribe to changes
-        status.onchange = () => {
-          if (isMounted) {
-            setPermissionStatus({ state: status.state, isLoading: false });
-          }
-        };
-      }
-    } catch (e) {
-      // API not supported (Firefox/Safari)
-      if (isMounted) {
-        setPermissionStatus({ state: null, isLoading: false });
-      }
-    }
+// Add to Slide interface
+interface Slide {
+  // ...existing fields
+  verbosityCache?: {
+    concise?: string;
+    detailed?: string;
+    // NEW: track manually-regenerated standard version
+    standardManual?: string;
   };
+  // NEW: flag which teleprompter is active
+  activeTeleprompterSource?: 'original' | 'manual-regen' | 'verbosity';
+}
 
-  checkPermission();
-  return () => { isMounted = false; };
-}, []);
-
-// 3. Don't render permission-dependent UI until state is known
-if (permissionStatus.isLoading) {
-  return <LoadingState />; // Or skeleton
+// Cache invalidation becomes more nuanced
+if (contentChanged) {
+  // Clear verbosity cache but preserve manual regen flag
+  return {
+    ...s,
+    ...updates,
+    verbosityCache: s.activeTeleprompterSource === 'manual-regen'
+      ? { standardManual: s.verbosityCache?.standardManual } // preserve manual
+      : undefined, // clear all
+    activeTeleprompterSource: undefined, // reset to original
+  };
 }
 ```
 
-**Which requirement should address this:** PERM-01 (Fix permission detection race condition)
-
-**Sources:**
-- [React useEffect documentation](https://react.dev/reference/react/useEffect) - cleanup and race conditions
-- [MDN Permissions.query()](https://developer.mozilla.org/en-US/docs/Web/API/Permissions/query)
-- [Max Rozen: Fixing Race Conditions in React](https://maxrozen.com/race-conditions-fetching-data-react-with-useeffect)
-
----
-
-### Pitfall 2: Chrome Permission Chip is Easy to Miss
-
-**What goes wrong:**
-Chrome's permission UI is a small "chip" in the address bar that auto-dismisses after 12 seconds. In a classroom with a teacher focused on their SmartBoard setup, this chip is:
-- Tiny compared to the overall browser window
-- Located away from the user's visual focus (address bar vs. page content)
-- Auto-dismisses while teacher is looking at projector/students
-- Provides no indication that anything important just happened
-
-**Why it happens:**
-Chrome intentionally made permission prompts less intrusive starting in Chrome 98. The goal was to reduce "prompt fatigue" and stop sites from spamming users. But for legitimate use cases like classroom multi-display, this creates problems:
-- The chip collapses to a blocked icon after 4-12 seconds
-- Non-gesture-triggered prompts auto-dismiss even faster
-- Teachers looking at SmartBoard setup miss the address bar entirely
-
-**Chrome's stated rationale:**
-> "The request chip automatically collapses to a blocked icon after a 12-second delay, then disappears entirely—allowing users to ignore requests without forced interaction."
-
-**Consequences:**
-- Teacher never notices permission prompt
-- Permission remains in "prompt" state (not denied, not granted)
-- Auto-placement silently doesn't work
-- Teacher thinks feature is broken
-- Support burden: "Why doesn't auto-placement work?"
-
-**Warning signs in code review:**
-- No custom permission priming UI before browser prompt
-- Relying solely on browser's built-in permission chip
-- No visual indicator on the page that permission is needed
-- No explanation of what the permission enables
-
-**Prevention strategy:**
+Option B: Separate teleprompter state from cache
 ```typescript
-// 1. NEVER rely on browser permission chip alone
-// 2. Show in-page permission priming BEFORE triggering browser prompt
+interface Slide {
+  speakerNotes: string;  // Original AI generation (immutable)
+  verbosityCache?: { concise?: string; detailed?: string };
+  // NEW: separate field for manual overrides
+  manualTeleprompter?: string;
+  teleprompterSource: 'original' | 'manual';  // Which to display
+}
 
-const PermissionPrimer = ({ onAccept, onDecline }) => (
-  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-    <div className="flex items-start gap-3">
-      <MonitorIcon className="w-6 h-6 text-blue-600 mt-0.5" />
-      <div>
-        <h3 className="font-semibold text-blue-900">
-          Enable Auto-Placement on SmartBoard?
-        </h3>
-        <p className="text-sm text-blue-700 mt-1">
-          PiPi can automatically place the student view on your projector
-          or SmartBoard. You'll see a browser prompt in the address bar.
-        </p>
-        <div className="flex gap-2 mt-3">
-          <Button onClick={onAccept} variant="primary" size="sm">
-            Enable Auto-Placement
-          </Button>
-          <Button onClick={onDecline} variant="ghost" size="sm">
-            I'll Position Manually
-          </Button>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-// 3. Draw attention to address bar when browser prompt appears
-const drawAttentionToAddressBar = () => {
-  // Show arrow or highlight pointing to address bar
-  // Pulse animation on page to draw eye up
-};
+// Single regenerate updates manualTeleprompter
+// Content edits clear manualTeleprompter
+// Verbosity switches ignore manualTeleprompter
 ```
 
-**Which requirement should address this:** PERM-02 (Make auto-placement status visible on launch button)
+**Which phase should address this:** Phase 1 (Single Teleprompter Regenerate) - must solve before implementation
 
 **Sources:**
-- [Chrome Developers: Permissions Request Chip](https://developer.chrome.com/blog/permissions-chip)
-- [web.dev: Permissions Best Practices](https://web.dev/articles/permissions-best-practices) - "77% of prompts without user interaction result in only 12% acceptance"
-- [gHacks: Chrome Permission Prompts](https://www.ghacks.net/2022/02/05/google-is-making-permission-prompts-in-chrome-less-annoying/)
+- [React Query Cache Invalidation: Why Your Mutations Work But Your UI Doesn't Update](https://medium.com/@kennediowusu/react-query-cache-invalidation-why-your-mutations-work-but-your-ui-doesnt-update-a1ad23bc7ef1) - cache invalidation strategies
+- [Managing Query Keys for Cache Invalidation](https://www.wisp.blog/blog/managing-query-keys-for-cache-invalidation-in-react-query) - "no built-in way to catch missing invalidations"
 
 ---
 
-### Pitfall 3: No Feedback When Permission Not Granted
+### Pitfall 2: AI Context Awareness Degrades with Slide Insertion
 
 **What goes wrong:**
-Button says "Launch Student" regardless of permission state. User has no idea that:
-- Auto-placement is available but not enabled
-- Permission was denied so feature is degraded
-- Permission is in "prompt" state and can be requested
-- Manual placement is the current mode
+When generating "Elaborate" or "Work Together" slides that should expand on the current slide, the AI lacks sufficient context:
+
+```typescript
+// Current generateExemplarSlide pattern (App.tsx uses this for insertions)
+await provider.generateExemplarSlide(lessonTopic, prevSlide);
+```
+
+**The trap:**
+1. Teacher inserts "Elaborate" slide after slide 5 of 15
+2. AI receives only: lessonTopic (from first slide title) + prevSlide (slide 5 content)
+3. AI doesn't know: slides 1-4 context, slides 6-15 upcoming topics
+4. Generated "Elaborate" slide may:
+   - Repeat content from slides 1-4 (AI didn't see them)
+   - Contradict slides 6-15 (AI doesn't know what's coming)
+   - Miss connections between current topic and lesson arc
 
 **Why it happens:**
-- Developers assume permission state is binary (works/doesn't)
-- Button label written once, never updated based on state
-- No distinction between "feature unavailable" vs "feature disabled by user choice"
-- Missing permission state in component props/state
+- Context7 and WebSearch show "AI still struggles when missing too much context"
+- Current insertion pattern only passes prevSlide (one slide of context)
+- No cumulative lesson context like quiz generation uses
+- 2026 research: "AI-generated decks often lack strategic soul and narrative nuances"
+
+**Example failure scenario:**
+```
+Slide 3: "Photosynthesis uses light energy"
+Slide 4: "Chlorophyll absorbs light"
+[Teacher inserts "Elaborate" here]
+Slide 5: "Light-independent reactions (Calvin cycle)"
+
+Generated Elaborate slide might repeat Slide 3 content instead of bridging to Slide 5,
+because AI only saw Slide 4 in isolation.
+```
 
 **Consequences:**
-- Teacher expects auto-placement, window appears on wrong screen
-- No explanation of why feature isn't working
-- Teacher doesn't know they can enable it
-- "This used to work" confusion when permission expires/resets
+- Generated slides feel generic and disconnected
+- Teachers delete and regenerate multiple times (wasted API calls)
+- Loss of trust in AI quality ("it doesn't understand my lesson")
+- Pedagogical flow broken by tangent content
 
-**Warning signs in code review:**
-- Button label is static string, not computed from state
-- No permission state prop passed to launch button component
-- Missing conditional rendering based on `permissionStatus.state`
-- No tooltip or secondary text explaining current mode
+**Warning signs in code:**
+- Passing single slide to AI generation
+- No buildSlideContext() call for inserted slides
+- Missing cumulativeContent from previous slides
+- No lookahead to next slide for coherence
 
 **Prevention strategy:**
+
 ```typescript
-// 1. Compute button state from permission
-const getLaunchButtonState = (permissionState: PermissionState | null) => {
-  if (permissionState === 'granted') {
-    return {
-      label: 'Launch on SmartBoard',
-      sublabel: 'Auto-placement enabled',
-      icon: <MonitorCheckIcon />,
-      variant: 'primary'
-    };
-  }
-  if (permissionState === 'denied') {
-    return {
-      label: 'Launch Student View',
-      sublabel: 'Manual placement (permission blocked)',
-      icon: <MonitorIcon />,
-      variant: 'secondary',
-      showRecoveryHint: true
-    };
-  }
-  // 'prompt' or null (unsupported)
+// Reuse buildSlideContext pattern from quiz generation (aiProvider.ts:57-69)
+export function buildSlideContext(slides: Slide[], currentIndex: number): SlideContext {
+  const relevantSlides = slides.slice(0, currentIndex + 1);
+  const cumulativeContent = relevantSlides
+    .map((s, i) => `Slide ${i + 1} (${s.title}): ${s.content.join('; ')}`)
+    .join('\n\n');
+
   return {
-    label: 'Launch Student View',
-    sublabel: 'Enable auto-placement',
-    icon: <MonitorIcon />,
-    variant: 'secondary',
-    showEnableAction: true
+    lessonTopic: slides[0]?.title || 'Unknown Topic',
+    cumulativeContent,
+    currentSlideTitle: slides[currentIndex]?.title || 'Current Slide',
+    currentSlideContent: slides[currentIndex]?.content || []
   };
-};
+}
 
-// 2. Show inline status, not separate popup
-<Button {...buttonState}>
-  <span className="flex flex-col items-start">
-    <span>{buttonState.label}</span>
-    <span className="text-xs opacity-70">{buttonState.sublabel}</span>
-  </span>
-</Button>
+// Extend AIProviderInterface for contextual slides
+interface AIProviderInterface {
+  generateElaborateSlide(
+    slideContext: SlideContext,  // Not just prevSlide
+    nextSlide?: Slide,           // Optional lookahead
+    userInstruction?: string     // "Focus on visual examples"
+  ): Promise<Slide>;
 
-// 3. If permission denied, show inline recovery hint
-{buttonState.showRecoveryHint && (
-  <div className="text-xs text-amber-600 mt-1">
-    <a href="#" onClick={showRecoveryInstructions}>
-      How to enable auto-placement
-    </a>
-  </div>
-)}
+  generateWorkTogetherSlide(
+    slideContext: SlideContext,
+    groupSize: number,
+    activityType: 'pair' | 'group' | 'class'
+  ): Promise<Slide>;
+}
+
+// In insertion handler
+const slideContext = buildSlideContext(slides, insertionIndex);
+const nextSlide = slides[insertionIndex + 1]; // Lookahead
+const newSlide = await provider.generateElaborateSlide(slideContext, nextSlide);
 ```
 
-**Which requirement should address this:** PERM-04 (Clear feedback for manual vs auto placement)
+**Which phase should address this:** Phase 2 (Elaborate Slide) and Phase 3 (Work Together Slide) - before implementation
 
 **Sources:**
-- [web.dev: Permission UX](https://web.dev/articles/push-notifications-permissions-ux)
-- [Adam Lynch: Improve Permissions UX](https://adamlynch.com/improve-permissions-ux/)
+- [Best AI Presentation Makers 2026](https://plusai.com/blog/best-ai-presentation-makers) - "AI struggles when missing context, lacks strategic soul"
+- [AI Content Generation 2026](https://www.roboticmarketer.com/ai-content-generation-in-2026-brand-voice-strategy-and-scaling/) - "Hallucinations and tone mismatches plague unchecked AI"
 
 ---
 
-### Pitfall 4: No Recovery Path After Permission Dismissal
+### Pitfall 3: BroadcastChannel Race Condition on Live Student Input
 
 **What goes wrong:**
-User dismisses browser permission prompt (clicks away, prompt auto-expires, or explicitly denies). Now:
-- Permission state is "prompt" (dismissed) or "denied" (explicit deny)
-- There's no obvious way to trigger the permission request again
-- Feature appears permanently unavailable
-- User must navigate browser settings to fix (they won't)
+Class Challenge slides capture live student contributions. Multiple students submit simultaneously via BroadcastChannel, but messages arrive out of order or collide:
+
+```typescript
+// Current BroadcastChannel pattern (fire-and-forget)
+postMessage({ type: 'PRESENTATION_UPDATE', currentIndex, visibleBullets, slides });
+
+// For live input, this doesn't work:
+postMessage({ type: 'STUDENT_CONTRIBUTION', studentName, contribution });
+// ❌ No ordering guarantee
+// ❌ No conflict resolution if two students submit simultaneously
+// ❌ No acknowledgment that message was received
+```
+
+**The trap:**
+1. Teacher launches Class Challenge: "Share one word about photosynthesis"
+2. Student 1 types "chlorophyll" and submits
+3. Student 2 types "sunlight" and submits (0.1 seconds later)
+4. BroadcastChannel delivers messages asynchronously
+5. Teacher's state updates: `contributions = ['chlorophyll']`
+6. Second message arrives: `contributions = ['sunlight']` (overwrites, not appends)
+7. Only one contribution appears on screen
 
 **Why it happens:**
-- Browser permission model is "ask once, remember forever"
-- Dismissal doesn't equal denial, but browsers don't re-prompt automatically
-- No in-app mechanism to re-trigger permission request
-- Developer assumes user will figure out browser settings
+- BroadcastChannel spec: "browsers actually perform async steps... for performance reasons"
+- No built-in message ordering or conflict resolution
+- React state updates are batched and may be stale
+- WebSearch findings: "race conditions often overlooked, leading to data inconsistency"
 
-**Chrome's behavior:**
-> "Once a user has decided to permanently not allow access to a permission-gated capability, browsers honor that decision. If it was possible to keep prompting for access, ill-meaning sites would continue bombarding users with prompts."
-
-**But for dismissal (not explicit deny):**
-> "Users can re-request temporarily blocked permissions within the same session, though repeated requests risk triggering auto-blocking."
+**Real-world example from research:**
+> "To collect the list for every postMessage() would involve messaging every process in the browser for each message, so instead browsers register BC objects in a central place using IPC." - WHATWG HTML Issue #7267
 
 **Consequences:**
-- Teacher accidentally dismisses prompt during class setup
-- Auto-placement never works for this teacher
-- Teacher blames app, not browser
-- 54% recovery rate possible with proper UI (Chrome's data on `<permission>` element)
+- Lost student contributions (some never appear)
+- Duplicate contributions (retry logic causes duplicates)
+- Out-of-order display ("sunlight" appears before "chlorophyll")
+- Teacher sees 8 contributions, but 15 students submitted
+- Data inconsistency across teacher/student views
 
-**Warning signs in code review:**
-- No way to trigger `getScreenDetails()` after initial component mount
-- No "Enable Auto-Placement" action in settings or UI
-- No detection of "prompt" state with recovery action
-- No instructions for recovering from "denied" state
+**Warning signs in code:**
+- Direct state replacement instead of append/merge operations
+- No timestamp or sequence number on messages
+- Missing conflict resolution strategy
+- No acknowledgment or retry mechanism
 
 **Prevention strategy:**
+
 ```typescript
-// 1. Provide explicit action to request permission
-const RequestPermissionButton = () => {
-  const handleClick = async () => {
-    try {
-      // This MUST be in a click handler (user gesture required)
-      await window.getScreenDetails();
-      // Success - permission granted
-    } catch (e) {
-      if (e.name === 'NotAllowedError') {
-        // User denied or dismissed
-        showRecoveryInstructions();
-      }
+// Strategy 1: Append-only with timestamps
+interface StudentContributionMessage {
+  type: 'STUDENT_CONTRIBUTION';
+  contributionId: string;      // crypto.randomUUID()
+  timestamp: number;           // Date.now()
+  studentName: string;
+  contribution: string;
+}
+
+// Teacher's reducer-style state update
+const handleContributionMessage = (msg: StudentContributionMessage) => {
+  setContributions(prev => {
+    // Deduplicate by ID
+    if (prev.some(c => c.id === msg.contributionId)) {
+      return prev; // Already have this one
     }
-  };
 
-  return (
-    <Button onClick={handleClick}>
-      Enable Auto-Placement
-    </Button>
-  );
+    // Append and sort by timestamp
+    const updated = [...prev, {
+      id: msg.contributionId,
+      name: msg.studentName,
+      text: msg.contribution,
+      timestamp: msg.timestamp
+    }];
+
+    return updated.sort((a, b) => a.timestamp - b.timestamp);
+  });
 };
 
-// 2. For 'denied' state, show browser-specific recovery instructions
-const RecoveryInstructions = ({ browser }) => {
-  const steps = {
-    chrome: [
-      'Click the lock/tune icon in the address bar',
-      'Find "Window management" in the list',
-      'Change from "Block" to "Allow"',
-      'Refresh the page'
-    ],
-    edge: [
-      'Click the lock icon in the address bar',
-      'Click "Permissions for this site"',
-      'Find "Window placement" and set to "Allow"',
-      'Refresh the page'
-    ]
-  };
+// Strategy 2: Server-side ordering (requires backend) - NOT VIABLE for Cue
+// Cue is client-side only, so must handle ordering in teacher view
 
-  return (
-    <div className="text-sm">
-      <h4 className="font-medium">To enable auto-placement:</h4>
-      <ol className="list-decimal list-inside mt-2">
-        {steps[browser].map((step, i) => (
-          <li key={i}>{step}</li>
-        ))}
-      </ol>
-    </div>
-  );
-};
+// Strategy 3: Event cache to prevent loss
+const contributionCache = useRef<StudentContributionMessage[]>([]);
 
-// 3. Detect browser for correct instructions
-const detectBrowser = () => {
-  if (navigator.userAgent.includes('Edg/')) return 'edge';
-  if (navigator.userAgent.includes('Chrome')) return 'chrome';
-  return 'unknown';
-};
+useEffect(() => {
+  if (!lastMessage) return;
+
+  if (lastMessage.type === 'STUDENT_CONTRIBUTION') {
+    // Cache before processing
+    contributionCache.current.push(lastMessage);
+    handleContributionMessage(lastMessage);
+  }
+}, [lastMessage]);
+
+// On Class Challenge close, verify all cached messages were processed
 ```
 
-**Which requirement should address this:** PERM-03 (Add reliable permission request trigger)
+**Which phase should address this:** Phase 4 (Class Challenge) - critical for data integrity
 
 **Sources:**
-- [web.dev: Permissions Best Practices](https://web.dev/articles/permissions-best-practices) - recovery from blocked state
-- [Chrome: Rethinking Web Permissions](https://developer.chrome.com/blog/rethinking-web-permissions) - 54.4% recovery rate with proper UI
-- [Google Chrome Help: Site Permissions](https://support.google.com/chrome/answer/114662?hl=en)
+- [BroadcastChannel spec vague about async nature](https://github.com/whatwg/html/issues/7267) - ordering not guaranteed
+- [Handling Race Conditions in Real-Time Apps](https://dev.to/mattlewandowski93/handling-race-conditions-in-real-time-apps-49c8) - "event cache solutions needed"
+- [Real-Time Collaboration with BroadcastChannel API](https://www.slingacademy.com/article/real-time-collaboration-with-broadcast-channel-api-in-javascript/) - "define your own protocol"
 
 ---
 
-### Pitfall 5: User Gesture Requirement for getScreenDetails()
+### Pitfall 4: Presentation State Sync Breaks with New Slide Types
 
 **What goes wrong:**
-Calling `getScreenDetails()` outside of a user gesture (click, keypress) results in:
-- `DOMException: Permission decision deferred`
-- Permission prompt never appears
-- Code appears to work but silently fails
+Adding new slide types (Elaborate, Work Together, Class Challenge) without extending the PresentationState interface:
+
+```typescript
+// Current sync pattern (types.ts:27-31)
+export interface PresentationState {
+  currentIndex: number;
+  visibleBullets: number;
+  slides: Slide[];  // Assumes all slides are standard presentation slides
+}
+
+// New slide types need additional state:
+// - Class Challenge: active contributions, voting status, timer
+// - Work Together: group assignments, activity phase
+// - Elaborate: expanded/collapsed state?
+```
+
+**The trap:**
+1. Teacher inserts Class Challenge slide at index 5
+2. Students submit contributions via BroadcastChannel
+3. Teacher navigates to slide 6, then back to slide 5
+4. Contributions are lost (not in PresentationState.slides)
+5. Student view shows stale state (no contributions)
 
 **Why it happens:**
-Chrome requires "transient user activation" for permission prompts. From W3C issue #135:
-> "Chrome only shows a permission prompt if window.getScreenDetails() consumes a transient activation. Try calling it in response to a mouse click or key press."
+- PresentationState designed for one-way sync (teacher → student)
+- No concept of "slide-specific ephemeral state"
+- Contributions live in component state, not PresentationState
+- BroadcastChannel sync is atomic snapshot (no partial updates)
 
-**Your current code vulnerability:**
-If calling `getScreenDetails()` in:
-- `useEffect` on mount (no gesture)
-- `setTimeout` or `setInterval` callback (gesture expired)
-- Promise chain that lost activation context
+**Concrete failure:**
+```typescript
+// In PresentationView.tsx, teacher's component state:
+const [challengeContributions, setChallengeContributions] = useState<string[]>([]);
+
+// On navigation away from Class Challenge slide:
+// challengeContributions is lost (not synced to student view)
+
+// When teacher navigates back:
+// challengeContributions is empty (React remounts with fresh state)
+
+// Student view never sees contributions (not in BroadcastChannel message)
+```
 
 **Consequences:**
-- Permission state stays "prompt" forever
-- No error in catch block (promise resolves, just deferred)
-- Developer thinks code works, users see nothing
-- Intermittent bug based on timing
+- Lost data on slide navigation
+- Student view out of sync with teacher
+- Can't resume Class Challenge after navigating away
+- Inconsistent state across windows
 
-**Warning signs in code review:**
-- `getScreenDetails()` called outside click handler
-- Async/await chain between click and API call
-- `setTimeout` or debounce wrapping the permission request
-- Error: "Permission decision deferred" in console
+**Warning signs in code:**
+- New slide types with local component state
+- Not extending PresentationState interface
+- Missing slide type in BroadcastChannel message
+- Assuming Slide[] is homogeneous
 
 **Prevention strategy:**
+
+Option A: Extend Slide interface with discriminated union
 ```typescript
-// BAD: Called in useEffect
-useEffect(() => {
-  window.getScreenDetails(); // Will defer, not prompt
-}, []);
+// types.ts - make Slide a discriminated union
+export type SlideType = 'standard' | 'elaborate' | 'work-together' | 'class-challenge';
 
-// BAD: Async delay loses activation
-const handleClick = async () => {
-  await someOtherAsyncWork();
-  await window.getScreenDetails(); // May defer
+export interface BaseSlide {
+  id: string;
+  title: string;
+  content: string[];
+  speakerNotes: string;
+  imagePrompt: string;
+  imageUrl?: string;
+  // ...common fields
+}
+
+export interface StandardSlide extends BaseSlide {
+  type: 'standard';
+}
+
+export interface ClassChallengeSlide extends BaseSlide {
+  type: 'class-challenge';
+  prompt: string;
+  contributions: Array<{
+    id: string;
+    studentName: string;
+    text: string;
+    timestamp: number;
+  }>;
+  isAcceptingContributions: boolean;
+}
+
+export type Slide = StandardSlide | ClassChallengeSlide | ...;
+
+// Now PresentationState.slides can carry Class Challenge state
+```
+
+Option B: Separate ephemeral state field
+```typescript
+export interface PresentationState {
+  currentIndex: number;
+  visibleBullets: number;
+  slides: Slide[];
+  // NEW: ephemeral state for interactive slides
+  interactiveState?: {
+    [slideId: string]: {
+      type: 'class-challenge';
+      contributions: StudentContribution[];
+      isOpen: boolean;
+    } | {
+      type: 'work-together';
+      groups: Group[];
+      phase: 'forming' | 'working' | 'sharing';
+    };
+  };
+}
+```
+
+**Which phase should address this:** Phase 2/3/4 - before implementing any new slide type
+
+**Sources:**
+- Existing Cue architecture (types.ts, useBroadcastSync.ts) - current patterns
+- [Syncing Data Across Browser Tabs with BroadcastChannel](https://medium.com/@sachin88/syncing-data-across-browser-tabs-with-the-broadcastchannel-api-de26f61529fb) - atomic state snapshots
+
+---
+
+### Pitfall 5: AI Content Homogenization from Repeated Regeneration
+
+**What goes wrong:**
+Teachers regenerate Elaborate/Work Together slides multiple times trying to get "better" content. Each regeneration uses previous generation as context, causing convergence to generic content:
+
+```typescript
+// Anti-pattern: using previous AI output as context for next generation
+const elaborateSlide = await provider.generateElaborateSlide(slideContext);
+
+// Teacher doesn't like it, clicks "Regenerate Elaborate"
+const elaborateSlideV2 = await provider.generateElaborateSlide({
+  ...slideContext,
+  previousAttempt: elaborateSlide.content  // ❌ FEEDBACK LOOP
+});
+
+// After 3-5 regenerations: content becomes bland and generic
+```
+
+**Why it happens:**
+- 2026 research: "When text-to-image and image-to-text systems iterate autonomously, outputs quickly converge to generic themes"
+- Each regeneration compresses meaning toward familiar patterns
+- AI has no diversity injection mechanism
+- Teacher's frustration leads to more regenerations (worsening the problem)
+
+**Research finding:**
+> "Homogenization happens before retraining even enters the picture, with convergence to bland images emerging purely from repeated use without any new training." - The Conversation, 2026
+
+**Example progression:**
+```
+Original context: "Photosynthesis light reactions in thylakoid membranes"
+
+Regeneration 1: "Elaborate on how chlorophyll captures photons and excites electrons in photosystem II"
+
+Regeneration 2 (using R1 as context): "Explain the electron transport chain in chloroplasts"
+
+Regeneration 3 (using R2 as context): "Describe cellular energy production" (too generic)
+
+Regeneration 4 (using R3 as context): "Explain how cells make energy" (even more generic)
+```
+
+**Consequences:**
+- Generated content becomes increasingly generic
+- Loss of pedagogical specificity
+- Teacher wastes API calls on degrading quality
+- Eventual resort to manual editing (defeating AI purpose)
+
+**Warning signs in code:**
+- Regenerate button with no limit or warning
+- Previous generation included in context for retry
+- No diversity/temperature parameter on regeneration
+- No "Reset to Original Context" option
+
+**Prevention strategy:**
+
+```typescript
+// Strategy 1: Always regenerate from original context (stateless)
+const handleRegenerateElaborate = async () => {
+  // Use original slide context, NOT previous generation
+  const freshContext = buildSlideContext(slides, insertionIndex);
+  const newSlide = await provider.generateElaborateSlide(freshContext);
+  // Each regeneration is independent
 };
 
-// GOOD: Synchronous call in click handler
-const handleClick = () => {
-  window.getScreenDetails()
-    .then(details => {
-      // Use details
-    })
-    .catch(err => {
-      // Handle denial
-    });
+// Strategy 2: Track regeneration count and warn
+const [regenCount, setRegenCount] = useState(0);
+
+const handleRegenerate = async () => {
+  if (regenCount >= 3) {
+    showWarning('Multiple regenerations may produce generic content. Try editing the prompt instead.');
+  }
+  setRegenCount(prev => prev + 1);
+  // ... regenerate
 };
 
-// GOOD: Call first, then do other work
-const handleClick = async () => {
-  const detailsPromise = window.getScreenDetails(); // Consumes activation
-  await someOtherAsyncWork();
-  const details = await detailsPromise;
+// Strategy 3: Inject diversity on retry
+const handleRegenerate = async (retryNumber: number) => {
+  const diversityPrompt = retryNumber === 0
+    ? ''
+    : `Provide a different approach than typical explanations. ${
+        retryNumber === 1 ? 'Focus on visual/concrete examples.' :
+        retryNumber === 2 ? 'Focus on common misconceptions.' :
+        'Focus on real-world applications.'
+      }`;
+
+  await provider.generateElaborateSlide(slideContext, undefined, diversityPrompt);
+};
+
+// Strategy 4: Multi-shot generation (generate 3, let teacher pick)
+const handleGenerate = async () => {
+  const [option1, option2, option3] = await Promise.all([
+    provider.generateElaborateSlide(context, undefined, 'Visual approach'),
+    provider.generateElaborateSlide(context, undefined, 'Analogy approach'),
+    provider.generateElaborateSlide(context, undefined, 'Step-by-step approach'),
+  ]);
+
+  showPickerModal([option1, option2, option3]);
 };
 ```
 
-**Which requirement should address this:** PERM-01 (Fix permission detection race condition) and PERM-03 (Reliable permission request trigger)
+**Which phase should address this:** Phase 2 (Elaborate) and Phase 3 (Work Together) - during generation implementation
 
 **Sources:**
-- [W3C Window Management Issue #135](https://github.com/w3c/window-management/issues/135) - exact error and solution
-- [Chrome Developers: Window Management API](https://developer.chrome.com/docs/capabilities/web-apis/window-management)
+- [AI-induced cultural stagnation is already happening](https://theconversation.com/ai-induced-cultural-stagnation-is-no-longer-speculation-its-already-happening-272488) - convergence to generic content
+- [Beyond Generative: Regenerative AI in 2026](https://www.movate.com/beyond-generative-the-era-of-regenerative-ai-begins-in-2026/) - iterative degradation
 
 ---
 
 ## Moderate Pitfalls
 
-Mistakes that cause degraded UX but don't completely break the feature.
+Mistakes that cause UX degradation or technical debt, but are recoverable.
 
 ---
 
-### Pitfall 6: Permission Priming at Wrong Moment
+### Pitfall 6: Slide Insertion Breaks Auto-Save Sequence
 
 **What goes wrong:**
-Showing permission priming UI:
-- On page load (annoying, no context)
-- In a dismissible popup (easy to miss/dismiss)
-- Before user has indicated intent to use the feature
+Auto-save runs every 30 seconds. Teacher inserts Elaborate slide at index 5. Auto-save triggers mid-insertion:
+
+```typescript
+// Auto-save pattern (useAutoSave.ts - runs every 30s)
+useEffect(() => {
+  const intervalId = setInterval(() => {
+    if (slides.length > 0) {
+      saveToLocalStorage(slides, studentGrades, lessonTitle);
+    }
+  }, 30000);
+}, [slides, studentGrades, lessonTitle]);
+
+// Meanwhile, teacher clicks "Insert Elaborate" at index 5
+const handleInsertElaborate = async () => {
+  setIsGenerating(true);  // UI loading state
+  const newSlide = await provider.generateElaborateSlide(...);
+
+  // 3-5 seconds pass while AI generates
+  // AUTO-SAVE triggers here with old slides array
+
+  setSlides(prev => [
+    ...prev.slice(0, 5),
+    newSlide,
+    ...prev.slice(5)
+  ]);
+  // Now slides array is updated, but auto-save already saved stale state
+};
+```
+
+**The trap:**
+1. Auto-save captures state at T=0s: `[slide1, slide2, ..., slide10]`
+2. Teacher inserts Elaborate at T=2s (AI generating)
+3. Auto-save triggers at T=30s with stale array (no elaborate slide yet)
+4. AI generation completes at T=5s, new slide inserted
+5. If page crashes at T=35s, recovery loads stale state (missing Elaborate slide)
 
 **Why it happens:**
-Developers want to "front-load" permission so it's ready when needed. But:
-> "In terms of user experience, displaying a permission prompt on load is probably the best way to make a poor first impression, and in most cases an irreversible mistake."
-
-**Chrome data:**
-- 79% of permission prompts triggered without user gesture
-- Only 12% acceptance rate for auto-triggered prompts
-- 30% acceptance rate when prompted after user action
+- Auto-save and AI generation are concurrent async operations
+- No transaction/lock mechanism
+- React state updates are asynchronous
+- Auto-save captures snapshot, not "latest committed state"
 
 **Consequences:**
-- Users deny permission reflexively
-- "Why is this asking me stuff?" distrust
-- Permission denied before user understands value
-- Feature appears broken later
+- Generated slides lost on crash
+- Recovery loads incomplete presentation
+- Teacher loses 3-5 seconds of AI work
+- Inconsistent state between localStorage and memory
 
-**Warning signs in code review:**
-- Permission request in component mount (`useEffect` with `[]`)
-- No user action required before permission prompt
-- Permission priming shows regardless of user intent
-- Popup/toast that can be dismissed without decision
+**Warning signs in code:**
+- Auto-save interval independent of async operations
+- No "pending generation" flag to pause auto-save
+- State updates during AI generation not atomic
+- Missing optimistic UI with rollback
 
 **Prevention strategy:**
+
 ```typescript
-// 1. Prime at the right moment: when user clicks "Launch"
-const handleLaunchClick = async () => {
-  if (permissionState === 'prompt') {
-    // Show inline priming, wait for confirmation
-    setShowPriming(true);
-    return; // Don't launch yet
+// Strategy 1: Pause auto-save during generation
+const [isAnyGenerationPending, setIsAnyGenerationPending] = useState(false);
+
+useEffect(() => {
+  const intervalId = setInterval(() => {
+    if (slides.length > 0 && !isAnyGenerationPending) {
+      saveToLocalStorage(slides, studentGrades, lessonTitle);
+    }
+  }, 30000);
+}, [slides, studentGrades, lessonTitle, isAnyGenerationPending]);
+
+const handleInsertElaborate = async () => {
+  setIsAnyGenerationPending(true);
+  try {
+    const newSlide = await provider.generateElaborateSlide(...);
+    setSlides(prev => [...prev.slice(0, index), newSlide, ...prev.slice(index)]);
+  } finally {
+    setIsAnyGenerationPending(false);
+    // Auto-save will trigger on next interval with complete state
   }
-  // Permission already granted or denied, proceed
-  launchStudentView();
 };
 
-// 2. In priming UI, explain the benefit
-<PermissionPrimer
-  onEnable={() => {
-    window.getScreenDetails()
-      .then(() => launchStudentView())
-      .catch(() => launchStudentView()); // Fallback to manual
+// Strategy 2: Force save after generation completes
+const handleInsertElaborate = async () => {
+  const newSlide = await provider.generateElaborateSlide(...);
+  setSlides(prev => {
+    const updated = [...prev.slice(0, index), newSlide, ...prev.slice(index)];
+    // Force immediate save with updated state
+    saveToLocalStorage(updated, studentGrades, lessonTitle);
+    return updated;
+  });
+};
+
+// Strategy 3: Optimistic UI with pending state
+const [pendingSlides, setPendingSlides] = useState<Map<string, Slide>>(new Map());
+
+const handleInsertElaborate = async () => {
+  const tempId = crypto.randomUUID();
+  const placeholder: Slide = { id: tempId, title: 'Generating...', ... };
+
+  setPendingSlides(prev => new Map(prev).set(tempId, placeholder));
+
+  try {
+    const newSlide = await provider.generateElaborateSlide(...);
+    setPendingSlides(prev => { const next = new Map(prev); next.delete(tempId); return next; });
+    setSlides(prev => [...prev.slice(0, index), newSlide, ...prev.slice(index)]);
+  } catch (e) {
+    setPendingSlides(prev => { const next = new Map(prev); next.delete(tempId); return next; });
+  }
+};
+
+// Auto-save skips pending slides
+const slidesToSave = slides.filter(s => !pendingSlides.has(s.id));
+```
+
+**Which phase should address this:** Phase 2/3 - during Elaborate/Work Together implementation
+
+**Sources:**
+- Existing Cue auto-save implementation (useAutoSave.ts) - current 30s interval pattern
+- [Cache Invalidation partial content update pitfalls](https://medium.com/@kennediowusu/react-query-cache-invalidation-why-your-mutations-work-but-your-ui-doesnt-update-a1ad23bc7ef1) - stale state issues
+
+---
+
+### Pitfall 7: Elaborate/Work Together Slides Lack Visual Distinction
+
+**What goes wrong:**
+Generated Elaborate and Work Together slides look identical to standard slides in the sidebar. Teacher can't tell:
+- Which slides are AI-expanded content vs original lesson
+- Which slides are collaborative activities
+- Which slides can be regenerated vs are manual
+
+```typescript
+// Current slide rendering - all slides look the same
+<SlideCard
+  slide={slide}
+  isActive={activeSlideIndex === index}
+  onUpdate={handleUpdateSlide}
+  onDelete={handleDeleteSlide}
+/>
+// No visual distinction for slide type
+```
+
+**The trap:**
+1. Teacher generates 15-slide presentation
+2. Inserts 3 Elaborate slides and 2 Work Together slides
+3. Exports to PPTX and edits in PowerPoint
+4. Re-imports edited PPTX (Refine mode)
+5. Which slides were Elaborate/Work Together? Lost information.
+6. Teacher can't tell which slides to keep vs regenerate
+
+**Why it happens:**
+- No `slideType` field in Slide interface
+- All slides rendered with same SlideCard component
+- No visual metadata (badge, icon, color coding)
+- PPTX export loses type information
+
+**Consequences:**
+- Loss of slide provenance (manual vs AI-generated vs AI-expanded)
+- Can't filter/bulk-regenerate Elaborate slides
+- Pedagogical structure hidden (teacher forgets which are activities)
+- Export/import round-trip loses type information
+
+**Warning signs in code:**
+- Slide interface has no type discriminator
+- SlideCard component has no type-specific rendering
+- No badge or icon indicating slide purpose
+- Missing slide type in PPTX export metadata
+
+**Prevention strategy:**
+
+```typescript
+// Strategy 1: Add slideType to Slide interface
+export type SlideType = 'standard' | 'elaborate' | 'work-together' | 'class-challenge';
+
+export interface Slide {
+  id: string;
+  title: string;
+  content: string[];
+  speakerNotes: string;
+  slideType?: SlideType;  // Optional for backward compat
+  // ...
+}
+
+// Strategy 2: Visual badges in SlideCard
+const SlideTypeBadge = ({ type }: { type?: SlideType }) => {
+  if (!type || type === 'standard') return null;
+
+  const badges = {
+    'elaborate': { icon: '🔍', label: 'Elaborate', color: 'bg-purple-100 text-purple-700' },
+    'work-together': { icon: '👥', label: 'Activity', color: 'bg-blue-100 text-blue-700' },
+    'class-challenge': { icon: '🏆', label: 'Challenge', color: 'bg-green-100 text-green-700' },
+  };
+
+  const badge = badges[type];
+  return (
+    <span className={`text-xs px-2 py-0.5 rounded-full ${badge.color}`}>
+      {badge.icon} {badge.label}
+    </span>
+  );
+};
+
+// Strategy 3: Color-coded sidebar for slide types
+<div className={cn(
+  "slide-card",
+  slide.slideType === 'elaborate' && "border-l-4 border-purple-500",
+  slide.slideType === 'work-together' && "border-l-4 border-blue-500",
+  slide.slideType === 'class-challenge' && "border-l-4 border-green-500"
+)}>
+
+// Strategy 4: Preserve type in PPTX export (notes field)
+const exportSlideMetadata = (slide: Slide) => {
+  return `${slide.speakerNotes}\n\n[Cue Metadata: type=${slide.slideType || 'standard'}]`;
+};
+```
+
+**Which phase should address this:** Phase 2 (Elaborate) - establish pattern for Phase 3/4
+
+**Sources:**
+- [Frontend Design Patterns 2026](https://www.netguru.com/blog/frontend-design-patterns) - component-driven visual distinction
+- Existing Cue architecture - all slides currently homogeneous
+
+---
+
+### Pitfall 8: Class Challenge Input Validation Missing
+
+**What goes wrong:**
+Students submit contributions to Class Challenge with no validation:
+- Empty submissions
+- Profanity or inappropriate content
+- Extremely long submissions (>1000 characters)
+- Special characters that break rendering (e.g., unescaped HTML)
+
+```typescript
+// Anti-pattern: no validation
+const handleStudentSubmit = (contribution: string) => {
+  postMessage({
+    type: 'STUDENT_CONTRIBUTION',
+    studentName,
+    contribution  // ❌ No sanitization, no length check
+  });
+};
+```
+
+**The trap:**
+1. Student types `<script>alert('xss')</script>` as contribution
+2. BroadcastChannel sends raw string
+3. Teacher view renders with dangerouslySetInnerHTML (or React escapes it but looks ugly)
+4. Student view shows unescaped HTML
+5. Presentation becomes unprofessional or broken
+
+**Why it happens:**
+- BroadcastChannel is same-origin only (appears "safe")
+- Developer assumes students won't submit malicious content
+- No content-type specification (text vs HTML)
+- React escapes by default but doesn't sanitize formatting
+
+**Consequences:**
+- Broken UI from malformed input
+- Inappropriate content displayed to class
+- Teacher embarrassment in front of students
+- Extremely long submissions break layout
+
+**Warning signs in code:**
+- Direct string rendering without sanitization
+- No maxLength on input field
+- No profanity filter or content check
+- Missing trim() on submission
+
+**Prevention strategy:**
+
+```typescript
+// Strategy 1: Client-side validation before sending
+const validateContribution = (text: string): { valid: boolean; error?: string } => {
+  const trimmed = text.trim();
+
+  if (trimmed.length === 0) {
+    return { valid: false, error: 'Please enter a response' };
+  }
+
+  if (trimmed.length > 200) {
+    return { valid: false, error: 'Response too long (max 200 characters)' };
+  }
+
+  // Check for HTML-like content
+  if (/<[^>]*>/g.test(trimmed)) {
+    return { valid: false, error: 'Special characters not allowed' };
+  }
+
+  return { valid: true };
+};
+
+const handleSubmit = () => {
+  const validation = validateContribution(contribution);
+  if (!validation.valid) {
+    showError(validation.error);
+    return;
+  }
+
+  postMessage({
+    type: 'STUDENT_CONTRIBUTION',
+    contribution: contribution.trim()
+  });
+};
+
+// Strategy 2: Input field constraints
+<input
+  type="text"
+  maxLength={200}
+  placeholder="Type your answer..."
+  value={contribution}
+  onChange={(e) => setContribution(e.target.value)}
+  // Prevent paste of HTML
+  onPaste={(e) => {
+    const text = e.clipboardData.getData('text/plain');
+    if (/<[^>]*>/g.test(text)) {
+      e.preventDefault();
+      showError('Cannot paste formatted content');
+    }
   }}
-  onSkip={() => launchStudentView()} // Manual placement
 />
 
-// 3. Don't block the happy path
-// If permission granted, go straight to launch
-// If permission denied, still let them launch manually
+// Strategy 3: Teacher moderation (approve/reject)
+interface StudentContribution {
+  id: string;
+  studentName: string;
+  text: string;
+  status: 'pending' | 'approved' | 'rejected';
+}
+
+// Teacher sees pending contributions first, clicks approve to show
 ```
 
-**Which requirement should address this:** PERM-02 (Make status visible on button) and PERM-04 (Clear feedback)
+**Which phase should address this:** Phase 4 (Class Challenge) - before launch
 
 **Sources:**
-- [UX Planet: Right Ways to Ask for Permissions](https://uxplanet.org/mobile-ux-design-the-right-ways-to-ask-users-for-permissions-6cdd9ab25c27)
-- [web.dev: Push Notifications Permissions UX](https://web.dev/articles/push-notifications-permissions-ux)
+- Standard web security practices (XSS prevention)
+- Classroom management best practices (content moderation)
 
 ---
 
-### Pitfall 7: Not Listening for Permission State Changes
+### Pitfall 9: Work Together Slide Grouping Algorithm Creates Unfair Groups
 
 **What goes wrong:**
-Permission state changes (user grants/revokes in browser settings) but app doesn't update:
-- User grants permission in site settings, but button still says "Manual Placement"
-- User revokes permission, but app still tries auto-placement (and fails)
-- Page refresh required to see current state
+AI generates Work Together slide with instruction "Pair up and discuss." But Cue doesn't track:
+- Which students are already paired
+- Student ability levels (Grade A/B/C in student list)
+- Past groupings (some students always together)
 
-**Why it happens:**
-- Initial permission check, but no `onchange` listener
-- Stale closure captures initial state
-- No reactive pattern for permission updates
-
-**Consequences:**
-- UI out of sync with reality
-- User confusion: "I just enabled it, why doesn't it work?"
-- Silent failures when permission revoked
-
-**Warning signs in code review:**
-- `navigator.permissions.query()` called once, result stored
-- No `status.onchange` handler
-- No polling fallback for browsers without `onchange` support
-
-**Prevention strategy:**
 ```typescript
-useEffect(() => {
-  let status: PermissionStatus | null = null;
-
-  const checkPermission = async () => {
-    try {
-      status = await navigator.permissions.query({
-        name: 'window-management' as PermissionName
-      });
-
-      setPermissionState(status.state);
-
-      // Subscribe to changes
-      status.onchange = () => {
-        setPermissionState(status!.state);
-      };
-    } catch (e) {
-      // Not supported
-    }
-  };
-
-  checkPermission();
-
-  return () => {
-    if (status) {
-      status.onchange = null; // Cleanup listener
-    }
-  };
-}, []);
+// Anti-pattern: random pairing without constraints
+const createPairs = (students: string[]) => {
+  const shuffled = [...students].sort(() => Math.random() - 0.5);
+  const pairs = [];
+  for (let i = 0; i < shuffled.length; i += 2) {
+    pairs.push([shuffled[i], shuffled[i + 1]]);
+  }
+  return pairs;  // ❌ No consideration of fairness
+};
 ```
 
-**Which requirement should address this:** PERM-01 (Fix permission detection)
-
-**Sources:**
-- [MDN PermissionStatus.onchange](https://developer.mozilla.org/en-US/docs/Web/API/PermissionStatus/change_event)
-
----
-
-### Pitfall 8: Classroom Environment: Teacher Focused on Students/Equipment
-
-**What goes wrong:**
-Permission prompts and UI designed for single-user desktop scenario. In classroom:
-- Teacher is looking at SmartBoard, not laptop
-- Teacher is managing 30 students, not watching browser
-- Setup happens under time pressure (class starting)
-- Small UI elements invisible from arm's length
+**The trap:**
+1. Teacher has 24 students with grades A/B/C assigned
+2. Work Together slide generated: "Pair up to solve this problem"
+3. Random pairing creates: [A+A], [A+A], [C+C], [C+C], [B+C], ...
+4. High-achieving pairs finish quickly, low-achieving pairs struggle
+5. Teacher manually reassigns groups (defeats AI purpose)
 
 **Why it happens:**
-- Web UX assumes user is focused on screen
-- Permission chips designed to be unobtrusive (too unobtrusive for classroom)
-- No consideration for split-attention environments
+- Student list has grades (A/B/C/D/E) but grouping ignores them
+- No pedagogical strategy (heterogeneous vs homogeneous groups)
+- Random assignment feels "fair" but isn't pedagogically optimal
+- Teacher expectations for AI to handle this
 
 **Consequences:**
-- Teacher misses 12-second permission window entirely
-- Small status indicators invisible from teaching position
-- Setup takes multiple attempts
-- Feature appears unreliable
+- Pedagogically suboptimal groupings
+- Teacher manual intervention required
+- Loss of trust in AI for activities
+- Students notice unfair distribution
 
-**Warning signs in code review:**
-- Small (text-xs, text-sm) status indicators
-- Subtle color differentiation (light gray vs slightly lighter gray)
-- Animations that complete quickly
-- No persistent visual state indicator
+**Warning signs in code:**
+- Simple random shuffle for grouping
+- No use of studentGrades array
+- Missing grouping strategy parameter
+- No teacher preview/edit of groups
 
 **Prevention strategy:**
+
 ```typescript
-// 1. Large, obvious status on the launch button itself
-<Button size="lg" className="min-w-[200px]">
-  <div className="flex flex-col items-center py-1">
-    <span className="text-lg font-semibold">
-      {permissionGranted ? 'Launch on SmartBoard' : 'Launch Student View'}
-    </span>
-    <span className={cn(
-      "text-xs mt-0.5",
-      permissionGranted ? "text-green-200" : "text-amber-200"
-    )}>
-      {permissionGranted ? 'Auto-placement enabled' : 'Manual placement'}
-    </span>
+// Strategy 1: Heterogeneous pairing (mix abilities)
+const createHeterogeneousPairs = (students: StudentWithGrade[]) => {
+  const sorted = [...students].sort((a, b) => {
+    const gradeOrder = { A: 1, B: 2, C: 3, D: 4, E: 5 };
+    return (gradeOrder[a.grade] || 99) - (gradeOrder[b.grade] || 99);
+  });
+
+  const pairs = [];
+  const high = sorted.slice(0, Math.floor(sorted.length / 2));
+  const low = sorted.slice(Math.floor(sorted.length / 2)).reverse();
+
+  for (let i = 0; i < high.length; i++) {
+    pairs.push([high[i], low[i]]);
+  }
+
+  return pairs;  // Each pair has mixed ability
+};
+
+// Strategy 2: Let teacher choose strategy
+interface GroupingStrategy {
+  type: 'random' | 'heterogeneous' | 'homogeneous' | 'manual';
+  size: number;  // 2 for pairs, 3-4 for groups
+}
+
+const generateWorkTogetherSlide = async (
+  context: SlideContext,
+  grouping: GroupingStrategy
+) => {
+  const slide = await provider.generateWorkTogetherSlide(context, grouping.size);
+
+  // Add grouping metadata to slide
+  slide.groupingStrategy = grouping;
+  return slide;
+};
+
+// Strategy 3: Preview groups before committing
+const GroupingPreview = ({ students, strategy, onConfirm, onRegenerate }) => (
+  <div>
+    <h3>Proposed Groups:</h3>
+    {createGroups(students, strategy).map((group, i) => (
+      <div key={i}>
+        Group {i + 1}: {group.map(s => `${s.name} (${s.grade})`).join(', ')}
+      </div>
+    ))}
+    <Button onClick={onConfirm}>Use These Groups</Button>
+    <Button onClick={onRegenerate}>Shuffle Again</Button>
   </div>
-</Button>
-
-// 2. Persistent indicator, not disappearing toast
-// Show status badge/icon that doesn't auto-dismiss
-
-// 3. Consider visual size for arm's-length viewing
-// Minimum touch target 44x44px, larger for classroom
-
-// 4. High contrast colors (not subtle pastels)
-// Green/amber/red status, not slight shade variations
+);
 ```
 
-**Which requirement should address this:** PERM-02 (Make status visible on button) and PERM-04 (Clear feedback)
+**Which phase should address this:** Phase 3 (Work Together) - during implementation
+
+**Sources:**
+- Educational best practices (heterogeneous grouping research)
+- Existing Cue student grade system (studentGrades array)
 
 ---
 
 ## Minor Pitfalls
 
-Annoyances that are fixable but worth noting.
+Annoyances that are fixable with simple changes.
 
 ---
 
-### Pitfall 9: Old vs New Permission Name
+### Pitfall 10: Teleprompter Regenerate Button Placement Ambiguous
 
 **What goes wrong:**
-Code uses old permission name `window-placement` instead of `window-management`. Works in some Chrome versions, fails in others.
+Adding "Regenerate Teleprompter" button to PresentationView. Where does it go?
+- Near verbosity selector (might regenerate all verbosity levels?)
+- In slide actions (inconsistent with editing-only actions?)
+- Floating on teleprompter panel (visual clutter?)
+
+**Why it happens:**
+- PresentationView already has verbosity selector, game menu, student selection
+- Teleprompter panel is read-only during presentation
+- No established pattern for "edit during presentation"
 
 **Prevention:**
 ```typescript
-// Defensive code for both names
-async function getWindowManagementPermissionState() {
-  let state;
-  try {
-    // Try new name first
-    state = await navigator.permissions.query({
-      name: 'window-management' as PermissionName
-    });
-  } catch {
-    try {
-      // Fallback to old name
-      state = await navigator.permissions.query({
-        name: 'window-placement' as PermissionName
-      });
-    } catch {
-      return null; // Neither supported
-    }
+// Place near verbosity selector with clear label
+<div className="flex items-center gap-2">
+  <VerbositySelector value={verbosity} onChange={handleVerbosityChange} />
+  <button
+    onClick={handleRegenerateTeleprompter}
+    className="text-xs px-2 py-1 rounded"
+    title="Regenerate this slide's script based on edits"
+  >
+    🔄 Regen
+  </button>
+</div>
+```
+
+**Which phase should address this:** Phase 1 (Single Teleprompter Regenerate) - UI planning
+
+---
+
+### Pitfall 11: Elaborate/Work Together Slides Don't Auto-Generate Images
+
+**What goes wrong:**
+Standard slides have `autoGenerateImages` setting. Elaborate/Work Together slides inserted mid-editing don't trigger image generation:
+
+```typescript
+// Current auto-image logic (App.tsx:298-304)
+if (autoGenerateImages) {
+  generatedSlides.forEach(async (s) => {
+    // Only runs on initial generation
+    setSlides(curr => curr.map(item =>
+      item.id === s.id ? {...item, isGeneratingImage: true} : item
+    ));
+    const imageUrl = await provider.generateSlideImage(s.imagePrompt, s.layout);
+    // ...
+  });
+}
+```
+
+**The trap:**
+Elaborate slide inserted with perfect imagePrompt, but no image generation triggered. Teacher expects image, sees placeholder.
+
+**Prevention:**
+```typescript
+const handleInsertElaborate = async () => {
+  const newSlide = await provider.generateElaborateSlide(...);
+
+  // Trigger image generation if auto-generate enabled
+  if (autoGenerateImages && newSlide.imagePrompt) {
+    setSlides(prev => [...prev.slice(0, index),
+      { ...newSlide, isGeneratingImage: true },
+      ...prev.slice(index)
+    ]);
+
+    const imageUrl = await provider.generateSlideImage(newSlide.imagePrompt);
+    setSlides(prev => prev.map(s =>
+      s.id === newSlide.id ? { ...s, imageUrl, isGeneratingImage: false } : s
+    ));
+  } else {
+    setSlides(prev => [...prev.slice(0, index), newSlide, ...prev.slice(index)]);
   }
-  return state;
-}
+};
 ```
 
-**Sources:**
-- [Chrome Developers: Window Management](https://developer.chrome.com/docs/capabilities/web-apis/window-management) - mentions name change
+**Which phase should address this:** Phase 2/3 - during insertion implementation
 
 ---
 
-### Pitfall 10: TypeScript Types for Permission Name
+### Pitfall 12: File Format Version Not Bumped for New Fields
 
 **What goes wrong:**
-TypeScript complains that `'window-management'` is not assignable to `PermissionName` type because it's not in the standard type definitions yet.
+Adding slideType, groupingStrategy, challengeState fields to Slide without bumping CURRENT_FILE_VERSION:
+
+```typescript
+// v3.1 pattern (types.ts)
+export const CURRENT_FILE_VERSION = 2;
+
+// Adding new fields in v3.2 but not bumping version
+interface Slide {
+  // ...existing
+  slideType?: SlideType;  // NEW in v3.2
+  challengeState?: ClassChallengeState;  // NEW in v3.2
+  // Version still 2 - WRONG
+}
+```
+
+**The trap:**
+1. v3.2 user creates presentation with Elaborate slides
+2. Saves as .cue file (version: 2)
+3. v3.1 user opens file (also expects version 2)
+4. v3.1 doesn't know about slideType field
+5. Elaborate slides render as standard slides (data ignored)
 
 **Prevention:**
 ```typescript
-// Option 1: Type assertion
-await navigator.permissions.query({
-  name: 'window-management' as PermissionName
-});
+// Bump version for new fields
+export const CURRENT_FILE_VERSION = 3;
 
-// Option 2: Extend types (in global.d.ts)
-interface PermissionDescriptor {
-  name: 'window-management' | PermissionName;
+// Migration logic in loadService.ts
+if (data.version === 2) {
+  // v2 -> v3: add default slideType for all slides
+  data.slides = data.slides.map(s => ({
+    ...s,
+    slideType: s.slideType || 'standard'
+  }));
+  data.version = 3;
 }
 ```
+
+**Which phase should address this:** Phase 2 - establish v3 format
 
 ---
 
 ## Phase-Specific Risk Summary
 
-| Requirement | Pitfall | Priority | Detection |
-|-------------|---------|----------|-----------|
-| PERM-01 | Pitfall 1: Race condition | CRITICAL | Permission UI never appears on first load |
-| PERM-01 | Pitfall 5: User gesture required | CRITICAL | "Permission decision deferred" error |
-| PERM-01 | Pitfall 7: No state change listener | MODERATE | UI doesn't update after settings change |
-| PERM-02 | Pitfall 2: Chrome chip easy to miss | CRITICAL | Teacher doesn't notice address bar |
-| PERM-02 | Pitfall 8: Classroom split attention | MODERATE | Small UI elements |
-| PERM-03 | Pitfall 4: No recovery path | CRITICAL | No way to re-request after dismiss |
-| PERM-03 | Pitfall 5: User gesture required | CRITICAL | Permission request fails silently |
-| PERM-04 | Pitfall 3: No feedback | CRITICAL | Button always says "Launch Student" |
-| PERM-04 | Pitfall 6: Wrong timing | MODERATE | Permission asked before user intent |
+| Phase | Feature | Critical Pitfalls | Moderate Pitfalls | Priority |
+|-------|---------|-------------------|-------------------|----------|
+| Phase 1 | Single Teleprompter Regenerate | Pitfall 1 (cache invalidation) | Pitfall 6 (auto-save), Pitfall 10 (UI placement) | HIGH |
+| Phase 2 | Elaborate Slide | Pitfall 2 (AI context), Pitfall 5 (homogenization) | Pitfall 7 (visual distinction), Pitfall 11 (images), Pitfall 12 (version) | HIGH |
+| Phase 3 | Work Together Slide | Pitfall 2 (AI context), Pitfall 5 (homogenization) | Pitfall 9 (grouping fairness) | MEDIUM |
+| Phase 4 | Class Challenge | Pitfall 3 (BroadcastChannel race), Pitfall 4 (state sync) | Pitfall 8 (input validation) | CRITICAL |
 
 ---
 
-## Architecture Recommendation
+## Architecture Recommendations
 
-Based on these pitfalls, the permission flow should be:
+Based on these pitfalls, the v3.2 implementation should:
 
-### 1. On Component Mount
-```
-Check permission state (with loading indicator)
-  -> 'granted': Show "Launch on SmartBoard" button
-  -> 'denied': Show "Launch Student View" + recovery hint
-  -> 'prompt': Show "Launch Student View" + enable option
-  -> null (unsupported): Show "Launch Student View" (manual only)
-```
+### 1. Extend Slide Interface as Discriminated Union
+```typescript
+export type Slide = StandardSlide | ElaborateSlide | WorkTogetherSlide | ClassChallengeSlide;
 
-### 2. On Launch Button Click
-```
-If 'prompt':
-  Show inline priming UI explaining benefit
-  On "Enable" click: call getScreenDetails() in click handler
-  On "Skip" click: launch with manual placement
-
-If 'granted':
-  Launch with auto-placement on external screen
-
-If 'denied' or unsupported:
-  Launch with manual placement
-  Show inline tip about dragging to projector
+// Each type has type-specific fields
+interface ClassChallengeSlide extends BaseSlide {
+  type: 'class-challenge';
+  prompt: string;
+  contributions: StudentContribution[];
+  isAcceptingContributions: boolean;
+}
 ```
 
-### 3. State Display
-```
-Button label reflects current mode:
-  - "Launch on SmartBoard" (granted)
-  - "Launch Student View" (prompt/denied/unsupported)
-
-Sublabel shows status:
-  - "Auto-placement enabled" (granted)
-  - "Enable auto-placement" (prompt)
-  - "Manual placement" (denied/unsupported)
+### 2. Separate Manual Teleprompter Overrides from Cache
+```typescript
+interface Slide {
+  speakerNotes: string;  // Original AI generation (immutable)
+  verbosityCache?: { concise?: string; detailed?: string };
+  manualTeleprompter?: string;  // Single regenerate result
+  teleprompterSource: 'original' | 'manual' | 'verbosity';
+}
 ```
 
-### 4. Recovery
+### 3. Use buildSlideContext for All AI Generation
+```typescript
+// Never pass single slide; always pass full context
+const slideContext = buildSlideContext(slides, insertionIndex);
+const newSlide = await provider.generateElaborateSlide(slideContext, nextSlide);
 ```
-Settings/gear icon opens modal with:
-  - Current permission status
-  - "Request Permission" button (if prompt)
-  - Browser-specific recovery instructions (if denied)
+
+### 4. Timestamp and Deduplicate BroadcastChannel Messages
+```typescript
+interface StudentContributionMessage {
+  type: 'STUDENT_CONTRIBUTION';
+  contributionId: string;  // UUID
+  timestamp: number;       // Date.now()
+  studentName: string;
+  contribution: string;
+}
+
+// Append-only with deduplication
+setContributions(prev => {
+  if (prev.some(c => c.id === msg.contributionId)) return prev;
+  return [...prev, msg].sort((a, b) => a.timestamp - b.timestamp);
+});
+```
+
+### 5. Pause Auto-Save During Async Operations
+```typescript
+const [isGenerationPending, setIsGenerationPending] = useState(false);
+
+// Auto-save checks flag
+if (slides.length > 0 && !isGenerationPending) {
+  saveToLocalStorage(slides, ...);
+}
+```
+
+### 6. Bump File Version to 3
+```typescript
+export const CURRENT_FILE_VERSION = 3;
+
+// Migration from v2
+if (data.version === 2) {
+  data.slides = data.slides.map(s => ({
+    ...s,
+    slideType: s.slideType || 'standard',
+    teleprompterSource: s.teleprompterSource || 'original'
+  }));
+  data.version = 3;
+}
 ```
 
 ---
 
-## Summary: Top 5 Permission UX Pitfalls
+## Summary: Top 5 Integration Pitfalls
 
-| Priority | Pitfall | Impact | Requirement |
-|----------|---------|--------|-------------|
-| 1 | Race condition on initial render | Permission UI never appears | PERM-01 |
-| 2 | Chrome chip auto-dismisses | Teacher misses prompt entirely | PERM-02, PERM-03 |
-| 3 | No feedback on button | User doesn't know feature state | PERM-04 |
-| 4 | No recovery after dismiss | Feature appears permanently broken | PERM-03 |
-| 5 | User gesture required | Silent failure if called wrong | PERM-01, PERM-03 |
+| Priority | Pitfall | Impact | Phase |
+|----------|---------|--------|-------|
+| 1 | Cache invalidation conflicts with manual teleprompter | Data loss, broken verbosity switching | Phase 1 |
+| 2 | BroadcastChannel race conditions on live input | Lost student contributions | Phase 4 |
+| 3 | AI context degradation on slide insertion | Generic/disconnected content | Phase 2/3 |
+| 4 | PresentationState doesn't support new slide types | State sync broken, lost data | Phase 2/3/4 |
+| 5 | AI homogenization from repeated regeneration | Declining quality, wasted API calls | Phase 2/3 |
 
 ---
 
 ## Sources Summary
 
-**Official Documentation:**
-- [MDN: Window Management API](https://developer.mozilla.org/en-US/docs/Web/API/Window_Management_API)
-- [MDN: Using the Window Management API](https://developer.mozilla.org/en-US/docs/Web/API/Window_Management_API/Using)
-- [MDN: Permissions.query()](https://developer.mozilla.org/en-US/docs/Web/API/Permissions/query)
-- [Chrome Developers: Window Management API](https://developer.chrome.com/docs/capabilities/web-apis/window-management)
-- [Chrome Developers: Permissions Request Chip](https://developer.chrome.com/blog/permissions-chip)
+**AI Content Generation:**
+- [AI Content Generation 2026: Brand Voice, Strategy and Scaling](https://www.roboticmarketer.com/ai-content-generation-in-2026-brand-voice-strategy-and-scaling/)
+- [AI-induced cultural stagnation is already happening](https://theconversation.com/ai-induced-cultural-stagnation-is-no-longer-speculation-its-already-happening-272488)
+- [Best AI Presentation Makers 2026](https://plusai.com/blog/best-ai-presentation-makers)
 
-**Best Practices:**
-- [web.dev: Permissions Best Practices](https://web.dev/articles/permissions-best-practices)
-- [web.dev: Push Notifications Permissions UX](https://web.dev/articles/push-notifications-permissions-ux)
-- [Adam Lynch: Improve Permissions UX](https://adamlynch.com/improve-permissions-ux/)
+**BroadcastChannel & Real-Time Sync:**
+- [BroadcastChannel spec vague about async nature - WHATWG Issue #7267](https://github.com/whatwg/html/issues/7267)
+- [Real-Time Collaboration with BroadcastChannel API](https://www.slingacademy.com/article/real-time-collaboration-with-broadcast-channel-api-in-javascript/)
+- [Handling Race Conditions in Real-Time Apps](https://dev.to/mattlewandowski93/handling-race-conditions-in-real-time-apps-49c8)
 
-**Issue Discussions:**
-- [W3C Window Management Issue #135](https://github.com/w3c/window-management/issues/135) - Permission popup not displaying
-- [Chrome: Rethinking Web Permissions](https://developer.chrome.com/blog/rethinking-web-permissions)
+**Cache Invalidation & State Management:**
+- [React Query Cache Invalidation: Why Your Mutations Work But Your UI Doesn't Update](https://medium.com/@kennediowusu/react-query-cache-invalidation-why-your-mutations-work-but-your-ui-doesnt-update-a1ad23bc7ef1)
+- [Managing Query Keys for Cache Invalidation](https://www.wisp.blog/blog/managing-query-keys-for-cache-invalidation-in-react-query)
+- [Frontend Design Patterns 2026](https://www.netguru.com/blog/frontend-design-patterns)
 
-**React Patterns:**
-- [Max Rozen: Fixing Race Conditions in React](https://maxrozen.com/race-conditions-fetching-data-react-with-useeffect)
-- [React useEffect Documentation](https://react.dev/reference/react/useEffect)
+**Concurrent State Modification:**
+- [Building a real-time collaborative editor using Operational Transformation](https://srijancse.medium.com/how-real-time-collaborative-editing-work-operational-transformation-ac4902d75682)
+- [JavaScript Frameworks - Heading into 2026](https://dev.to/this-is-learning/javascript-frameworks-heading-into-2026-2hel)
+
+**Existing Cue Architecture:**
+- Cue PROJECT.md - v3.1 verbosity caching patterns
+- Cue types.ts - BroadcastChannel sync, Slide interface
+- Cue App.tsx - cache invalidation logic (lines 321-334)
+- Cue v3.1 ROADMAP - verbosity implementation decisions
+
+---
+
+_Research complete. All findings verified against existing Cue codebase patterns and 2026 web sources._
