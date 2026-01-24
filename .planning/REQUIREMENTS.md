@@ -63,24 +63,24 @@ Deferred to later milestones.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| VERB-01 | TBD | Pending |
-| VERB-02 | TBD | Pending |
-| VERB-03 | TBD | Pending |
-| VERB-04 | TBD | Pending |
-| VERB-05 | TBD | Pending |
-| VERB-06 | TBD | Pending |
-| VERB-07 | TBD | Pending |
-| VERB-08 | TBD | Pending |
-| VERB-09 | TBD | Pending |
-| VERB-10 | TBD | Pending |
-| VERB-11 | TBD | Pending |
-| VERB-12 | TBD | Pending |
+| VERB-01 | Phase 27 | Pending |
+| VERB-02 | Phase 27 | Pending |
+| VERB-03 | Phase 27 | Pending |
+| VERB-04 | Phase 27 | Pending |
+| VERB-05 | Phase 27 | Pending |
+| VERB-06 | Phase 27 | Pending |
+| VERB-07 | Phase 27 | Pending |
+| VERB-08 | Phase 27 | Pending |
+| VERB-09 | Phase 28 | Pending |
+| VERB-10 | Phase 28 | Pending |
+| VERB-11 | Phase 28 | Pending |
+| VERB-12 | Phase 28 | Pending |
 
 **Coverage:**
 - v3.1 requirements: 12 total
-- Mapped to phases: 0
-- Unmapped: 12 (pending roadmap)
+- Mapped to phases: 12
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-24*
-*Last updated: 2026-01-24 after initial definition*
+*Last updated: 2026-01-24 - Traceability updated with phase mappings*
