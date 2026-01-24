@@ -25,6 +25,45 @@ The speaker notes must use "👉" as a delimiter.
 - The number of "👉" segments MUST be exactly (Number of Bullets + 1).
 `;
 
+const TELEPROMPTER_RULES_CONCISE = `
+CONCISE SPEAKER NOTES (BULLET-POINT STYLE):
+The teacher wants MINIMAL guidance - just key prompts to jog memory.
+
+RULES:
+- Output 2-3 short phrases per segment (not full sentences)
+- Use comma-separated points, not prose
+- Focus on: key term, quick example, one action
+- NO transitions, NO elaborate explanations
+
+FORMATTING:
+Use "👉" as delimiter. Segments = Bullets + 1.
+- Segment 0: One-liner setup (5-8 words)
+- Segment N: 2-3 comma-separated prompts
+
+EXAMPLE OUTPUT:
+"Quick review of fractions 👉 denominator = parts total, numerator = parts we have 👉 example: 3/4 pizza, draw on board 👉 check: ask which is bigger, 1/2 or 1/4"
+`;
+
+const TELEPROMPTER_RULES_DETAILED = `
+DETAILED SPEAKER NOTES (SCRIPT STYLE):
+The teacher wants a FULL SCRIPT they can read verbatim for confident delivery.
+
+RULES:
+- Write complete sentences in conversational tone
+- Include transition phrases: "Now let's look at...", "As you can see...", "So what does this mean?"
+- Add prompts for student interaction: "[PAUSE for questions]", "[Wait for responses]"
+- Include teacher actions: "[Point to diagram]", "[Write on board]"
+- Each segment should be 3-5 sentences
+
+FORMATTING:
+Use "👉" as delimiter. Segments = Bullets + 1.
+- Segment 0: Full introduction with hook and preview
+- Segment N: Complete teaching script with examples and checks
+
+EXAMPLE OUTPUT:
+"Alright everyone, today we're going to explore something really interesting - fractions! [PAUSE] Has anyone ever shared a pizza with friends? That's exactly what fractions help us understand. 👉 So when we look at this first point, the denominator - that's the number on the bottom - tells us how many equal parts we've divided something into. Think of it like cutting a cake into slices. If we cut it into 4 pieces, our denominator is 4. [Point to example on board] Does that make sense so far? 👉 ..."
+`;
+
 /**
  * Get the appropriate system instruction based on generation mode.
  */
@@ -815,4 +854,54 @@ Key points: ${request.slideContext.currentSlideContent.join('; ')}
     console.error("Game Question Gen Error", error);
     return [];
   }
+};
+
+export type VerbosityLevel = 'concise' | 'standard' | 'detailed';
+
+export const regenerateTeleprompter = async (
+    apiKey: string,
+    slide: Slide,
+    verbosity: VerbosityLevel
+): Promise<string> => {
+    const ai = new GoogleGenAI({ apiKey });
+    const model = "gemini-3-flash-preview";
+
+    const rules = verbosity === 'concise'
+        ? TELEPROMPTER_RULES_CONCISE
+        : verbosity === 'detailed'
+        ? TELEPROMPTER_RULES_DETAILED
+        : TELEPROMPTER_RULES; // standard - existing behavior
+
+    const systemInstruction = `
+You are regenerating teleprompter notes for an existing slide.
+The slide has ${slide.content.length} bullet points.
+
+${rules}
+
+CRITICAL: Output ONLY the speaker notes text. No JSON, no markdown code blocks, no explanations.
+`;
+
+    const prompt = `
+Slide Title: ${slide.title}
+Slide Content:
+${slide.content.map((b, i) => `${i + 1}. ${b}`).join('\n')}
+
+Generate speaker notes in ${verbosity} style.
+`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model,
+            contents: prompt,
+            config: {
+                systemInstruction,
+                responseMimeType: "text/plain"
+            }
+        });
+
+        return response.text?.trim() || "";
+    } catch (error) {
+        console.error("Teleprompter Regeneration Error:", error);
+        throw new AIProviderError(USER_ERROR_MESSAGES.NETWORK_ERROR, 'NETWORK_ERROR', error);
+    }
 };
