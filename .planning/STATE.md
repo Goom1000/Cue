@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-25)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** Planning next milestone
+**Current focus:** v3.2 Pedagogical Slide Types
 
 ## Current Position
 
-Phase: Ready for next milestone
-Plan: N/A
-Status: v3.1 shipped
-Last activity: 2026-01-25 — Completed v3.1 milestone
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-01-25 — Milestone v3.2 started
 
-Progress: ████████████████████████████ 28/28 phases complete
+Progress: ░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 0% (new milestone)
 
 ## Performance Metrics
 
@@ -73,10 +73,10 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-25
-Stopped at: v3.1 milestone complete
+Stopped at: Defining v3.2 requirements
 Resume file: None
-Next: Start next milestone with `/gsd:new-milestone`
+Next: Complete requirements and roadmap
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-25 - v3.1 milestone complete*
+*Last updated: 2026-01-25 - v3.2 milestone started*

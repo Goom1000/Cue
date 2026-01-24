@@ -98,7 +98,11 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Active
 
-(None — start next milestone with `/gsd:new-milestone`)
+**v3.2 Pedagogical Slide Types:**
+- [ ] Elaborate slide insertion — AI generates deeper, comprehensive content expanding on current slide
+- [ ] Work Together slide insertion — AI generates collaborative pair/group activities with basic resources
+- [ ] Class Challenge slide — Live interactive slide for capturing student contributions in real-time
+- [ ] Single teleprompter regenerate — Button to update one slide's script after manual edits
 
 ### Deferred (v3.1+)
 
@@ -227,4 +231,4 @@ v3.0 delivered Quiz Game Variety:
 | The Chase disabled in UI | Code preserved but removed from menu per user preference | ✓ Good — v3.0 |
 
 ---
-*Last updated: 2026-01-25 after v3.1 milestone*
+*Last updated: 2026-01-25 after v3.2 milestone started*
