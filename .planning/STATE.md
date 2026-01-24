@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-25)
 ## Current Position
 
 Phase: 29 of 32 (Single Teleprompter Regeneration)
-Plan: Not yet planned
-Status: Ready to plan
-Last activity: 2026-01-25 - v3.2 roadmap created with 4 phases
+Plan: 1 of 1 in phase
+Status: Phase complete
+Last activity: 2026-01-24 - Completed 29-01-PLAN.md
 
-Progress: ░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 0% (v3.2 milestone: 0/4 phases)
+Progress: ███████░░░░░░░░░░░░░░░░░░░░░ 25% (v3.2 milestone: 1/4 phases)
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 11 (v1.0 through v3.1)
-- Total phases completed: 28
-- Total plans completed: 89
+- Total phases completed: 29
+- Total plans completed: 90
 - Total LOC: ~17,000 TypeScript
 
 **v3.2 Milestone:**
@@ -42,10 +42,11 @@ Progress: ░░░░░░░░░░░░░░░░░░░░░░░�
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- **Phase 29**: Context-aware regeneration with prevSlide/nextSlide - Pattern for natural flow transitions in AI-generated content
+- **Phase 29**: Differential cache behavior (Standard clears, variants preserve) - Standard is source of truth, variants are cached derivations
 - **Phase 28**: Per-slide verbosity caching with file format v2 - Cache structure exists for v3.2 single regeneration to extend
 - **Phase 27**: Three-level verbosity toggle (Concise/Standard/Detailed) - Single regeneration must respect current level
 - **v3.0**: BroadcastChannel atomic snapshots for game state - Pattern proven for Class Challenge live sync (Phase 32)
-- **v2.0**: Strategy pattern for AI providers - Extension point ready for Elaborate/Work Together generation methods
 
 ### Pending Todos
 
@@ -63,12 +64,12 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-25
-Stopped at: Roadmap created for v3.2 milestone (4 phases, 17 requirements, 100% coverage)
+Last session: 2026-01-24
+Stopped at: Completed 29-01-PLAN.md (Single Teleprompter Regeneration)
 Resume file: None
 
-**Next step:** `/gsd:plan-phase 29` to begin Single Teleprompter Regeneration
+**Next step:** `/gsd:plan-phase 30` to begin Elaborate Bullet phase
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-25 - v3.2 roadmap created*
+*Last updated: 2026-01-24 - Completed phase 29 plan 01*
