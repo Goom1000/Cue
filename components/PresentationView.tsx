@@ -951,6 +951,68 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
       }
   };
 
+  // Handle explicit regeneration request (always regenerate, ignoring cache)
+  const handleRegenerateScript = async () => {
+      if (!provider) {
+          onRequestAI('regenerate teleprompter script');
+          return;
+      }
+
+      // Prevent regeneration on empty slides
+      if (currentSlide.content.length === 0) {
+          onError('Cannot Regenerate', 'Add bullet points to the slide before regenerating.');
+          return;
+      }
+
+      setIsRegenerating(true);
+
+      try {
+          // Context for coherence (REGEN-03)
+          const prevSlide = currentIndex > 0 ? slides[currentIndex - 1] : undefined;
+          const nextSlide = currentIndex < slides.length - 1 ? slides[currentIndex + 1] : undefined;
+
+          const newScript = await provider.regenerateTeleprompter(
+              currentSlide,
+              verbosityLevel,
+              prevSlide,
+              nextSlide
+          );
+
+          // Update display state
+          if (verbosityLevel === 'standard') {
+              setRegeneratedScript(null);  // Standard uses speakerNotes directly
+          } else {
+              setRegeneratedScript(newScript);
+          }
+
+          // Update slide data - different behavior based on verbosity level
+          if (verbosityLevel === 'standard') {
+              // Standard: update speakerNotes, clear cache (content effectively changed)
+              onUpdateSlide(currentSlide.id, {
+                  speakerNotes: newScript,
+                  verbosityCache: undefined,
+              });
+          } else {
+              // Concise/Detailed: update cache only
+              onUpdateSlide(currentSlide.id, {
+                  verbosityCache: {
+                      ...currentSlide.verbosityCache,
+                      [verbosityLevel]: newScript,
+                  },
+              });
+          }
+      } catch (error) {
+          console.error('Failed to regenerate teleprompter:', error);
+          if (error instanceof AIProviderError) {
+              onError('Regeneration Failed', error.userMessage);
+          } else {
+              onError('Error', 'Could not regenerate script. Please try again.');
+          }
+      } finally {
+          setIsRegenerating(false);
+      }
+  };
+
   // --- Student Assignment Logic ---
   const studentAssignments = useMemo(() => {
     if (studentNames.length === 0) return {};
@@ -1310,6 +1372,27 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
                            {level}
                        </button>
                    ))}
+
+                   {/* Divider */}
+                   <div className="w-px h-5 bg-slate-600 mx-1" />
+
+                   {/* Regenerate Button */}
+                   <button
+                       onClick={handleRegenerateScript}
+                       disabled={isRegenerating || !isAIAvailable || currentSlide.content.length === 0}
+                       className={`px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all flex items-center gap-1.5 ${
+                           isRegenerating || !isAIAvailable || currentSlide.content.length === 0
+                               ? 'bg-slate-700/50 text-slate-500 cursor-not-allowed'
+                               : 'bg-slate-700 text-slate-300 hover:bg-amber-600 hover:text-white'
+                       }`}
+                       title={!isAIAvailable ? 'Add API key in Settings' : currentSlide.content.length === 0 ? 'Add slide content first' : 'Regenerate script for this slide'}
+                   >
+                       <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                           <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                       </svg>
+                       Regen
+                   </button>
+
                    {isRegenerating && (
                        <div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin ml-2" />
                    )}
