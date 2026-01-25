@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { Slide, AppState, SavedClass } from './types';
+import { Slide, AppState, SavedClass, StudentPair } from './types';
 import { createAIProvider, AIProviderError, AIProviderInterface, GenerationInput, GenerationMode, AIErrorCode } from './services/aiProvider';
 import { useSettings } from './hooks/useSettings';
 import { useClassBank } from './hooks/useClassBank';
@@ -26,15 +26,49 @@ import StudentView from './components/StudentView';
 
 declare const pdfjsLib: any;
 
+// Generate randomized student pairs with Fisher-Yates shuffle
+// Handles odd numbers by creating one group of 3
+function generatePairs(studentNames: string[]): StudentPair[] {
+  if (studentNames.length < 2) {
+    // Single student or empty: return as single group
+    return studentNames.length === 1 ? [{ students: studentNames }] : [];
+  }
+
+  // Fisher-Yates shuffle
+  const shuffled = [...studentNames];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  const pairs: StudentPair[] = [];
+  const isOdd = shuffled.length % 2 !== 0;
+
+  // Create pairs of 2
+  const pairEndIndex = isOdd ? shuffled.length - 3 : shuffled.length;
+  for (let i = 0; i < pairEndIndex; i += 2) {
+    pairs.push({ students: [shuffled[i], shuffled[i + 1]] });
+  }
+
+  // Handle last 3 (odd) or last 2 (even)
+  if (isOdd) {
+    pairs.push({ students: shuffled.slice(-3), isGroupOfThree: true });
+  }
+
+  return pairs;
+}
+
 // Sub-component for the insertion point with menu options
 const InsertPoint = ({
   onClickBlank,
   onClickExemplar,
-  onClickElaborate
+  onClickElaborate,
+  onClickWorkTogether
 }: {
   onClickBlank: () => void,
   onClickExemplar: () => void,
-  onClickElaborate: () => void
+  onClickElaborate: () => void,
+  onClickWorkTogether: () => void
 }) => {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -72,6 +106,12 @@ const InsertPoint = ({
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors shadow-sm"
                     >
                         <span className="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">Elaborate</span>
+                    </button>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onClickWorkTogether(); setIsOpen(false); }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors shadow-sm"
+                    >
+                        <span className="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">Work Together</span>
                     </button>
                 </div>
             )}
@@ -512,6 +552,70 @@ function App() {
         setErrorModal({ title: 'Elaborate Generation Failed', message: err.userMessage });
       }
     }
+  };
+
+  const handleInsertWorkTogetherSlide = async (index: number) => {
+    if (!provider) {
+      setErrorModal({ title: 'AI Not Configured', message: 'Please configure your AI provider in Settings.' });
+      return;
+    }
+
+    // Source slide is the slide ABOVE the + button (what we're creating activity for)
+    const source = index >= 0 ? slides[index] : undefined;
+    if (!source) {
+      setErrorModal({ title: 'Cannot Create Activity', message: 'Need a slide above to create an activity for.' });
+      return;
+    }
+
+    const tempId = `temp-work-${Date.now()}`;
+    const tempSlide: Slide = {
+      id: tempId,
+      title: "Creating Activity...",
+      content: ["Generating collaborative activity...", "Designing pair instructions..."],
+      speakerNotes: "",
+      imagePrompt: "",
+      isGeneratingImage: true,
+      layout: 'work-together'
+    };
+
+    // Insert temp slide after source
+    const newSlides = [...slides];
+    newSlides.splice(index + 1, 0, tempSlide);
+    setSlides(newSlides);
+    setActiveSlideIndex(index + 1);
+
+    try {
+      const workTogether = await provider.generateWorkTogetherSlide(lessonTitle, source, slides);
+
+      // Generate pairs from roster if available
+      const pairs = studentNames.length >= 2 ? generatePairs(studentNames) : undefined;
+
+      setSlides(curr => curr.map(s => s.id === tempId
+        ? { ...workTogether, id: tempId, pairs, isGeneratingImage: autoGenerateImages }
+        : s
+      ));
+
+      if (autoGenerateImages) {
+        const img = await provider.generateSlideImage(workTogether.imagePrompt, workTogether.layout);
+        setSlides(curr => curr.map(s => s.id === tempId ? { ...s, imageUrl: img, isGeneratingImage: false } : s));
+      }
+    } catch (err) {
+      console.error("Work Together error:", err);
+      // Fallback to blank if generation fails
+      setSlides(curr => curr.map(s => s.id === tempId ? { ...tempSlide, title: "New Slide", isGeneratingImage: false } : s));
+      if (err instanceof AIProviderError) {
+        setErrorModal({ title: 'Activity Generation Failed', message: err.userMessage });
+      }
+    }
+  };
+
+  const handleShufflePairs = (slideId: string) => {
+    if (studentNames.length < 2) return;
+
+    const newPairs = generatePairs(studentNames);
+    setSlides(curr => curr.map(s =>
+      s.id === slideId ? { ...s, pairs: newPairs } : s
+    ));
   };
 
   const handleAddNames = () => {
@@ -1211,6 +1315,7 @@ function App() {
                             onClickBlank={() => handleInsertBlankSlide(-1)}
                             onClickExemplar={() => handleInsertExemplarSlide(-1)}
                             onClickElaborate={() => handleInsertElaborateSlide(-1)}
+                            onClickWorkTogether={() => handleInsertWorkTogetherSlide(-1)}
                         />
                         
                         {slides.map((slide, idx) => (
@@ -1245,6 +1350,7 @@ function App() {
                                  onClickBlank={() => handleInsertBlankSlide(idx)}
                                  onClickExemplar={() => handleInsertExemplarSlide(idx)}
                                  onClickElaborate={() => handleInsertElaborateSlide(idx)}
+                                 onClickWorkTogether={() => handleInsertWorkTogetherSlide(idx)}
                                />
                            </React.Fragment>
                         ))}

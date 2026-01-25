@@ -332,6 +332,70 @@ export const TileOverlapLayout: React.FC<{ slide: Slide, visibleBullets: number 
     );
 };
 
+// Work Together layout with activity instructions and optional pair display
+export const WorkTogetherLayout: React.FC<{ slide: Slide, visibleBullets: number }> = ({ slide, visibleBullets }) => (
+  <div
+    className="w-full h-full flex flex-col overflow-hidden"
+    style={{ backgroundColor: slide.backgroundColor || '#0d9488' }}  // Teal-600
+  >
+    {/* Header */}
+    <div className="px-6 md:px-10 pt-6 md:pt-8">
+      <h2 className="text-5xl md:text-7xl font-bold text-white text-center font-poppins">
+        {slide.title}
+      </h2>
+    </div>
+
+    {/* Main content area */}
+    <div className="flex-1 flex flex-col md:flex-row gap-4 md:gap-6 p-4 md:p-6 overflow-hidden">
+      {/* Left: Activity Instructions */}
+      <div className="flex-1 bg-white/10 rounded-2xl p-4 md:p-6 backdrop-blur-sm overflow-auto">
+        <h3 className="text-xl md:text-2xl font-bold text-white/80 mb-3 md:mb-4 uppercase tracking-wider">Instructions</h3>
+        <div className="space-y-3 md:space-y-4">
+          {slide.content.map((point, idx) => (
+            <div
+              key={idx}
+              className={`flex gap-3 md:gap-4 items-start transition-all duration-500 ${
+                idx < visibleBullets ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
+              }`}
+            >
+              <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-amber-400 text-teal-900 font-bold flex items-center justify-center shrink-0 text-sm md:text-base">
+                {idx + 1}
+              </div>
+              <p className="text-xl md:text-2xl lg:text-3xl text-white font-medium leading-relaxed">
+                <MarkdownText text={point} />
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Right: Student Pairs (if available) */}
+      {slide.pairs && slide.pairs.length > 0 ? (
+        <div className="w-full md:w-1/3 bg-white/10 rounded-2xl p-4 md:p-6 backdrop-blur-sm overflow-auto">
+          <h3 className="text-xl md:text-2xl font-bold text-white/80 mb-3 md:mb-4 uppercase tracking-wider">Your Pairs</h3>
+          <ul className="space-y-2 text-lg md:text-xl text-white">
+            {slide.pairs.map((pair, idx) => (
+              <li
+                key={idx}
+                className={`py-1.5 px-3 rounded-lg ${pair.isGroupOfThree ? 'bg-amber-500/20 text-amber-200' : 'bg-white/5'}`}
+              >
+                {pair.students.join(' & ')}
+                {pair.isGroupOfThree && <span className="ml-2 text-amber-300 text-sm">(group of 3)</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <div className="w-full md:w-1/3 bg-white/5 rounded-2xl p-4 md:p-6 border-2 border-dashed border-white/20 flex items-center justify-center">
+          <p className="text-white/40 text-center text-lg">
+            Load a class list to show pairs here
+          </p>
+        </div>
+      )}
+    </div>
+  </div>
+);
+
 export const SlideContentRenderer: React.FC<{ slide: Slide, visibleBullets: number }> = ({ slide, visibleBullets }) => {
     switch (slide.layout) {
         case 'full-image':
@@ -342,6 +406,8 @@ export const SlideContentRenderer: React.FC<{ slide: Slide, visibleBullets: numb
             return <GridLayout slide={slide} visibleBullets={visibleBullets} />;
         case 'tile-overlap':
             return <TileOverlapLayout slide={slide} visibleBullets={visibleBullets} />;
+        case 'work-together':
+            return <WorkTogetherLayout slide={slide} visibleBullets={visibleBullets} />;
         default:
             return <DefaultLayout slide={slide} visibleBullets={visibleBullets} />;
     }
