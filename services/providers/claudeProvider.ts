@@ -634,6 +634,76 @@ Do not include any text before or after the JSON.
     };
   }
 
+  async generateClassChallengeSlide(lessonTopic: string, sourceSlide: Slide, allSlides: Slide[]): Promise<Slide> {
+    // Build full presentation context for coherence
+    const presentationContext = allSlides
+      .map((s, i) => `Slide ${i + 1}: "${s.title}" - ${s.content.slice(0, 2).join('; ')}`)
+      .join('\n');
+
+    const systemPrompt = `
+You are an educational designer creating "Class Challenge" slides for Year 6 (10-11 year olds).
+Topic: ${lessonTopic}
+Creating challenge based on: "${sourceSlide.title}"
+Source content: ${sourceSlide.content.join('; ')}
+
+PRESENTATION CONTEXT (maintain coherence):
+${presentationContext}
+
+TASK: Create a Class Challenge slide for live student participation.
+The teacher will type student contributions in real-time during the lesson.
+
+CHALLENGE PROMPT REQUIREMENTS:
+1. Write a SHORT, punchy challenge prompt/question (2-3 sentences max)
+2. The prompt should check understanding of the source slide content
+3. Make it open-ended to encourage multiple diverse responses
+4. Phrase it to invite brainstorming (e.g., "What are all the ways...", "Name as many...", "What examples can you think of...")
+5. Keep language simple and engaging for 10-11 year olds
+
+SPEAKER NOTES (FACILITATION TIPS):
+The teleprompter should help the teacher run the activity effectively:
+- Segment 0: INTRO - How to launch the challenge, set expectations (e.g., "Hands up with ideas, I'll type them")
+- Segment 1: DURING - What to say while collecting responses, prompts to encourage more ideas
+- Segment 2: WRAP-UP - How to summarize, acknowledge contributions, transition
+
+Use "👉" as delimiter between segments (exactly 3 segments).
+
+CONTENT ARRAY:
+Provide 1-2 brief instruction bullets for the slide (optional, can be empty if the prompt is self-explanatory).
+These appear below the challenge prompt if provided.
+
+TITLE:
+Use "Class Challenge" or a variation like "Challenge Time" or "Quick Challenge".
+
+IMPORTANT: Return your response as valid JSON with these fields:
+- title (string - "Class Challenge" or similar)
+- content (array of strings - 1-2 brief instructions, can be empty)
+- speakerNotes (string - facilitation tips with 👉 format, exactly 3 segments)
+- challengePrompt (string - the main challenge question, 2-3 sentences)
+- imagePrompt (string)
+- layout (must be 'class-challenge')
+
+Do not include any text before or after the JSON.
+`;
+
+    const messages: ClaudeMessage[] = [{
+      role: 'user',
+      content: `Generate a Class Challenge slide for: "${sourceSlide.title}". Use 'class-challenge' layout.`
+    }];
+
+    const response = await callClaude(this.apiKey, messages, systemPrompt, 2048);
+    const data = extractJSON<any>(response);
+
+    return {
+      ...data,
+      id: `class-challenge-${Date.now()}`,
+      isGeneratingImage: false,
+      slideType: 'class-challenge',
+      layout: 'class-challenge',
+      backgroundColor: '#ea580c',  // Orange-600 theme
+      contributions: []  // Initialize empty contributions array
+    };
+  }
+
   async generateLessonResources(lessonText: string, slideContext: string): Promise<LessonResource[]> {
     const systemPrompt = `
 You are an expert curriculum developer.

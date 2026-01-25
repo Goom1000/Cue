@@ -12,6 +12,7 @@ import {
   generateExemplarSlide as geminiGenerateExemplarSlide,
   generateElaborateSlide as geminiGenerateElaborateSlide,
   generateWorkTogetherSlide as geminiGenerateWorkTogetherSlide,
+  generateClassChallengeSlide as geminiGenerateClassChallengeSlide,
   generateLessonResources as geminiGenerateLessonResources,
   generateImpromptuQuiz as geminiGenerateImpromptuQuiz,
   generateQuestionWithAnswer as geminiGenerateQuestionWithAnswer,
@@ -107,6 +108,14 @@ export class GeminiProvider implements AIProviderInterface {
   async generateWorkTogetherSlide(lessonTopic: string, sourceSlide: Slide, allSlides: Slide[]): Promise<Slide> {
     try {
       return await geminiGenerateWorkTogetherSlide(this.apiKey, lessonTopic, sourceSlide, allSlides);
+    } catch (error) {
+      throw this.wrapError(error);
+    }
+  }
+
+  async generateClassChallengeSlide(lessonTopic: string, sourceSlide: Slide, allSlides: Slide[]): Promise<Slide> {
+    try {
+      return await geminiGenerateClassChallengeSlide(this.apiKey, lessonTopic, sourceSlide, allSlides);
     } catch (error) {
       throw this.wrapError(error);
     }
