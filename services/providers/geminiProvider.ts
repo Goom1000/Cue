@@ -1,4 +1,4 @@
-import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES, GenerationInput, GameQuestionRequest, VerbosityLevel } from '../aiProvider';
+import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES, GenerationInput, GameQuestionRequest, VerbosityLevel, ChatContext } from '../aiProvider';
 import { Slide, LessonResource } from '../../types';
 import {
   QuizQuestion,
@@ -18,6 +18,7 @@ import {
   generateQuestionWithAnswer as geminiGenerateQuestionWithAnswer,
   generateGameQuestions as geminiGenerateGameQuestions,
   regenerateTeleprompter as geminiRegenerateTeleprompter,
+  streamChatResponse as geminiStreamChatResponse,
 } from '../geminiService';
 
 /**
@@ -164,6 +165,17 @@ export class GeminiProvider implements AIProviderInterface {
   async regenerateTeleprompter(slide: Slide, verbosity: VerbosityLevel, prevSlide?: Slide, nextSlide?: Slide): Promise<string> {
     try {
       return await geminiRegenerateTeleprompter(this.apiKey, slide, verbosity, prevSlide, nextSlide);
+    } catch (error) {
+      throw this.wrapError(error);
+    }
+  }
+
+  async *streamChat(
+    message: string,
+    context: ChatContext
+  ): AsyncGenerator<string, void, unknown> {
+    try {
+      yield* geminiStreamChatResponse(this.apiKey, message, context);
     } catch (error) {
       throw this.wrapError(error);
     }
