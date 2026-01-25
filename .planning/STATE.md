@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-01-25)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** Phase 29 - Single Teleprompter Regeneration
+**Current focus:** Phase 30 - Elaborate Slide Insertion
 
 ## Current Position
 
-Phase: 29 of 32 (Single Teleprompter Regeneration) ✓
+Phase: 30 of 32 (Elaborate Slide Insertion)
 Plan: 1/1 complete
-Status: Phase complete, verified
-Last activity: 2026-01-25 - Phase 29 executed and verified
+Status: Phase complete
+Last activity: 2026-01-25 - Completed 30-01-PLAN.md
 
-Progress: ███████░░░░░░░░░░░░░░░░░░░░░ 25% (v3.2 milestone: 1/4 phases)
+Progress: ███████░░░░░░░░░░░░░░░░░░░░░ 28% (v3.2 milestone: 2/4 phases)
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 11 (v1.0 through v3.1)
-- Total phases completed: 29
-- Total plans completed: 90
-- Total LOC: ~17,000 TypeScript
+- Total phases completed: 30
+- Total plans completed: 91
+- Total LOC: ~17,200 TypeScript
 
 **v3.2 Milestone:**
 - Phases planned: 4 (29-32)
@@ -42,11 +42,13 @@ Progress: ███████░░░░░░░░░░░░░░░░�
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- **Phase 30**: Vertical dropdown for InsertPoint (3 options: Blank, Exemplar, Elaborate) - Scalable UI pattern for future slide types
+- **Phase 30**: Full presentation context (allSlides) passed to AI for coherence - Prevents repetition across presentation
+- **Phase 30**: slideType: 'elaborate' marker for future UI badge support - Foundation for Phase 31/32 slide type differentiation
 - **Phase 29**: Context-aware regeneration with prevSlide/nextSlide - Pattern for natural flow transitions in AI-generated content
 - **Phase 29**: Differential cache behavior (Standard clears, variants preserve) - Standard is source of truth, variants are cached derivations
 - **Phase 28**: Per-slide verbosity caching with file format v2 - Cache structure exists for v3.2 single regeneration to extend
 - **Phase 27**: Three-level verbosity toggle (Concise/Standard/Detailed) - Single regeneration must respect current level
-- **v3.0**: BroadcastChannel atomic snapshots for game state - Pattern proven for Class Challenge live sync (Phase 32)
 
 ### Pending Todos
 
@@ -65,11 +67,11 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-25
-Stopped at: Phase 29 executed and verified (single teleprompter regeneration complete)
+Stopped at: Completed 30-01-PLAN.md (Elaborate Slide Insertion complete)
 Resume file: None
 
-**Next step:** `/gsd:plan-phase 30` for Elaborate Slide Insertion
+**Next step:** `/gsd:plan-phase 31` for Work Together Slide
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-25 - Phase 29 complete and verified*
+*Last updated: 2026-01-25 - Phase 30 complete*
