@@ -145,6 +145,12 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [regeneratedScript, setRegeneratedScript] = useState<string | null>(null);
 
+  // Class Challenge state
+  const [newContribution, setNewContribution] = useState('');
+  const [isEditingPrompt, setIsEditingPrompt] = useState(false);
+  const [editedPrompt, setEditedPrompt] = useState('');
+  const contributionInputRef = useRef<HTMLInputElement>(null);
+
   // Helper to manually mark student as asked (voluntary answers)
   const markStudentAsAsked = useCallback((studentName: string) => {
     setCyclingState(prev => ({
@@ -204,6 +210,45 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
     setCyclingState(initializeCycling(studentData));
     setIsCounterExpanded(false);
   }, [currentIndex, studentData]);
+
+  // Class Challenge: Clear input and close prompt editor when slide changes
+  useEffect(() => {
+    setNewContribution('');
+    setIsEditingPrompt(false);
+  }, [currentIndex]);
+
+  // Class Challenge: Auto-focus input when arriving at Class Challenge slide
+  useEffect(() => {
+    if (currentSlide?.layout === 'class-challenge' && contributionInputRef.current) {
+      contributionInputRef.current.focus();
+    }
+  }, [currentIndex, currentSlide?.layout]);
+
+  // Class Challenge: Add contribution handler
+  const handleAddContribution = useCallback(() => {
+    const trimmed = newContribution.trim();
+    if (!trimmed || !currentSlide) return;
+
+    onUpdateSlide(currentSlide.id, {
+      contributions: [...(currentSlide.contributions || []), trimmed]
+    });
+    setNewContribution('');
+  }, [newContribution, currentSlide, onUpdateSlide]);
+
+  // Class Challenge: Delete contribution handler
+  const handleDeleteContribution = useCallback((index: number) => {
+    if (!currentSlide?.contributions) return;
+
+    const updated = currentSlide.contributions.filter((_, i) => i !== index);
+    onUpdateSlide(currentSlide.id, { contributions: updated });
+  }, [currentSlide, onUpdateSlide]);
+
+  // Class Challenge: Save edited prompt handler
+  const handleSavePrompt = useCallback(() => {
+    if (!currentSlide) return;
+    onUpdateSlide(currentSlide.id, { challengePrompt: editedPrompt });
+    setIsEditingPrompt(false);
+  }, [currentSlide, editedPrompt, onUpdateSlide]);
 
   // Next student for Targeted mode preview
   const nextStudent = useMemo(() => {
@@ -1334,8 +1379,96 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
       )}
 
       <div className={`flex-1 flex overflow-hidden min-h-0 ${layoutMode === 'col' ? 'flex-col' : 'flex-row'}`}>
-          <div className="flex-1 min-w-0 min-h-0 overflow-hidden">
+          <div className="flex-1 min-w-0 min-h-0 overflow-hidden relative">
                <SlideContentRenderer slide={currentSlide} visibleBullets={visibleBullets} />
+
+               {/* Class Challenge Overlay: Input, Edit Prompt, Delete buttons (teacher only) */}
+               {currentSlide?.layout === 'class-challenge' && (
+                 <div className="absolute inset-0 pointer-events-none">
+                   {/* Contribution Input - bottom center */}
+                   <div className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-auto flex gap-2">
+                     <input
+                       ref={contributionInputRef}
+                       type="text"
+                       value={newContribution}
+                       onChange={(e) => setNewContribution(e.target.value)}
+                       onKeyDown={(e) => e.key === 'Enter' && handleAddContribution()}
+                       placeholder="Type student contribution..."
+                       className="w-80 px-4 py-3 rounded-xl bg-white/90 text-slate-800 placeholder-slate-400 text-lg font-medium shadow-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                     />
+                     <button
+                       onClick={handleAddContribution}
+                       className="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold shadow-lg transition-colors"
+                     >
+                       Add
+                     </button>
+                   </div>
+
+                   {/* Edit Prompt Button - top right */}
+                   <button
+                     onClick={() => {
+                       setEditedPrompt(currentSlide.challengePrompt || '');
+                       setIsEditingPrompt(true);
+                     }}
+                     className="absolute top-4 right-4 pointer-events-auto px-3 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg text-sm font-medium backdrop-blur-sm transition-colors"
+                   >
+                     Edit Prompt
+                   </button>
+
+                   {/* Delete buttons overlaid on cards */}
+                   <div className="absolute inset-0 pt-28 p-4 md:p-6 pointer-events-none">
+                     <div className="flex flex-wrap gap-3 md:gap-4 justify-center content-start h-full">
+                       {(currentSlide.contributions || []).map((_, idx) => {
+                         const cardCount = currentSlide.contributions?.length || 0;
+                         const cardSize = cardCount <= 6 ? 'min-w-[180px] p-6' : cardCount <= 12 ? 'min-w-[140px] p-4' : cardCount <= 20 ? 'min-w-[100px] p-3' : 'min-w-[80px] p-2';
+
+                         return (
+                           <div key={idx} className={`relative ${cardSize} invisible`}>
+                             <button
+                               onClick={() => handleDeleteContribution(idx)}
+                               className="pointer-events-auto absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-md transition-colors visible opacity-70 hover:opacity-100"
+                             >
+                               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                               </svg>
+                             </button>
+                           </div>
+                         );
+                       })}
+                     </div>
+                   </div>
+                 </div>
+               )}
+
+               {/* Class Challenge: Prompt Edit Modal */}
+               {isEditingPrompt && (
+                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-6 animate-fade-in">
+                   <div className="bg-white dark:bg-slate-800 w-full max-w-lg rounded-2xl shadow-2xl p-6">
+                     <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-4">Edit Challenge Prompt</h3>
+                     <textarea
+                       value={editedPrompt}
+                       onChange={(e) => setEditedPrompt(e.target.value)}
+                       placeholder="Enter your challenge question..."
+                       className="w-full h-32 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-white placeholder-slate-400 text-lg resize-none focus:outline-none focus:ring-2 focus:ring-orange-500"
+                       autoFocus
+                     />
+                     <div className="flex justify-end gap-3 mt-4">
+                       <button
+                         onClick={() => setIsEditingPrompt(false)}
+                         className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                       >
+                         Cancel
+                       </button>
+                       <button
+                         onClick={handleSavePrompt}
+                         className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition-colors"
+                       >
+                         Save
+                       </button>
+                     </div>
+                   </div>
+                 </div>
+               )}
           </div>
 
           <div className={`bg-slate-900 border-slate-700 flex flex-col shadow-2xl z-40 shrink-0 transition-all duration-300 ${layoutMode === 'col' ? 'h-80 border-t w-full' : 'w-96 border-l h-full'}`}>

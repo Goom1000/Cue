@@ -396,6 +396,47 @@ export const WorkTogetherLayout: React.FC<{ slide: Slide, visibleBullets: number
   </div>
 );
 
+export const ClassChallengeLayout: React.FC<{ slide: Slide, visibleBullets: number }> = ({ slide }) => {
+  const contributions = slide.contributions || [];
+  const cardCount = contributions.length;
+
+  // Dynamic card sizing based on count (cards shrink to fit more)
+  const getCardClasses = () => {
+    if (cardCount <= 6) return 'text-2xl p-6 min-w-[180px]';
+    if (cardCount <= 12) return 'text-xl p-4 min-w-[140px]';
+    if (cardCount <= 20) return 'text-lg p-3 min-w-[100px]';
+    return 'text-base p-2 min-w-[80px]';
+  };
+
+  return (
+    <div
+      className="w-full h-full flex flex-col overflow-hidden"
+      style={{ backgroundColor: slide.backgroundColor || '#ea580c' }}  // Orange-600
+    >
+      {/* Challenge Prompt */}
+      <div className="px-6 md:px-10 pt-6 md:pt-8 text-center">
+        <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white font-poppins leading-tight">
+          {slide.challengePrompt || 'Click to add your challenge question'}
+        </h2>
+      </div>
+
+      {/* Contribution Cards Grid */}
+      <div className="flex-1 p-4 md:p-6 overflow-hidden">
+        <div className="flex flex-wrap gap-3 md:gap-4 justify-center content-start h-full overflow-y-auto">
+          {contributions.map((contribution, idx) => (
+            <div
+              key={idx}
+              className={`bg-white/20 backdrop-blur-sm rounded-xl text-white font-medium ${getCardClasses()} animate-fade-in`}
+            >
+              {contribution}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const SlideContentRenderer: React.FC<{ slide: Slide, visibleBullets: number }> = ({ slide, visibleBullets }) => {
     switch (slide.layout) {
         case 'full-image':
@@ -408,6 +449,8 @@ export const SlideContentRenderer: React.FC<{ slide: Slide, visibleBullets: numb
             return <TileOverlapLayout slide={slide} visibleBullets={visibleBullets} />;
         case 'work-together':
             return <WorkTogetherLayout slide={slide} visibleBullets={visibleBullets} />;
+        case 'class-challenge':
+            return <ClassChallengeLayout slide={slide} visibleBullets={visibleBullets} />;
         default:
             return <DefaultLayout slide={slide} visibleBullets={visibleBullets} />;
     }

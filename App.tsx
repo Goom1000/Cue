@@ -63,12 +63,14 @@ const InsertPoint = ({
   onClickBlank,
   onClickExemplar,
   onClickElaborate,
-  onClickWorkTogether
+  onClickWorkTogether,
+  onClickClassChallenge
 }: {
   onClickBlank: () => void,
   onClickExemplar: () => void,
   onClickElaborate: () => void,
-  onClickWorkTogether: () => void
+  onClickWorkTogether: () => void,
+  onClickClassChallenge: () => void
 }) => {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -112,6 +114,12 @@ const InsertPoint = ({
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors shadow-sm"
                     >
                         <span className="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">Work Together</span>
+                    </button>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onClickClassChallenge(); setIsOpen(false); }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors shadow-sm"
+                    >
+                        <span className="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">Class Challenge</span>
                     </button>
                 </div>
             )}
@@ -605,6 +613,58 @@ function App() {
       setSlides(curr => curr.map(s => s.id === tempId ? { ...tempSlide, title: "New Slide", isGeneratingImage: false } : s));
       if (err instanceof AIProviderError) {
         setErrorModal({ title: 'Activity Generation Failed', message: err.userMessage });
+      }
+    }
+  };
+
+  const handleInsertClassChallengeSlide = async (index: number) => {
+    if (!provider) {
+      setErrorModal({ title: 'AI Not Configured', message: 'Please configure your AI provider in Settings.' });
+      return;
+    }
+
+    // Source slide is the slide ABOVE the + button (what we're creating challenge for)
+    const source = index >= 0 ? slides[index] : undefined;
+    if (!source) {
+      setErrorModal({ title: 'Cannot Create Challenge', message: 'Need a slide above to create a challenge for.' });
+      return;
+    }
+
+    const tempId = `temp-challenge-${Date.now()}`;
+    const tempSlide: Slide = {
+      id: tempId,
+      title: "Creating Challenge...",
+      content: ["Generating challenge prompt...", "Preparing facilitation tips..."],
+      speakerNotes: "",
+      imagePrompt: "",
+      isGeneratingImage: true,
+      layout: 'class-challenge'
+    };
+
+    // Insert temp slide after source
+    const newSlides = [...slides];
+    newSlides.splice(index + 1, 0, tempSlide);
+    setSlides(newSlides);
+    setActiveSlideIndex(index + 1);
+
+    try {
+      const challenge = await provider.generateClassChallengeSlide(lessonTitle, source, slides);
+
+      setSlides(curr => curr.map(s => s.id === tempId
+        ? { ...challenge, id: tempId, contributions: [], isGeneratingImage: autoGenerateImages }
+        : s
+      ));
+
+      if (autoGenerateImages) {
+        const img = await provider.generateSlideImage(challenge.imagePrompt, challenge.layout);
+        setSlides(curr => curr.map(s => s.id === tempId ? { ...s, imageUrl: img, isGeneratingImage: false } : s));
+      }
+    } catch (err) {
+      console.error("Class Challenge error:", err);
+      // Fallback to blank if generation fails
+      setSlides(curr => curr.map(s => s.id === tempId ? { ...tempSlide, title: "New Slide", isGeneratingImage: false } : s));
+      if (err instanceof AIProviderError) {
+        setErrorModal({ title: 'Challenge Generation Failed', message: err.userMessage });
       }
     }
   };
@@ -1316,6 +1376,7 @@ function App() {
                             onClickExemplar={() => handleInsertExemplarSlide(-1)}
                             onClickElaborate={() => handleInsertElaborateSlide(-1)}
                             onClickWorkTogether={() => handleInsertWorkTogetherSlide(-1)}
+                            onClickClassChallenge={() => handleInsertClassChallengeSlide(-1)}
                         />
                         
                         {slides.map((slide, idx) => (
@@ -1351,6 +1412,7 @@ function App() {
                                  onClickExemplar={() => handleInsertExemplarSlide(idx)}
                                  onClickElaborate={() => handleInsertElaborateSlide(idx)}
                                  onClickWorkTogether={() => handleInsertWorkTogetherSlide(idx)}
+                                 onClickClassChallenge={() => handleInsertClassChallengeSlide(idx)}
                                />
                            </React.Fragment>
                         ))}
