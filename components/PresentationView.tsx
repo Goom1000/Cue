@@ -98,9 +98,11 @@ interface PresentationViewProps {
   onError: (title: string, message: string) => void;
   onRequestAI: (featureName: string) => void;
   onUpdateSlide: (id: string, updates: Partial<Slide>) => void;
+  deckVerbosity: VerbosityLevel;
+  onDeckVerbosityChange: (level: VerbosityLevel) => void;
 }
 
-const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, studentNames, studentData, initialSlideIndex = 0, provider, onError, onRequestAI, onUpdateSlide }) => {
+const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, studentNames, studentData, initialSlideIndex = 0, provider, onError, onRequestAI, onUpdateSlide, deckVerbosity, onDeckVerbosityChange }) => {
   const isAIAvailable = provider !== null;
   const [currentIndex, setCurrentIndex] = useState(initialSlideIndex);
   const [visibleBullets, setVisibleBullets] = useState(0);
@@ -141,7 +143,6 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
   const [isCounterExpanded, setIsCounterExpanded] = useState(false);
 
   // Deck-wide verbosity control for teleprompter scripts
-  const [deckVerbosity, setDeckVerbosity] = useState<VerbosityLevel>('standard');
   const [showVerbosityConfirm, setShowVerbosityConfirm] = useState(false);
   const [pendingVerbosity, setPendingVerbosity] = useState<VerbosityLevel | null>(null);
   const [batchState, setBatchState] = useState<{
@@ -1049,7 +1050,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
     }
 
     // Complete - update deck verbosity level
-    setDeckVerbosity(newLevel);
+    onDeckVerbosityChange(newLevel);
     setBatchState(prev => ({
       ...prev,
       isActive: false,

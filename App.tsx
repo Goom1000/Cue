@@ -201,6 +201,7 @@ function App() {
   
   const [autoGenerateImages, setAutoGenerateImages] = useState(true);
   const [upfrontVerbosity, setUpfrontVerbosity] = useState<VerbosityLevel>('standard');
+  const [deckVerbosity, setDeckVerbosity] = useState<VerbosityLevel>('standard');
   const [studentNames, setStudentNames] = useState<string[]>([]);
   const [studentGrades, setStudentGrades] = useState<import('./types').StudentWithGrade[]>([]);
   const [nameInput, setNameInput] = useState('');
@@ -842,7 +843,7 @@ function App() {
 
   const handleSaveClick = useCallback(() => {
     // Check file size first (use local studentGrades)
-    const file = createCueFile(lessonTitle, slides, studentNames, lessonText, undefined, studentGrades);
+    const file = createCueFile(lessonTitle, slides, studentNames, lessonText, undefined, studentGrades, deckVerbosity);
     const sizeInfo = checkFileSize(file);
 
     if (sizeInfo.exceeds50MB) {
@@ -852,17 +853,17 @@ function App() {
     // Open filename prompt with lesson title as default
     setPendingSaveFilename(lessonTitle || 'New Lesson');
     setShowFilenamePrompt(true);
-  }, [lessonTitle, slides, studentNames, lessonText, addToast, studentGrades]);
+  }, [lessonTitle, slides, studentNames, lessonText, addToast, studentGrades, deckVerbosity]);
 
   const handleSaveConfirm = useCallback(() => {
     // Use local studentGrades
-    const file = createCueFile(lessonTitle, slides, studentNames, lessonText, undefined, studentGrades);
+    const file = createCueFile(lessonTitle, slides, studentNames, lessonText, undefined, studentGrades, deckVerbosity);
     downloadPresentation(file, pendingSaveFilename);
     addToast('Presentation saved successfully!', 3000, 'success');
     setHasUnsavedChanges(false);
     setShowFilenamePrompt(false);
     setPendingSaveFilename('');
-  }, [lessonTitle, slides, studentNames, lessonText, pendingSaveFilename, addToast, studentGrades]);
+  }, [lessonTitle, slides, studentNames, lessonText, pendingSaveFilename, addToast, studentGrades, deckVerbosity]);
 
   const handleSaveCancel = useCallback(() => {
     setShowFilenamePrompt(false);
@@ -895,6 +896,9 @@ function App() {
       // Restore grade data if present
       const loadedGrades = cueFile.content.studentGrades || [];
       setStudentGrades(loadedGrades);
+
+      // Restore deck verbosity (defaults to standard for v2 files)
+      setDeckVerbosity(cueFile.deckVerbosity || 'standard');
 
       // Also save as class with grades if students present
       if (loadedGrades.length > 0 && loadedStudents.length > 0) {
@@ -976,6 +980,8 @@ function App() {
         onError={handleComponentError}
         onRequestAI={handleRequestAI}
         onUpdateSlide={handleUpdateSlide}
+        deckVerbosity={deckVerbosity}
+        onDeckVerbosityChange={setDeckVerbosity}
       />
     );
   }
