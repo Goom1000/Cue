@@ -18,6 +18,8 @@ export interface Slide {
     concise?: string;
     detailed?: string;
   };
+  // Slide type indicator for UI badges (optional, defaults to standard)
+  slideType?: 'standard' | 'elaborate' | 'work-together' | 'class-challenge';
 }
 
 // BroadcastChannel configuration for dual-window sync

@@ -27,18 +27,26 @@ import StudentView from './components/StudentView';
 declare const pdfjsLib: any;
 
 // Sub-component for the insertion point with menu options
-const InsertPoint = ({ onClickBlank, onClickExemplar }: { onClickBlank: () => void, onClickExemplar: () => void }) => {
+const InsertPoint = ({
+  onClickBlank,
+  onClickExemplar,
+  onClickElaborate
+}: {
+  onClickBlank: () => void,
+  onClickExemplar: () => void,
+  onClickElaborate: () => void
+}) => {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div 
+        <div
             className="group/insert py-1 flex items-center justify-center relative -my-1 min-h-[1.5rem]"
             onMouseLeave={() => setIsOpen(false)}
         >
             <div className={`absolute left-4 right-4 h-px transition-colors z-0 ${isOpen ? 'bg-indigo-400 dark:bg-amber-500' : 'bg-transparent group-hover/insert:bg-indigo-300/50 dark:group-hover/insert:bg-amber-500/30'}`}></div>
-            
+
             {!isOpen ? (
-                <button 
+                <button
                     onClick={(e) => { e.stopPropagation(); setIsOpen(true); }}
                     className="z-10 w-6 h-6 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-400 hover:text-indigo-600 dark:hover:text-amber-400 hover:border-indigo-400 dark:hover:border-amber-400 shadow-sm flex items-center justify-center transition-all opacity-0 group-hover/insert:opacity-100 scale-75 group-hover/insert:scale-100 hover:shadow-md"
                     title="Insert Slide"
@@ -46,18 +54,24 @@ const InsertPoint = ({ onClickBlank, onClickExemplar }: { onClickBlank: () => vo
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
                 </button>
             ) : (
-                <div className="z-20 flex gap-2 animate-fade-in bg-white dark:bg-slate-800 border border-indigo-100 dark:border-amber-500/30 rounded-full p-1 shadow-xl ring-4 ring-indigo-50 dark:ring-amber-500/10">
-                    <button 
+                <div className="z-20 flex flex-col gap-1 animate-fade-in bg-white dark:bg-slate-800 border border-indigo-100 dark:border-amber-500/30 rounded-xl p-1.5 shadow-xl ring-4 ring-indigo-50 dark:ring-amber-500/10">
+                    <button
                         onClick={(e) => { e.stopPropagation(); onClickBlank(); setIsOpen(false); }}
-                        className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 rounded-full transition-colors group/btn"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-200 rounded-lg transition-colors"
                     >
-                        <span className="text-[10px] font-bold uppercase tracking-wider">📄 Blank</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">Blank</span>
                     </button>
-                    <button 
+                    <button
                         onClick={(e) => { e.stopPropagation(); onClickExemplar(); setIsOpen(false); }}
-                        className="flex items-center gap-1.5 px-3 py-1 bg-indigo-600 dark:bg-amber-500 hover:bg-indigo-700 dark:hover:bg-amber-400 text-white dark:text-slate-900 rounded-full transition-colors group/btn shadow-sm"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 dark:bg-amber-500 hover:bg-indigo-700 dark:hover:bg-amber-400 text-white dark:text-slate-900 rounded-lg transition-colors shadow-sm"
                     >
-                        <span className="text-[10px] font-bold uppercase tracking-wider">💡 Exemplar</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">Exemplar</span>
+                    </button>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onClickElaborate(); setIsOpen(false); }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors shadow-sm"
+                    >
+                        <span className="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">Elaborate</span>
                     </button>
                 </div>
             )}
@@ -448,6 +462,54 @@ function App() {
       setSlides(curr => curr.map(s => s.id === tempId ? { ...tempSlide, title: "Custom Slide", isGeneratingImage: false } : s));
       if (err instanceof AIProviderError) {
         setErrorModal({ title: 'Exemplar Generation Failed', message: err.userMessage });
+      }
+    }
+  };
+
+  const handleInsertElaborateSlide = async (index: number) => {
+    if (!provider) {
+      setErrorModal({ title: 'AI Not Configured', message: 'Please configure your AI provider in Settings.' });
+      return;
+    }
+
+    // Source slide is the slide ABOVE the + button (what we're elaborating on)
+    const source = index >= 0 ? slides[index] : undefined;
+    if (!source) {
+      setErrorModal({ title: 'Cannot Elaborate', message: 'Need a slide above to elaborate on.' });
+      return;
+    }
+
+    const tempId = `temp-elab-${Date.now()}`;
+    const tempSlide: Slide = {
+      id: tempId,
+      title: "Elaborating...",
+      content: ["Expanding on the concept...", "Adding depth and examples..."],
+      speakerNotes: "",
+      imagePrompt: "",
+      isGeneratingImage: true,
+      layout: 'split'
+    };
+
+    // Insert temp slide after source
+    const newSlides = [...slides];
+    newSlides.splice(index + 1, 0, tempSlide);
+    setSlides(newSlides);
+    setActiveSlideIndex(index + 1);
+
+    try {
+      const elaborate = await provider.generateElaborateSlide(lessonTitle, source, slides);
+      setSlides(curr => curr.map(s => s.id === tempId ? { ...elaborate, id: tempId, isGeneratingImage: autoGenerateImages } : s));
+
+      if (autoGenerateImages) {
+        const img = await provider.generateSlideImage(elaborate.imagePrompt, elaborate.layout);
+        setSlides(curr => curr.map(s => s.id === tempId ? { ...s, imageUrl: img, isGeneratingImage: false } : s));
+      }
+    } catch (err) {
+      console.error("Elaborate error:", err);
+      // Fallback to blank if elaborate fails
+      setSlides(curr => curr.map(s => s.id === tempId ? { ...tempSlide, title: "New Slide", isGeneratingImage: false } : s));
+      if (err instanceof AIProviderError) {
+        setErrorModal({ title: 'Elaborate Generation Failed', message: err.userMessage });
       }
     }
   };
@@ -1145,9 +1207,10 @@ function App() {
                     </div>
 
                     <div className="space-y-0.5">
-                        <InsertPoint 
-                            onClickBlank={() => handleInsertBlankSlide(-1)} 
+                        <InsertPoint
+                            onClickBlank={() => handleInsertBlankSlide(-1)}
                             onClickExemplar={() => handleInsertExemplarSlide(-1)}
+                            onClickElaborate={() => handleInsertElaborateSlide(-1)}
                         />
                         
                         {slides.map((slide, idx) => (
@@ -1178,9 +1241,10 @@ function App() {
                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                   </div>
                                </button>
-                               <InsertPoint 
-                                 onClickBlank={() => handleInsertBlankSlide(idx)} 
+                               <InsertPoint
+                                 onClickBlank={() => handleInsertBlankSlide(idx)}
                                  onClickExemplar={() => handleInsertExemplarSlide(idx)}
+                                 onClickElaborate={() => handleInsertElaborateSlide(idx)}
                                />
                            </React.Fragment>
                         ))}
