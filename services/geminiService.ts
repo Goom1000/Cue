@@ -219,6 +219,13 @@ export const generateLessonSlides = async (
     addImages(input.presentationImages, 5);
   }
 
+  // Build speakerNotes schema description based on verbosity
+  const speakerNotesDescription = verbosityLevel === 'concise'
+    ? "CONCISE style: 2-3 short comma-separated phrases per segment. Formatted with 👉. Count = Bullets + 1. NO REPETITION of slide text."
+    : verbosityLevel === 'detailed'
+    ? "DETAILED style: Full script with 3-5 complete sentences per segment. Include transitions like 'Now let's look at...' and interaction prompts like '[PAUSE for questions]'. Formatted with 👉. Count = Bullets + 1. NO REPETITION of slide text."
+    : "Formatted with 👉. Count = Bullets + 1. NO REPETITION of slide text.";
+
   try {
     const response = await ai.models.generateContent({
       model,
@@ -233,7 +240,7 @@ export const generateLessonSlides = async (
             properties: {
               title: { type: Type.STRING },
               content: { type: Type.ARRAY, items: { type: Type.STRING } },
-              speakerNotes: { type: Type.STRING, description: "Formatted with 👉. Count = Bullets + 1. NO REPETITION of slide text." },
+              speakerNotes: { type: Type.STRING, description: speakerNotesDescription },
               imagePrompt: { type: Type.STRING },
               layout: { type: Type.STRING, enum: ['split', 'full-image', 'center-text', 'flowchart', 'grid', 'tile-overlap'] },
               theme: { type: Type.STRING, enum: ['default', 'purple', 'blue', 'green', 'warm'] }
