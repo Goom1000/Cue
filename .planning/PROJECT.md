@@ -4,11 +4,11 @@
 
 A presentation tool for teachers that transforms PDF lesson plans into interactive slideshows with AI-generated content, a teleprompter script for the teacher, and progressive bullet reveal. Teachers upload their existing lesson plans, select student age/grade level, and the AI creates an engaging presentation with speaker notes that guide the teacher through natural, conversational delivery.
 
-**v3.1 shipped:** Teleprompter verbosity toggle — teachers can switch between Concise/Standard/Detailed mid-lesson with per-slide caching for instant switch-back. Deployed at https://goom1000.github.io/Cue/
+**v3.2 shipped:** Pedagogical Slide Types — teachers can insert AI-generated Elaborate slides (deeper content), Work Together slides (collaborative activities with student pairs), and Class Challenge slides (live contribution capture with real-time sync). Plus single-slide teleprompter regeneration with context awareness. Deployed at https://goom1000.github.io/Cue/
 
 ## Current State
 
-Shipped v3.1 with ~17,000 LOC TypeScript. Added teleprompter verbosity toggle with three levels (Concise/Standard/Detailed), per-slide caching, file format v2 support, and backward compatibility. Previous v3.0 delivered multi-game quiz platform with 4 formats.
+Shipped v3.2 with ~18,100 LOC TypeScript. Added three pedagogical slide types (Elaborate, Work Together, Class Challenge) with AI generation and real-time sync. Single-slide teleprompter regeneration with context awareness. Previous v3.1 delivered verbosity toggle with per-slide caching.
 
 ## Core Value
 
@@ -95,14 +95,14 @@ Students see only the presentation; teachers see the presentation plus a telepro
 - ✓ Loading indicator during regeneration — v3.1
 - ✓ Cache persistence in presentation state (survives refresh) — v3.1
 - ✓ Backward compatibility for v1 files (defaults to Standard) — v3.1
+- ✓ Single teleprompter regeneration with context awareness — v3.2
+- ✓ Elaborate slide insertion (AI-generated deeper content) — v3.2
+- ✓ Work Together slide insertion (collaborative pair activities) — v3.2
+- ✓ Class Challenge slide (live contribution capture with real-time sync) — v3.2
 
 ### Active
 
-**v3.2 Pedagogical Slide Types:**
-- [ ] Elaborate slide insertion — AI generates deeper, comprehensive content expanding on current slide
-- [ ] Work Together slide insertion — AI generates collaborative pair/group activities with basic resources
-- [ ] Class Challenge slide — Live interactive slide for capturing student contributions in real-time
-- [ ] Single teleprompter regenerate — Button to update one slide's script after manual edits
+(No active requirements — ready for next milestone)
 
 ### Deferred (v3.1+)
 
@@ -130,24 +130,22 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Current State
 
-Shipped v3.1 with ~17,000 LOC TypeScript.
+Shipped v3.2 with ~18,100 LOC TypeScript.
 Tech stack: React 19, Vite, Gemini/Claude API, Tailwind CSS, react-rnd.
 Client-side only (no backend).
 Deployed at: https://goom1000.github.io/Cue/
 
+v3.2 delivered Pedagogical Slide Types:
+- Single teleprompter regeneration with context-aware AI (surrounding slides for flow)
+- Elaborate slide insertion (AI generates deeper content with examples)
+- Work Together slide insertion (collaborative activities with student pairs)
+- Class Challenge slides (live contribution capture with real-time sync)
+- All new slide types support verbosity levels and BroadcastChannel sync
+
 v3.1 delivered Teleprompter Verbosity:
 - Three-level verbosity toggle (Concise/Standard/Detailed)
-- AI regeneration for both Gemini and Claude providers
 - Per-slide caching with instant switch-back
 - File format v2 with backward compatibility
-
-v3.0 delivered Quiz Game Variety:
-- Unified game architecture with discriminated union types (GameState, GameType)
-- 4 game formats: Quick Quiz, Millionaire, Beat the Chaser, The Chase (disabled)
-- AI question generation with Bloom's taxonomy difficulty progression
-- Competition modes (individual/team) with auto-generated team names
-- Student view with large timers, phase banners, urgency effects
-- BroadcastChannel game state sync with atomic snapshots
 
 ### Technical Environment
 
@@ -229,6 +227,14 @@ v3.0 delivered Quiz Game Variety:
 | useRef for shown-state tracking | Prevents re-render loops in overlay components | ✓ Good — v3.0 |
 | Turn-based timer mechanics | Only active player's timer counts down | ✓ Good — v3.0 |
 | The Chase disabled in UI | Code preserved but removed from menu per user preference | ✓ Good — v3.0 |
+| Context-aware regeneration | Pass surrounding slides to AI for coherent flow | ✓ Good — v3.2 |
+| Differential cache behavior | Standard clears cache, variants preserve | ✓ Good — v3.2 |
+| Full presentation context in AI prompts | Prevents content repetition across slides | ✓ Good — v3.2 |
+| slideType marker | Foundation for slide type badges (elaborate, work-together, class-challenge) | ✓ Good — v3.2 |
+| Fisher-Yates pair generation | Unbiased randomization for student pairs | ✓ Good — v3.2 |
+| StudentPair separate from content | Enables shuffle without AI regeneration | ✓ Good — v3.2 |
+| Implicit locking via layout visibility | No explicit lock state needed for Class Challenge | ✓ Good — v3.2 |
+| Contribution sync via STATE_UPDATE | Reuses existing BroadcastChannel message | ✓ Good — v3.2 |
 
 ---
-*Last updated: 2026-01-25 after v3.2 milestone started*
+*Last updated: 2026-01-25 after v3.2 milestone complete*

@@ -1,5 +1,33 @@
 # Project Milestones: Cue
 
+## v3.2 Pedagogical Slide Types (Shipped: 2026-01-25)
+
+**Delivered:** Extended Cue's AI capabilities with three new slide types (Elaborate for deeper content, Work Together for collaborative activities, Class Challenge for live student input) plus single-slide teleprompter regeneration with context awareness.
+
+**Phases completed:** 29-32 (4 plans total)
+
+**Key accomplishments:**
+
+- Single teleprompter regeneration with surrounding slide context for natural script flow
+- Elaborate slide insertion via purple + menu button generating 3-5 paragraphs with examples
+- Work Together slides with Fisher-Yates shuffled student pairs and teal-themed layout
+- Class Challenge slides with live contribution input and real-time sync to student view
+- All new slide types support verbosity levels and integrate with existing teleprompter system
+- AI providers (Gemini and Claude) extended with 3 new generation methods
+
+**Stats:**
+
+- 31 files created/modified
+- ~18,100 lines of TypeScript (project total)
+- 4 phases, 4 plans, 17 requirements
+- 1 day (2026-01-25)
+
+**Git range:** `feat(29-01)` → `feat(32-01)`
+
+**What's next:** TBD with /gsd:new-milestone
+
+---
+
 ## v3.1 Teleprompter Verbosity (Shipped: 2026-01-25)
 
 **Delivered:** Three-level verbosity toggle in teleprompter panel allowing teachers to switch between Concise, Standard, and Detailed scripts mid-lesson with per-slide caching for instant switch-back.
