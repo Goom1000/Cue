@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-01-25)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** Phase 30 - Elaborate Slide Insertion
+**Current focus:** Phase 31 - Work Together Slide Insertion
 
 ## Current Position
 
-Phase: 30 of 32 (Elaborate Slide Insertion) ✓
+Phase: 31 of 32 (Work Together Slide Insertion) ✓
 Plan: 1/1 complete
-Status: Phase complete, verified
-Last activity: 2026-01-25 - Phase 30 executed and verified
+Status: Phase complete
+Last activity: 2026-01-25 - Phase 31 executed (Work Together slide insertion)
 
-Progress: ██████████████░░░░░░░░░░░░░░ 50% (v3.2 milestone: 2/4 phases)
+Progress: ████████████████████░░░░░░░░░░ 62% (v3.2 milestone: 3/4 phases)
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 11 (v1.0 through v3.1)
-- Total phases completed: 30
-- Total plans completed: 91
-- Total LOC: ~17,200 TypeScript
+- Total phases completed: 31
+- Total plans completed: 92
+- Total LOC: ~17,400 TypeScript
 
 **v3.2 Milestone:**
 - Phases planned: 4 (29-32)
@@ -42,9 +42,13 @@ Progress: ██████████████░░░░░░░░░�
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- **Phase 30**: Vertical dropdown for InsertPoint (3 options: Blank, Exemplar, Elaborate) - Scalable UI pattern for future slide types
+- **Phase 31**: StudentPair stored separately from content - Enables shuffle without AI regeneration
+- **Phase 31**: Teal color scheme for Work Together slides - Distinguishes from purple Elaborate and indigo Exemplar
+- **Phase 31**: Fisher-Yates shuffle for pair generation - Standard algorithm for unbiased randomization
+- **Phase 31**: Activity constraints in AI prompts - Basic resources only (pen, paper, whiteboard), no tech
+- **Phase 30**: Vertical dropdown for InsertPoint (4 options now: Blank, Exemplar, Elaborate, Work Together) - Scalable UI pattern
 - **Phase 30**: Full presentation context (allSlides) passed to AI for coherence - Prevents repetition across presentation
-- **Phase 30**: slideType: 'elaborate' marker for future UI badge support - Foundation for Phase 31/32 slide type differentiation
+- **Phase 30**: slideType marker for UI badge support - Foundation for slide type differentiation
 - **Phase 29**: Context-aware regeneration with prevSlide/nextSlide - Pattern for natural flow transitions in AI-generated content
 - **Phase 29**: Differential cache behavior (Standard clears, variants preserve) - Standard is source of truth, variants are cached derivations
 - **Phase 28**: Per-slide verbosity caching with file format v2 - Cache structure exists for v3.2 single regeneration to extend
@@ -67,11 +71,11 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-25
-Stopped at: Phase 30 executed and verified (Elaborate Slide Insertion complete)
+Stopped at: Phase 31 executed (Work Together Slide Insertion complete)
 Resume file: None
 
-**Next step:** `/gsd:plan-phase 31` for Work Together Slide
+**Next step:** `/gsd:plan-phase 32` for Class Challenge Slide (final phase in v3.2 milestone)
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-25 - Phase 30 complete and verified*
+*Last updated: 2026-01-25 - Phase 31 complete*
