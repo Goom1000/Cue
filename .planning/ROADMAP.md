@@ -87,10 +87,10 @@ Plans:
   4. Contributions display as styled cards on slide
   5. Contributions sync to student view in real-time
   6. Contributions become read-only when navigating away
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 32-01: [TBD during phase planning]
+- [ ] 32-01: Add Class Challenge slide type with contribution input, card display, and real-time sync
 
 ## Progress
 
@@ -104,7 +104,7 @@ Phases execute in numeric order: 29 → 30 → 31 → 32
 | 29. Single Regeneration | 1/1 | Complete | 2026-01-25 |
 | 30. Elaborate Slides | 1/1 | Complete | 2026-01-25 |
 | 31. Work Together Slides | 1/1 | Complete | 2026-01-25 |
-| 32. Class Challenge Slides | 0/? | Not started | - |
+| 32. Class Challenge Slides | 0/1 | Not started | - |
 
 ---
 
