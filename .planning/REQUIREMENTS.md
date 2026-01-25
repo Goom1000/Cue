@@ -53,23 +53,23 @@ Deferred to later milestones.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UPFR-01 | TBD | Pending |
-| UPFR-02 | TBD | Pending |
-| UPFR-03 | TBD | Pending |
-| DECK-01 | TBD | Pending |
-| DECK-02 | TBD | Pending |
-| DECK-03 | TBD | Pending |
-| DECK-04 | TBD | Pending |
-| DECK-05 | TBD | Pending |
-| PERS-01 | TBD | Pending |
-| PERS-02 | TBD | Pending |
-| PERS-03 | TBD | Pending |
+| UPFR-01 | 33 | Pending |
+| UPFR-02 | 33 | Pending |
+| UPFR-03 | 33 | Pending |
+| DECK-01 | 34 | Pending |
+| DECK-02 | 34 | Pending |
+| DECK-03 | 34 | Pending |
+| DECK-04 | 34 | Pending |
+| DECK-05 | 34 | Pending |
+| PERS-01 | 35 | Pending |
+| PERS-02 | 35 | Pending |
+| PERS-03 | 35 | Pending |
 
 **Coverage:**
 - v3.3 requirements: 11 total
-- Mapped to phases: 0
-- Unmapped: 11 ⚠️
+- Mapped to phases: 11
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-25*
-*Last updated: 2026-01-25 after initial definition*
+*Last updated: 2026-01-25 after roadmap creation*
