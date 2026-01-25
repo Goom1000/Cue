@@ -57,10 +57,10 @@ Plans:
   2. AI generates 3-5 paragraphs with examples and context
   3. Generated content provides deeper understanding than original slide
   4. Teleprompter provides delivery guidance for detailed content
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 30-01: [TBD during phase planning]
+- [ ] 30-01: Extend AI providers with generateElaborateSlide and add Elaborate button to InsertPoint
 
 #### Phase 31: Work Together Slide Insertion
 **Goal**: Teachers can insert AI-generated collaborative activities
@@ -102,7 +102,7 @@ Phases execute in numeric order: 29 → 30 → 31 → 32
 | 27. Verbosity UI | 1/1 | Complete | 2026-01-24 |
 | 28. Caching | 1/1 | Complete | 2026-01-25 |
 | 29. Single Regeneration | 1/1 | Complete | 2026-01-25 |
-| 30. Elaborate Slides | 0/? | Not started | - |
+| 30. Elaborate Slides | 0/1 | Not started | - |
 | 31. Work Together Slides | 0/? | Not started | - |
 | 32. Class Challenge Slides | 0/? | Not started | - |
 
