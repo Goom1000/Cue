@@ -15,10 +15,10 @@ Requirements for Pedagogical Slide Types milestone. Each maps to roadmap phases.
 
 ### Elaborate Slides
 
-- [ ] **ELAB-01**: User can insert Elaborate slide via "+" menu option
-- [ ] **ELAB-02**: AI generates 3-5 paragraphs expanding on current slide content
-- [ ] **ELAB-03**: Generated content includes examples, explanations, and context for deeper understanding
-- [ ] **ELAB-04**: Teleprompter provides guide for delivering detailed content
+- [x] **ELAB-01**: User can insert Elaborate slide via "+" menu option
+- [x] **ELAB-02**: AI generates 3-5 paragraphs expanding on current slide content
+- [x] **ELAB-03**: Generated content includes examples, explanations, and context for deeper understanding
+- [x] **ELAB-04**: Teleprompter provides guide for delivering detailed content
 
 ### Work Together Slides
 
@@ -82,10 +82,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REGEN-01 | Phase 29 | Complete |
 | REGEN-02 | Phase 29 | Complete |
 | REGEN-03 | Phase 29 | Complete |
-| ELAB-01 | Phase 30 | Pending |
-| ELAB-02 | Phase 30 | Pending |
-| ELAB-03 | Phase 30 | Pending |
-| ELAB-04 | Phase 30 | Pending |
+| ELAB-01 | Phase 30 | Complete |
+| ELAB-02 | Phase 30 | Complete |
+| ELAB-03 | Phase 30 | Complete |
+| ELAB-04 | Phase 30 | Complete |
 | WORK-01 | Phase 31 | Pending |
 | WORK-02 | Phase 31 | Pending |
 | WORK-03 | Phase 31 | Pending |
