@@ -9,9 +9,9 @@ Requirements for deck-wide verbosity. Extends v3.1 per-slide verbosity to apply 
 
 ### Upfront Selection
 
-- [ ] **UPFR-01**: User can select verbosity level (Concise/Standard/Detailed) on landing page during upload
-- [ ] **UPFR-02**: Selected verbosity level is used for initial slide generation
-- [ ] **UPFR-03**: Default verbosity is Standard when no selection made
+- [x] **UPFR-01**: User can select verbosity level (Concise/Standard/Detailed) on landing page during upload
+- [x] **UPFR-02**: Selected verbosity level is used for initial slide generation
+- [x] **UPFR-03**: Default verbosity is Standard when no selection made
 
 ### Deck-wide Toggle
 
@@ -53,9 +53,9 @@ Deferred to later milestones.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UPFR-01 | 33 | Pending |
-| UPFR-02 | 33 | Pending |
-| UPFR-03 | 33 | Pending |
+| UPFR-01 | 33 | Complete |
+| UPFR-02 | 33 | Complete |
+| UPFR-03 | 33 | Complete |
 | DECK-01 | 34 | Pending |
 | DECK-02 | 34 | Pending |
 | DECK-03 | 34 | Pending |
@@ -72,4 +72,4 @@ Deferred to later milestones.
 
 ---
 *Requirements defined: 2026-01-25*
-*Last updated: 2026-01-25 after roadmap creation*
+*Last updated: 2026-01-25 — Phase 33 requirements complete*

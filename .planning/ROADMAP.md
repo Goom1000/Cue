@@ -11,7 +11,7 @@ v3.3 extends the per-slide verbosity toggle from v3.1 to work deck-wide. Users s
 
 ## Phases
 
-- [ ] **Phase 33: Upfront Verbosity Selection** - Verbosity selector on landing page during upload
+- [x] **Phase 33: Upfront Verbosity Selection** - Verbosity selector on landing page during upload
 - [ ] **Phase 34: Deck-wide Verbosity Toggle** - Change verbosity for entire deck with confirmation
 - [ ] **Phase 35: Persistence** - Save/load deck verbosity level with backward compatibility
 
@@ -28,7 +28,7 @@ v3.3 extends the per-slide verbosity toggle from v3.1 to work deck-wide. Users s
 **Plans**: 1 plan
 
 Plans:
-- [ ] 33-01-PLAN.md — Extend AI pipeline with verbosity + add landing page selector UI
+- [x] 33-01-PLAN.md — Extend AI pipeline with verbosity + add landing page selector UI
 
 ### Phase 34: Deck-wide Verbosity Toggle
 **Goal**: Users can change verbosity for entire presentation with controlled regeneration
@@ -62,10 +62,10 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 33. Upfront Verbosity Selection | v3.3 | 0/1 | Planning complete | - |
+| 33. Upfront Verbosity Selection | v3.3 | 1/1 | ✓ Complete | 2026-01-25 |
 | 34. Deck-wide Verbosity Toggle | v3.3 | 0/? | Not started | - |
 | 35. Persistence | v3.3 | 0/? | Not started | - |
 
 ---
 *Created: 2026-01-25*
-*Last updated: 2026-01-25 — Phase 33 planned*
+*Last updated: 2026-01-25 — Phase 33 complete*

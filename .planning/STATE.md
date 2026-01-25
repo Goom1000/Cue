@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-01-25)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** v3.3 Deck-wide Verbosity - Phase 33
+**Current focus:** v3.3 Deck-wide Verbosity - Phase 34
 
 ## Current Position
 
@@ -62,7 +62,7 @@ Last session: 2026-01-25
 Stopped at: Completed 33-01-PLAN.md
 Resume file: None
 
-**Next step:** `/gsd:plan-phase 34` (Preferences Persistence)
+**Next step:** `/gsd:plan-phase 34` (Deck-wide Verbosity Toggle)
 
 ---
 *State initialized: 2026-01-18*
