@@ -8,7 +8,7 @@ export interface Slide {
   imagePrompt: string;
   imageUrl?: string;
   isGeneratingImage?: boolean;
-  layout?: 'split' | 'full-image' | 'center-text' | 'flowchart' | 'grid' | 'tile-overlap' | 'work-together';
+  layout?: 'split' | 'full-image' | 'center-text' | 'flowchart' | 'grid' | 'tile-overlap' | 'work-together' | 'class-challenge';
   theme?: 'default' | 'purple' | 'blue' | 'green' | 'warm';
   backgroundColor?: string;
   hasQuestionFlag?: boolean;
@@ -22,6 +22,9 @@ export interface Slide {
   slideType?: 'standard' | 'elaborate' | 'work-together' | 'class-challenge';
   // For Work Together slides: randomized student pairs
   pairs?: StudentPair[];
+  // For Class Challenge slides: live student contributions
+  contributions?: string[];
+  challengePrompt?: string;
 }
 
 // Student pairs for Work Together slides
