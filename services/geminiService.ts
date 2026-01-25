@@ -163,18 +163,29 @@ export const generateLessonSlides = async (
   const ai = new GoogleGenAI({ apiKey });
   const model = "gemini-3-flash-preview";
 
+  // Debug: Log verbosity being used for generation
+  console.log('[GeminiService] generateLessonSlides - verbosity:', input.verbosity || 'undefined (defaulting to standard)');
+
   const systemInstruction = getSystemInstructionForMode(input.mode, input.verbosity);
 
   // Build contents array based on mode
   const contents: any[] = [];
 
+  // Verbosity instruction to reinforce system prompt
+  const verbosityLevel = input.verbosity || 'standard';
+  const verbosityInstruction = verbosityLevel === 'concise'
+    ? '\n\nIMPORTANT: Generate CONCISE speaker notes - brief bullet-point prompts only, 2-3 short phrases per segment.'
+    : verbosityLevel === 'detailed'
+    ? '\n\nIMPORTANT: Generate DETAILED speaker notes - full scripts the teacher can read verbatim, 3-5 complete sentences per segment with transitions and interaction prompts.'
+    : ''; // standard uses default rules
+
   // Add text prompt based on mode
   if (input.mode === 'fresh') {
-    contents.push({ text: `Transform this formal lesson plan into a sequence of teaching slides:\n\n${input.lessonText}` });
+    contents.push({ text: `Transform this formal lesson plan into a sequence of teaching slides:${verbosityInstruction}\n\n${input.lessonText}` });
   } else if (input.mode === 'refine') {
-    contents.push({ text: `Transform this existing presentation into clean, less text-dense Cue-style slides:\n\n${input.presentationText || ''}` });
+    contents.push({ text: `Transform this existing presentation into clean, less text-dense Cue-style slides:${verbosityInstruction}\n\n${input.presentationText || ''}` });
   } else { // blend
-    contents.push({ text: `Combine this lesson plan:\n\n${input.lessonText}\n\n---\n\nWith this existing presentation:\n\n${input.presentationText || ''}\n\nCreate enhanced Cue-style slides that incorporate content from both sources.` });
+    contents.push({ text: `Combine this lesson plan:\n\n${input.lessonText}\n\n---\n\nWith this existing presentation:\n\n${input.presentationText || ''}\n\nCreate enhanced Cue-style slides that incorporate content from both sources.${verbosityInstruction}` });
   }
 
   // Helper to add images to content parts

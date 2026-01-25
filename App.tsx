@@ -345,6 +345,9 @@ function App() {
 
     try {
       // Build GenerationInput based on uploadMode
+      // Debug: Log verbosity at generation time
+      console.log('[App] handleGenerate - deckVerbosity:', deckVerbosity);
+
       const generationInput: GenerationInput = {
         lessonText: lessonText,
         lessonImages: pageImages.length > 0 ? pageImages : undefined,
@@ -353,6 +356,8 @@ function App() {
         mode: uploadMode as GenerationMode, // Safe cast - we guard against 'none' above
         verbosity: deckVerbosity,
       };
+
+      console.log('[App] generationInput.verbosity:', generationInput.verbosity);
 
       const generatedSlides = await provider.generateLessonSlides(generationInput);
       setSlides(generatedSlides);

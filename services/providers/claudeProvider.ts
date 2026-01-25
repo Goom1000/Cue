@@ -315,6 +315,14 @@ export class ClaudeProvider implements AIProviderInterface {
 
     const systemPrompt = getSystemPromptForMode(input.mode, input.verbosity);
 
+    // Verbosity instruction to reinforce system prompt
+    const verbosityLevel = input.verbosity || 'standard';
+    const verbosityInstruction = verbosityLevel === 'concise'
+      ? '\n\nIMPORTANT: Generate CONCISE speaker notes - brief bullet-point prompts only, 2-3 short phrases per segment.'
+      : verbosityLevel === 'detailed'
+      ? '\n\nIMPORTANT: Generate DETAILED speaker notes - full scripts the teacher can read verbatim, 3-5 complete sentences per segment with transitions and interaction prompts.'
+      : ''; // standard uses default rules
+
     // Build message content based on mode
     const contentParts: ClaudeContentBlock[] = [];
 
@@ -322,17 +330,17 @@ export class ClaudeProvider implements AIProviderInterface {
     if (input.mode === 'fresh') {
       contentParts.push({
         type: 'text',
-        text: `Transform this formal lesson plan into a sequence of teaching slides:\n\n${input.lessonText}`
+        text: `Transform this formal lesson plan into a sequence of teaching slides:${verbosityInstruction}\n\n${input.lessonText}`
       });
     } else if (input.mode === 'refine') {
       contentParts.push({
         type: 'text',
-        text: `Transform this existing presentation into clean, less text-dense Cue-style slides:\n\n${input.presentationText || ''}`
+        text: `Transform this existing presentation into clean, less text-dense Cue-style slides:${verbosityInstruction}\n\n${input.presentationText || ''}`
       });
     } else { // blend
       contentParts.push({
         type: 'text',
-        text: `Combine this lesson plan:\n\n${input.lessonText}\n\n---\n\nWith this existing presentation:\n\n${input.presentationText || ''}\n\nCreate enhanced Cue-style slides that incorporate content from both sources.`
+        text: `Combine this lesson plan:\n\n${input.lessonText}\n\n---\n\nWith this existing presentation:\n\n${input.presentationText || ''}\n\nCreate enhanced Cue-style slides that incorporate content from both sources.${verbosityInstruction}`
       });
     }
 
