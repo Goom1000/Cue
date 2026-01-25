@@ -4,7 +4,7 @@ import { Slide, PresentationMessage, BROADCAST_CHANNEL_NAME, GameState, GameType
 import Button from './Button';
 import { MarkdownText, SlideContentRenderer } from './SlideRenderers';
 import { QuizQuestion, generatePhoneAFriendHint, VerbosityLevel } from '../services/geminiService';
-import { AIProviderInterface, AIProviderError, buildSlideContext, withRetry, GameQuestionRequest } from '../services/aiProvider';
+import { AIProviderInterface, AIProviderError, buildSlideContext, withRetry, GameQuestionRequest, buildChatContext, ChatContext } from '../services/aiProvider';
 import useBroadcastSync from '../hooks/useBroadcastSync';
 import useWindowManagement from '../hooks/useWindowManagement';
 import useKeyboardNavigation from '../hooks/useKeyboardNavigation';
@@ -88,6 +88,13 @@ function advanceCycling(
   };
 }
 
+// Quick action prompts for Ask AI
+const QUICK_ACTIONS = [
+  { label: 'Get 3 facts', prompt: 'Give me 3 interesting facts about this topic that students would find engaging.' },
+  { label: 'Explain simply', prompt: 'Explain this concept in simpler terms suitable for the students.' },
+  { label: 'Answer question', prompt: 'A student asked about this. How should I answer?' },
+] as const;
+
 interface PresentationViewProps {
   slides: Slide[];
   onExit: () => void;
@@ -169,6 +176,17 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
   const [editedPrompt, setEditedPrompt] = useState('');
   const contributionInputRef = useRef<HTMLInputElement>(null);
 
+  // Ask AI state
+  const [askAIInput, setAskAIInput] = useState('');
+  const [askAIResponse, setAskAIResponse] = useState('');
+  const [askAIDisplayedText, setAskAIDisplayedText] = useState('');
+  const [askAIIsLoading, setAskAIIsLoading] = useState(false);
+  const [askAIIsStreaming, setAskAIIsStreaming] = useState(false);
+  const [askAIError, setAskAIError] = useState<string | null>(null);
+  const askAIAbortRef = useRef<AbortController | null>(null);
+  const askAIAnimationRef = useRef<number | null>(null);
+  const askAIMountedRef = useRef(true);
+
   // Helper to manually mark student as asked (voluntary answers)
   const markStudentAsAsked = useCallback((studentName: string) => {
     setCyclingState(prev => ({
@@ -191,7 +209,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
 
 
   // Toast notifications for reconnection feedback
-  const { toasts, removeToast } = useToast();
+  const { toasts, removeToast, addToast } = useToast();
 
   // Window Management for display targeting
   const {
@@ -322,6 +340,51 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
   useEffect(() => {
     prevConnectedRef.current = isConnected;
   }, [isConnected]);
+
+  // Ask AI cleanup on unmount
+  useEffect(() => {
+    askAIMountedRef.current = true;
+    return () => {
+      askAIMountedRef.current = false;
+      askAIAbortRef.current?.abort();
+      if (askAIAnimationRef.current) {
+        cancelAnimationFrame(askAIAnimationRef.current);
+      }
+    };
+  }, []);
+
+  // Ask AI text animation - displays text character by character
+  useEffect(() => {
+    if (askAIResponse.length === 0) return;
+
+    let charIndex = askAIDisplayedText.length;
+    let lastTime = performance.now();
+
+    const animate = (currentTime: number) => {
+      if (!askAIMountedRef.current) return;
+
+      const elapsed = currentTime - lastTime;
+      const charsToAdd = Math.floor(elapsed / 5); // 5ms per character = 200 chars/sec
+
+      if (charsToAdd > 0 && charIndex < askAIResponse.length) {
+        charIndex = Math.min(charIndex + charsToAdd, askAIResponse.length);
+        setAskAIDisplayedText(askAIResponse.slice(0, charIndex));
+        lastTime = currentTime;
+      }
+
+      if (charIndex < askAIResponse.length) {
+        askAIAnimationRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    askAIAnimationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (askAIAnimationRef.current) {
+        cancelAnimationFrame(askAIAnimationRef.current);
+      }
+    };
+  }, [askAIResponse]);
 
 
   // Calculate next slide for preview
@@ -1058,6 +1121,88 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
       abortController: null,
     }));
   };
+
+  // --- Ask AI Handlers ---
+
+  // Ask AI: Send message and stream response
+  const handleAskAISend = useCallback(async () => {
+    if (!provider || !askAIInput.trim()) return;
+
+    // Abort any existing request
+    askAIAbortRef.current?.abort();
+    askAIAbortRef.current = new AbortController();
+
+    const message = askAIInput.trim();
+    setAskAIInput('');
+    setAskAIResponse('');
+    setAskAIDisplayedText('');
+    setAskAIError(null);
+    setAskAIIsLoading(true);
+    setAskAIIsStreaming(true);
+
+    try {
+      // Use "Year 6" as default grade level - adjust based on your app's needs
+      // In future, this could come from lesson metadata
+      const context = buildChatContext(slides, currentIndex, 'Year 6 (10-11 years old)');
+      const stream = provider.streamChat(message, context);
+
+      let fullResponse = '';
+      let firstChunk = true;
+
+      for await (const chunk of stream) {
+        if (!askAIMountedRef.current) break;
+
+        if (firstChunk) {
+          setAskAIIsLoading(false);
+          firstChunk = false;
+        }
+
+        fullResponse += chunk;
+        setAskAIResponse(fullResponse);
+      }
+    } catch (e) {
+      if (!askAIMountedRef.current) return;
+
+      if (e instanceof AIProviderError) {
+        setAskAIError(e.userMessage);
+      } else if ((e as Error).name !== 'AbortError') {
+        setAskAIError('Something went wrong. Please try again.');
+      }
+    } finally {
+      if (askAIMountedRef.current) {
+        setAskAIIsLoading(false);
+        setAskAIIsStreaming(false);
+      }
+    }
+  }, [provider, askAIInput, slides, currentIndex]);
+
+  // Ask AI: Retry last message
+  const handleAskAIRetry = useCallback(() => {
+    // Retry with same input
+    handleAskAISend();
+  }, [handleAskAISend]);
+
+  // Ask AI: Copy response to clipboard
+  const handleAskAICopy = useCallback(async () => {
+    if (!askAIResponse) return;
+
+    try {
+      await navigator.clipboard.writeText(askAIResponse);
+      addToast('Copied to clipboard', 2000, 'success');
+    } catch {
+      addToast('Failed to copy', 2000, 'error');
+    }
+  }, [askAIResponse, addToast]);
+
+  // Ask AI: Clear response
+  const handleAskAIClear = useCallback(() => {
+    askAIAbortRef.current?.abort();
+    setAskAIResponse('');
+    setAskAIDisplayedText('');
+    setAskAIError(null);
+    setAskAIIsLoading(false);
+    setAskAIIsStreaming(false);
+  }, []);
 
   // --- Student Assignment Logic ---
   const studentAssignments = useMemo(() => {
