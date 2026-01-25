@@ -26,6 +26,15 @@ export interface SlideContext {
   currentSlideContent: string[]; // Current slide bullets
 }
 
+// Context for Ask AI chat feature
+export interface ChatContext {
+  lessonTopic: string;           // From first slide title
+  currentSlideTitle: string;     // Current slide title
+  currentSlideContent: string[]; // Current slide bullets
+  cumulativeContent: string;     // All slides up to current, formatted
+  gradeLevel: string;            // For age-appropriate responses (e.g., "Year 6", "10-11 years old")
+}
+
 // Request structure for game-specific question generation
 export interface GameQuestionRequest {
   gameType: 'millionaire' | 'the-chase' | 'beat-the-chaser';
@@ -66,6 +75,26 @@ export function buildSlideContext(slides: Slide[], currentIndex: number): SlideC
     cumulativeContent,
     currentSlideTitle: slides[currentIndex]?.title || 'Current Slide',
     currentSlideContent: slides[currentIndex]?.content || []
+  };
+}
+
+// Helper to build chat context for Ask AI feature
+export function buildChatContext(
+  slides: Slide[],
+  currentIndex: number,
+  gradeLevel: string
+): ChatContext {
+  const relevantSlides = slides.slice(0, currentIndex + 1);
+  const cumulativeContent = relevantSlides
+    .map((s, i) => `Slide ${i + 1} (${s.title}): ${s.content.join('; ')}`)
+    .join('\n\n');
+
+  return {
+    lessonTopic: slides[0]?.title || 'Unknown Topic',
+    currentSlideTitle: slides[currentIndex]?.title || 'Current Slide',
+    currentSlideContent: slides[currentIndex]?.content || [],
+    cumulativeContent,
+    gradeLevel,
   };
 }
 
