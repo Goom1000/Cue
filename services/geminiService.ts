@@ -1,7 +1,7 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 import { Slide, LessonResource } from "../types";
-import { GenerationInput, GenerationMode, AIProviderError, USER_ERROR_MESSAGES, GameQuestionRequest, SlideContext, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions } from './aiProvider';
+import { GenerationInput, GenerationMode, AIProviderError, USER_ERROR_MESSAGES, GameQuestionRequest, SlideContext, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, ChatContext } from './aiProvider';
 
 // Shared teleprompter rules used across all generation modes
 const TELEPROMPTER_RULES = `
@@ -1183,3 +1183,44 @@ Generate speaker notes in ${verbosity} style.
         throw new AIProviderError(USER_ERROR_MESSAGES.NETWORK_ERROR, 'NETWORK_ERROR', error);
     }
 };
+
+/**
+ * Stream a chat response from Gemini using generateContentStream.
+ * Yields text chunks as they arrive.
+ */
+export async function* streamChatResponse(
+  apiKey: string,
+  message: string,
+  context: ChatContext
+): AsyncGenerator<string, void, unknown> {
+  const ai = new GoogleGenAI({ apiKey });
+
+  const systemPrompt = `You are a helpful teaching assistant. The teacher is presenting a lesson to ${context.gradeLevel} students.
+
+CURRENT LESSON CONTEXT:
+- Topic: ${context.lessonTopic}
+- Current Slide: ${context.currentSlideTitle}
+- Slide Content: ${context.currentSlideContent.join('; ')}
+
+INSTRUCTIONS:
+- Give clear, helpful answers to the teacher's question
+- Use language appropriate for ${context.gradeLevel} students
+- Be concise but thorough
+- If relevant, reference the lesson content
+- Do NOT include markdown formatting (no **, no ##, no bullet points)
+- Write in plain, conversational prose`;
+
+  const response = await ai.models.generateContentStream({
+    model: 'gemini-2.0-flash-exp',
+    contents: message,
+    config: {
+      systemInstruction: systemPrompt,
+    },
+  });
+
+  for await (const chunk of response) {
+    if (chunk.text) {
+      yield chunk.text;
+    }
+  }
+}
