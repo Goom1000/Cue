@@ -40,10 +40,10 @@ Plans:
   3. After confirmation, loading indicator shows regeneration progress across all slides
   4. All slides contain new teleprompter content at selected verbosity level
   5. Per-slide verbosity caches are cleared (fresh content only)
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 34-01: TBD
+- [ ] 34-01-PLAN.md — Replace per-slide verbosity with deck-wide toggle + batch regeneration
 
 ### Phase 35: Persistence
 **Goal**: Deck verbosity level survives save/load cycles
@@ -63,9 +63,9 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 33. Upfront Verbosity Selection | v3.3 | 1/1 | ✓ Complete | 2026-01-25 |
-| 34. Deck-wide Verbosity Toggle | v3.3 | 0/? | Not started | - |
+| 34. Deck-wide Verbosity Toggle | v3.3 | 0/1 | Planned | - |
 | 35. Persistence | v3.3 | 0/? | Not started | - |
 
 ---
 *Created: 2026-01-25*
-*Last updated: 2026-01-25 — Phase 33 complete*
+*Last updated: 2026-01-25 — Phase 34 planned*
