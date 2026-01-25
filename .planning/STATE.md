@@ -52,7 +52,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-12 todos in `.planning/todos/pending/` - run `/gsd:check-todos` to review
+13 todos in `.planning/todos/pending/` - run `/gsd:check-todos` to review
 
 ### Blockers/Concerns
 
