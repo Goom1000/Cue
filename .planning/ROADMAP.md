@@ -53,10 +53,10 @@ Plans:
   1. Saving presentation includes deck verbosity level in .cue file
   2. Loading a .cue file with verbosity level restores that level
   3. Loading a v2 .cue file (no deck verbosity) defaults to Standard verbosity
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 35-01: TBD
+- [ ] 35-01-PLAN.md — Extend file format to v3 with deckVerbosity + wire save/load
 
 ## Progress
 
@@ -64,8 +64,8 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 33. Upfront Verbosity Selection | v3.3 | 1/1 | ✓ Complete | 2026-01-25 |
 | 34. Deck-wide Verbosity Toggle | v3.3 | 1/1 | ✓ Complete | 2026-01-25 |
-| 35. Persistence | v3.3 | 0/? | Not started | - |
+| 35. Persistence | v3.3 | 0/1 | Not started | - |
 
 ---
 *Created: 2026-01-25*
-*Last updated: 2026-01-25 — Phase 34 complete*
+*Last updated: 2026-01-25 — Phase 35 planned*
