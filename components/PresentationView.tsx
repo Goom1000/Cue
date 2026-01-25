@@ -952,8 +952,111 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
       }
   };
 
-  // Deck-wide verbosity change is handled via confirmation dialog + batch regeneration
-  // See handleConfirmDeckRegeneration below
+  // Deck-wide verbosity batch regeneration handler
+  const handleConfirmDeckRegeneration = async () => {
+    if (!provider || !pendingVerbosity) return;
+
+    const newLevel = pendingVerbosity;
+    setShowVerbosityConfirm(false);
+    setPendingVerbosity(null);
+
+    const abortController = new AbortController();
+    // Snapshot current state for rollback (deep copy speakerNotes and verbosityCache)
+    const snapshot = slides.map(s => ({
+      id: s.id,
+      speakerNotes: s.speakerNotes,
+      verbosityCache: s.verbosityCache ? { ...s.verbosityCache } : undefined
+    }));
+
+    setBatchState({
+      isActive: true,
+      totalSlides: slides.length,
+      completedSlides: 0,
+      currentSlideIndex: 0,
+      failedSlides: new Set(),
+      abortController,
+      snapshot,
+    });
+
+    // Clear all per-slide caches upfront (DECK-04)
+    for (const slide of slides) {
+      onUpdateSlide(slide.id, { verbosityCache: undefined });
+    }
+
+    const failedIds = new Set<string>();
+
+    for (let i = 0; i < slides.length; i++) {
+      // Check for cancellation
+      if (abortController.signal.aborted) {
+        // Rollback all slides to snapshot
+        for (const s of snapshot) {
+          onUpdateSlide(s.id, {
+            speakerNotes: s.speakerNotes,
+            verbosityCache: s.verbosityCache,
+          });
+        }
+        setBatchState(prev => ({ ...prev, isActive: false, snapshot: null, abortController: null }));
+        return;
+      }
+
+      const slide = slides[i];
+      setBatchState(prev => ({ ...prev, currentSlideIndex: i }));
+
+      let success = false;
+      // Retry once on failure (per CONTEXT.md)
+      for (let attempt = 0; attempt < 2 && !success; attempt++) {
+        try {
+          const prevSlide = i > 0 ? slides[i - 1] : undefined;
+          const nextSlide = i < slides.length - 1 ? slides[i + 1] : undefined;
+
+          const newScript = await provider.regenerateTeleprompter(
+            slide,
+            newLevel,
+            prevSlide,
+            nextSlide
+          );
+
+          // Update slide based on verbosity level
+          if (newLevel === 'standard') {
+            onUpdateSlide(slide.id, {
+              speakerNotes: newScript,
+              verbosityCache: undefined,
+            });
+          } else {
+            onUpdateSlide(slide.id, {
+              verbosityCache: { [newLevel]: newScript },
+            });
+          }
+
+          success = true;
+        } catch (err) {
+          if (attempt === 0) {
+            // Wait 1 second before retry
+            await new Promise(r => setTimeout(r, 1000));
+          }
+        }
+      }
+
+      if (!success) {
+        failedIds.add(slide.id);
+      }
+
+      setBatchState(prev => ({
+        ...prev,
+        completedSlides: prev.completedSlides + 1,
+        failedSlides: new Set(failedIds),
+      }));
+    }
+
+    // Complete - update deck verbosity level
+    setDeckVerbosity(newLevel);
+    setBatchState(prev => ({
+      ...prev,
+      isActive: false,
+      snapshot: null,
+      abortController: null,
+    }));
+  };
 
   // --- Student Assignment Logic ---
   const studentAssignments = useMemo(() => {
@@ -2085,16 +2188,71 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  // handleConfirmDeckRegeneration will be added in Task 2
-                  setShowVerbosityConfirm(false);
-                  // Placeholder - actual batch regeneration implemented in Task 2
-                }}
+                onClick={handleConfirmDeckRegeneration}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-500 transition-colors"
               >
                 Regenerate
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Batch Regeneration Progress Overlay */}
+      {batchState.isActive && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-slate-800 rounded-2xl p-8 max-w-md mx-4 shadow-2xl border border-slate-700 text-center">
+            <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <h3 className="text-lg font-bold text-white mb-2">
+              Regenerating Slides
+            </h3>
+            <p className="text-slate-300 mb-4">
+              Regenerating slide {batchState.currentSlideIndex + 1} of {batchState.totalSlides}...
+            </p>
+            <div className="w-full bg-slate-700 rounded-full h-2 mb-4">
+              <div
+                className="bg-indigo-500 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${(batchState.completedSlides / batchState.totalSlides) * 100}%` }}
+              />
+            </div>
+            <p className="text-slate-500 text-sm mb-4">
+              {batchState.completedSlides} of {batchState.totalSlides} complete
+            </p>
+            <button
+              onClick={() => batchState.abortController?.abort()}
+              className="px-4 py-2 text-slate-400 hover:text-white transition-colors border border-slate-600 rounded-lg hover:border-slate-500"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Failed Slides Notification */}
+      {batchState.failedSlides.size > 0 && !batchState.isActive && (
+        <div className="fixed bottom-4 right-4 bg-amber-900/90 border border-amber-700 rounded-xl p-4 shadow-2xl z-40 max-w-sm">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-amber-600 rounded-full flex items-center justify-center shrink-0">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-amber-300 font-medium text-sm">
+                {batchState.failedSlides.size} slide{batchState.failedSlides.size > 1 ? 's' : ''} failed to regenerate
+              </p>
+              <p className="text-amber-400/70 text-xs mt-1">
+                These slides kept their original scripts.
+              </p>
+            </div>
+            <button
+              onClick={() => setBatchState(prev => ({ ...prev, failedSlides: new Set() }))}
+              className="text-amber-400 hover:text-white transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </div>
       )}
