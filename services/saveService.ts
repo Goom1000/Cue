@@ -1,4 +1,5 @@
 import { Slide, CueFile, CURRENT_FILE_VERSION, StudentWithGrade } from '../types';
+import { VerbosityLevel } from './aiProvider';
 
 /**
  * Create a CueFile object for saving.
@@ -9,6 +10,7 @@ import { Slide, CueFile, CURRENT_FILE_VERSION, StudentWithGrade } from '../types
  * @param lessonText - Original lesson text input
  * @param existingFile - Optional existing file to preserve createdAt
  * @param studentGrades - Optional array of student grade assignments
+ * @param deckVerbosity - Optional deck-wide verbosity level
  * @returns CueFile object ready for serialization
  */
 export function createCueFile(
@@ -17,7 +19,8 @@ export function createCueFile(
   studentNames: string[],
   lessonText: string,
   existingFile?: CueFile,
-  studentGrades?: StudentWithGrade[]
+  studentGrades?: StudentWithGrade[],
+  deckVerbosity?: VerbosityLevel
 ): CueFile {
   const now = new Date().toISOString();
 
@@ -26,6 +29,7 @@ export function createCueFile(
     createdAt: existingFile?.createdAt ?? now,
     modifiedAt: now,
     title,
+    ...(deckVerbosity && deckVerbosity !== 'standard' ? { deckVerbosity } : {}),
     content: {
       slides,
       studentNames,

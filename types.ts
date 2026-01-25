@@ -1,4 +1,5 @@
 import { QuizQuestion } from './services/geminiService';
+import { VerbosityLevel } from './services/aiProvider';
 
 export interface Slide {
   id: string;
@@ -247,7 +248,7 @@ export const DEFAULT_SETTINGS: Settings = {
 };
 
 // File format version - increment on breaking changes
-export const CURRENT_FILE_VERSION = 2;
+export const CURRENT_FILE_VERSION = 3;
 
 // Content structure stored in .cue files
 export interface CueFileContent {
@@ -264,6 +265,7 @@ export interface CueFile {
   modifiedAt: string; // ISO 8601
   title: string;
   author?: string;
+  deckVerbosity?: VerbosityLevel;
   content: CueFileContent;
 }
 

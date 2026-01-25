@@ -52,6 +52,11 @@ function migrateFile(data: CueFile): CueFile {
       // Slides without verbosityCache will have it as undefined
       // This is correct behavior - cache is populated on-demand
     }
+    // v2 -> v3: Added deckVerbosity to CueFile root
+    if (fromVersion === 2) {
+      // No action needed - deckVerbosity is optional
+      // App.tsx defaults to 'standard' when undefined
+    }
   }
 
   return {
