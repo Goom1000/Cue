@@ -1678,8 +1678,121 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
                    <div className="text-xl md:text-2xl leading-relaxed font-sans text-slate-100 animate-fade-in whitespace-pre-wrap">
                        <MarkdownText text={currentScriptSegment} />
                    </div>
+
+                   {/* Ask AI Panel - Teacher only (not synced to student view) */}
+                   {isAIAvailable && (
+                     <div className="mt-4 pt-4 border-t border-slate-700/50">
+                       {/* Privacy Indicator */}
+                       <div className="flex items-center gap-1.5 mb-3">
+                         <svg className="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                         </svg>
+                         <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Not visible to students</span>
+                       </div>
+
+                       {/* Quick Action Buttons */}
+                       <div className="flex flex-wrap gap-1.5 mb-3">
+                         {QUICK_ACTIONS.map((action) => (
+                           <button
+                             key={action.label}
+                             onClick={() => setAskAIInput(action.prompt)}
+                             disabled={askAIIsLoading || askAIIsStreaming}
+                             className="px-2 py-1 text-[10px] font-medium bg-slate-700/50 hover:bg-slate-600 text-slate-300 hover:text-white rounded-lg transition-colors disabled:opacity-50"
+                           >
+                             {action.label}
+                           </button>
+                         ))}
+                       </div>
+
+                       {/* Input Field */}
+                       <div className="flex gap-2 mb-3">
+                         <input
+                           type="text"
+                           value={askAIInput}
+                           onChange={(e) => setAskAIInput(e.target.value)}
+                           onKeyDown={(e) => {
+                             if (e.key === 'Enter' && !e.shiftKey) {
+                               e.preventDefault();
+                               handleAskAISend();
+                             }
+                             // Allow arrow keys to bubble up for slide navigation
+                             if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' ||
+                                 e.key === 'ArrowUp' || e.key === 'ArrowDown' ||
+                                 e.key === 'PageUp' || e.key === 'PageDown') {
+                               e.currentTarget.blur();
+                             }
+                           }}
+                           placeholder="Ask AI anything about this lesson..."
+                           disabled={askAIIsLoading || askAIIsStreaming}
+                           className="flex-1 px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-sm text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 disabled:opacity-50"
+                         />
+                         <button
+                           onClick={handleAskAISend}
+                           disabled={!askAIInput.trim() || askAIIsLoading || askAIIsStreaming}
+                           className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-600 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+                         >
+                           Send
+                         </button>
+                       </div>
+
+                       {/* Loading Indicator */}
+                       {askAIIsLoading && (
+                         <div className="flex items-center gap-2 text-slate-400 text-sm mb-3">
+                           <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                           <span>Thinking...</span>
+                         </div>
+                       )}
+
+                       {/* Error Display */}
+                       {askAIError && (
+                         <div className="bg-red-900/30 border border-red-700/50 rounded-lg p-3 mb-3">
+                           <p className="text-red-300 text-sm mb-2">{askAIError}</p>
+                           <button
+                             onClick={handleAskAIRetry}
+                             className="text-red-400 hover:text-red-300 text-sm font-medium underline"
+                           >
+                             Try again
+                           </button>
+                         </div>
+                       )}
+
+                       {/* Response Display */}
+                       {askAIDisplayedText && !askAIError && (
+                         <div className="bg-slate-800/50 rounded-lg p-3">
+                           <p className="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap">
+                             {askAIDisplayedText}
+                             {askAIIsStreaming && <span className="inline-block w-2 h-4 bg-indigo-400 ml-0.5 animate-pulse" />}
+                           </p>
+
+                           {/* Copy Button - only show when response is complete */}
+                           {!askAIIsStreaming && (
+                             <div className="flex justify-end mt-2 pt-2 border-t border-slate-700/50">
+                               <button
+                                 onClick={handleAskAICopy}
+                                 className="flex items-center gap-1.5 px-2 py-1 text-[10px] font-medium text-slate-400 hover:text-white transition-colors"
+                               >
+                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                 </svg>
+                                 Copy
+                               </button>
+                               <button
+                                 onClick={handleAskAIClear}
+                                 className="flex items-center gap-1.5 px-2 py-1 text-[10px] font-medium text-slate-400 hover:text-white transition-colors ml-2"
+                               >
+                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                 </svg>
+                                 Clear
+                               </button>
+                             </div>
+                           )}
+                         </div>
+                       )}
+                     </div>
+                   )}
                </div>
-               
+
                <div className="p-5 bg-slate-800 border-t border-slate-700 shrink-0 shadow-[0_-4px_10px_rgba(0,0,0,0.2)]">
                    <button onClick={handleNext} title="Next (Right Arrow, Page Down, or Space)" className="w-full py-5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xl shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-3 group">
                         {visibleBullets < totalBullets ? (
