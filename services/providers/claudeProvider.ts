@@ -1,4 +1,4 @@
-import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, VerbosityLevel } from '../aiProvider';
+import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, VerbosityLevel, ChatContext } from '../aiProvider';
 import { Slide, LessonResource } from '../../types';
 import { QuizQuestion, QuestionWithAnswer } from '../geminiService';
 
@@ -1083,6 +1083,121 @@ CRITICAL: Output ONLY the speaker notes text as plain text. No JSON, no markdown
 
     const response = await callClaude(this.apiKey, messages, systemPrompt, 2048);
     return response.trim();
+  }
+
+  /**
+   * Stream a chat response from Claude using SSE.
+   * Parses text/event-stream manually since EventSource doesn't support POST.
+   */
+  async *streamChat(
+    message: string,
+    context: ChatContext
+  ): AsyncGenerator<string, void, unknown> {
+    const systemPrompt = `You are a helpful teaching assistant. The teacher is presenting a lesson to ${context.gradeLevel} students.
+
+CURRENT LESSON CONTEXT:
+- Topic: ${context.lessonTopic}
+- Current Slide: ${context.currentSlideTitle}
+- Slide Content: ${context.currentSlideContent.join('; ')}
+
+INSTRUCTIONS:
+- Give clear, helpful answers to the teacher's question
+- Use language appropriate for ${context.gradeLevel} students
+- Be concise but thorough
+- If relevant, reference the lesson content
+- Do NOT include markdown formatting (no **, no ##, no bullet points)
+- Write in plain, conversational prose`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': this.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        stream: true,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: message }],
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw this.createErrorFromResponse(response.status, errorText);
+    }
+
+    if (!response.body) {
+      throw new AIProviderError(
+        USER_ERROR_MESSAGES.NETWORK_ERROR,
+        'NETWORK_ERROR'
+      );
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.type === 'content_block_delta' &&
+                  parsed.delta?.type === 'text_delta' &&
+                  parsed.delta?.text) {
+                yield parsed.delta.text;
+              }
+            } catch {
+              // Skip non-JSON lines (like event: lines)
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  }
+
+  /**
+   * Create appropriate AIProviderError from HTTP status.
+   */
+  private createErrorFromResponse(status: number, errorText: string): AIProviderError {
+    let code: AIErrorCode = 'UNKNOWN_ERROR';
+    let message = USER_ERROR_MESSAGES.UNKNOWN_ERROR;
+
+    if (status === 401 || status === 403) {
+      code = 'AUTH_ERROR';
+      message = USER_ERROR_MESSAGES.AUTH_ERROR;
+    } else if (status === 429) {
+      // Check if quota or rate limit
+      if (errorText.includes('quota') || errorText.includes('limit')) {
+        code = 'QUOTA_EXCEEDED';
+        message = USER_ERROR_MESSAGES.QUOTA_EXCEEDED;
+      } else {
+        code = 'RATE_LIMIT';
+        message = USER_ERROR_MESSAGES.RATE_LIMIT;
+      }
+    } else if (status >= 500) {
+      code = 'SERVER_ERROR';
+      message = USER_ERROR_MESSAGES.SERVER_ERROR;
+    }
+
+    return new AIProviderError(message, code, errorText);
   }
 
   /**
