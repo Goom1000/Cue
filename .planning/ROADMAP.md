@@ -63,7 +63,7 @@ Plans:
 - [x] 30-01: Extend AI providers with generateElaborateSlide and add Elaborate button to InsertPoint
 
 #### Phase 31: Work Together Slide Insertion
-**Goal**: Teachers can insert AI-generated collaborative activities
+**Goal**: Teachers can insert AI-generated collaborative activities with student pairs
 **Depends on**: Phase 30 (same insertion pattern)
 **Requirements**: WORK-01, WORK-02, WORK-03, WORK-04
 **Success Criteria** (what must be TRUE):
@@ -71,10 +71,10 @@ Plans:
   2. AI generates activity instructions for pairs with group-of-3 alternative
   3. Activity uses only basic classroom resources (pen, paper, whiteboard)
   4. Teleprompter shows facilitation notes for teacher
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 31-01: [TBD during phase planning]
+- [ ] 31-01: Extend AI providers with generateWorkTogetherSlide, add WorkTogetherLayout renderer, and add Work Together button to InsertPoint
 
 #### Phase 32: Class Challenge Interactive Slides
 **Goal**: Teachers can capture live student contributions visible to projector
@@ -103,7 +103,7 @@ Phases execute in numeric order: 29 → 30 → 31 → 32
 | 28. Caching | 1/1 | Complete | 2026-01-25 |
 | 29. Single Regeneration | 1/1 | Complete | 2026-01-25 |
 | 30. Elaborate Slides | 1/1 | Complete | 2026-01-25 |
-| 31. Work Together Slides | 0/? | Not started | - |
+| 31. Work Together Slides | 0/1 | Planned | - |
 | 32. Class Challenge Slides | 0/? | Not started | - |
 
 ---
