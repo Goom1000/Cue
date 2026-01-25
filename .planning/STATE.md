@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-26)
 ## Current Position
 
 Phase: 36 (Core Ask AI)
-Plan: 01 of 4 complete
+Plan: 03 of 4 complete
 Status: In progress
-Last activity: 2026-01-26 — Completed 36-01-PLAN.md
+Last activity: 2026-01-26 — Completed 36-03-PLAN.md
 
-Progress: [█░░░░░░░░░] 10% (Phase 36-37, 1 of 10 plans complete)
+Progress: [███░░░░░░░] 30% (Phase 36-37, 3 of 10 plans complete)
 
 ## Performance Metrics
 
@@ -27,7 +27,7 @@ Progress: [█░░░░░░░░░] 10% (Phase 36-37, 1 of 10 plans compl
 **v3.4 Milestone (in progress):**
 - Phases: 2 (36-37)
 - Requirements: 17 total
-- Plans completed: 1/10
+- Plans completed: 3/10
 - Started: 2026-01-26
 
 **Recent Milestones:**
@@ -49,6 +49,10 @@ Recent decisions affecting future work:
 - **36-01**: ChatContext includes gradeLevel field for age-appropriate AI responses
 - **36-01**: streamChat uses AsyncGenerator<string> pattern for streaming (not callbacks)
 - **36-01**: Context builder reuses pattern from buildSlideContext for consistency
+- **36-03**: Claude streaming uses manual SSE parsing (EventSource doesn't support POST)
+- **36-03**: Buffer strategy handles partial chunks split across network reads
+- **36-03**: System prompt includes gradeLevel for age-appropriate language
+- **36-03**: Plain prose responses (no markdown) for better teleprompter display
 
 ### Pending Todos
 
@@ -61,7 +65,7 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: Completed 36-01-PLAN.md (streaming chat interface)
+Stopped at: Completed 36-03-PLAN.md (Claude streaming implementation)
 Resume file: None
 
 **Next step:** Execute 36-02 (Gemini streaming implementation)
