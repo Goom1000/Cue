@@ -1672,6 +1672,31 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
                 )}
               </div>
             )}
+
+            {/* Session History */}
+            {askAIHistory.length > 0 && (
+              <div className="mt-3 border-t border-slate-700 pt-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    History ({askAIHistory.length})
+                  </span>
+                  <button
+                    onClick={handleClearHistory}
+                    className="text-xs text-slate-400 hover:text-white transition-colors"
+                  >
+                    Clear
+                  </button>
+                </div>
+                <div className="max-h-48 overflow-y-auto space-y-2">
+                  {[...askAIHistory].reverse().map((entry) => (
+                    <div key={entry.timestamp} className="bg-slate-700/30 rounded p-2 text-xs">
+                      <div className="text-slate-300 font-medium mb-1 truncate">Q: {entry.question}</div>
+                      <div className="text-slate-400 line-clamp-2">A: {entry.answer}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
