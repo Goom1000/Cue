@@ -74,6 +74,12 @@ Plans:
 
 **Dependencies:** Phase 39 (requires export modal infrastructure)
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 40-01-PLAN.md - AI poster generation service (types, claudeProvider extension, posterService)
+- [ ] 40-02-PLAN.md - UI integration and PDF export (PosterRenderer, ExportModal updates)
+
 **Requirements:**
 - POS-01: "AI Poster" option transforms slides into educational posters
 - POS-02: AI analyzes slide content and surrounding slides for context
@@ -97,10 +103,10 @@ Plans:
 |-------|------|--------------|--------|
 | 38 | Slide Selection UI | SEL-01, SEL-02, SEL-03, SEL-04, SEL-05 | ✓ Complete |
 | 39 | Export Infrastructure | EXP-01, EXP-02, EXP-03, QEX-01, QEX-02, QEX-03 | ✓ Complete |
-| 40 | AI Poster Mode | POS-01, POS-02, POS-03, POS-04, POS-05, POS-06 | Not Started |
+| 40 | AI Poster Mode | POS-01, POS-02, POS-03, POS-04, POS-05, POS-06 | Planned |
 
 **Coverage:** 17/17 requirements mapped
 
 ---
 *Roadmap created: 2026-01-27*
-*Last updated: 2026-01-27 — Phase 39 complete*
+*Last updated: 2026-01-27 — Phase 40 planned (2 plans)*
