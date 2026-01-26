@@ -4,21 +4,11 @@
 
 A presentation tool for teachers that transforms PDF lesson plans into interactive slideshows with AI-generated content, a teleprompter script for the teacher, and progressive bullet reveal. Teachers upload their existing lesson plans, select student age/grade level, and the AI creates an engaging presentation with speaker notes that guide the teacher through natural, conversational delivery.
 
-**v3.3 shipped:** Deck-wide Verbosity — teachers select verbosity upfront during upload, can change it globally during presentation mode with confirmation and batch regeneration, and the setting persists in save files with backward compatibility. Deployed at https://goom1000.github.io/Cue/
-
-## Current Milestone: v3.4 Ask AI
-
-**Goal:** Teachers can ask AI anything during a presentation without leaving the app
-
-**Target features:**
-- Text input in teleprompter panel with streaming responses
-- Lesson context injection (AI knows current slide, topic, grade level)
-- Quick action buttons ("Get 3 facts", "Explain simply", "Answer student question")
-- Session history with keyboard shortcut (Cmd+K)
+**v3.4 shipped:** Ask AI — Teachers can ask AI anything during a presentation without leaving the app. In-presentation streaming AI assistant with lesson context awareness, quick action buttons, and session history. Deployed at https://goom1000.github.io/Cue/
 
 ## Current State
 
-Shipped v3.3 with ~18,345 LOC TypeScript. Starting v3.4 Ask AI milestone. Previous v3.3 delivered deck-wide verbosity selection with batch regeneration and file format v3 persistence.
+Shipped v3.4 with ~18,420 LOC TypeScript. Previous v3.4 delivered in-presentation AI assistant with streaming responses, lesson context injection, quick actions, and keyboard shortcuts (Cmd+K).
 
 ## Core Value
 
@@ -114,19 +104,20 @@ Students see only the presentation; teachers see the presentation plus a telepro
 - ✓ Full regeneration of all slides when verbosity changes — v3.3
 - ✓ Clear all per-slide caches on deck-wide verbosity change — v3.3
 - ✓ Persist deck verbosity level in .cue save file (file format v3) — v3.3
+- ✓ Ask AI text input in teleprompter panel (header dropdown) — v3.4
+- ✓ Streaming AI response display with character animation — v3.4
+- ✓ Lesson context injection for AI queries (topic, slide, grade level) — v3.4
+- ✓ Quick action buttons for common queries — v3.4
+- ✓ Copy response to clipboard with toast feedback — v3.4
+- ✓ Teacher-only visibility (no student sync) — v3.4
+- ✓ Session history with scrollable view and clear button — v3.4
+- ✓ Keyboard shortcut (Cmd+K) to focus input, Escape to blur — v3.4
 
 ### Active
 
-- [ ] Ask AI text input in teleprompter panel — v3.4
-- [ ] Streaming AI response display — v3.4
-- [ ] Lesson context injection for AI queries — v3.4
-- [ ] Quick action buttons for common queries — v3.4
-- [ ] Copy response to clipboard — v3.4
-- [ ] Teacher-only visibility (no student sync) — v3.4
-- [ ] Session history with scrollable view — v3.4
-- [ ] Keyboard shortcut (Cmd+K) to focus input — v3.4
+(None — run /gsd:new-milestone to define next milestone requirements)
 
-### Deferred (v3.3+)
+### Deferred (v3.4+)
 
 - [ ] Elapsed time display showing presentation duration
 - [ ] Fullscreen recovery (auto re-enter if exited)
@@ -152,23 +143,24 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Current State
 
-Shipped v3.3 with ~18,345 LOC TypeScript.
+Shipped v3.4 with ~18,420 LOC TypeScript.
 Tech stack: React 19, Vite, Gemini/Claude API, Tailwind CSS, react-rnd.
 Client-side only (no backend).
 Deployed at: https://goom1000.github.io/Cue/
+
+v3.4 delivered Ask AI:
+- In-presentation AI assistant with streaming responses
+- Header dropdown UI (moved from inline teleprompter after user testing)
+- Lesson context injection (topic, slide content, grade level)
+- Quick action buttons ("Get 3 facts", "Explain simply", "Answer question")
+- Session history with Cmd/Ctrl+K shortcut and Escape to blur
+- Multi-provider support (Gemini and Claude) with age-appropriate responses
 
 v3.3 delivered Deck-wide Verbosity:
 - Upfront verbosity selection on landing page before slide generation
 - Deck-wide verbosity toggle replaces per-slide selector
 - Batch regeneration with confirmation dialog and progress overlay
-- Cancellation with rollback to pre-regeneration state
 - File format v3 with deckVerbosity field and v2 backward compatibility
-
-v3.2 delivered Pedagogical Slide Types:
-- Single teleprompter regeneration with context-aware AI (surrounding slides for flow)
-- Elaborate slide insertion (AI generates deeper content with examples)
-- Work Together slide insertion (collaborative activities with student pairs)
-- Class Challenge slides (live contribution capture with real-time sync)
 
 ### Technical Environment
 
@@ -264,6 +256,14 @@ v3.2 delivered Pedagogical Slide Types:
 | Snapshot rollback on cancel | Deep copy before batch allows full state restoration | ✓ Good — v3.3 |
 | File format v3 with deckVerbosity | Persist deck-wide setting, omit 'standard' for clean files | ✓ Good — v3.3 |
 | Lifted deckVerbosity to App.tsx | State at persistence boundary, controlled prop to PresentationView | ✓ Good — v3.3 |
+| Header dropdown for Ask AI | User testing showed inline teleprompter placement too cluttered | ✓ Good — v3.4 |
+| AsyncGenerator for streaming | Native TypeScript pattern, works with async/await | ✓ Good — v3.4 |
+| ChatContext with gradeLevel | Enables age-appropriate AI responses | ✓ Good — v3.4 |
+| Manual SSE parsing for Claude | EventSource doesn't support POST, implemented buffer strategy | ✓ Good — v3.4 |
+| Character animation 200 chars/sec | requestAnimationFrame with dual-state pattern for smooth streaming | ✓ Good — v3.4 |
+| Arrow keys blur input | Preserves slide navigation while Ask AI panel open | ✓ Good — v3.4 |
+| History saved after stream completes | Only successful responses saved to history | ✓ Good — v3.4 |
+| Timestamp as React key | Guaranteed unique for history entries | ✓ Good — v3.4 |
 
 ---
-*Last updated: 2026-01-26 after v3.3 milestone*
+*Last updated: 2026-01-26 after v3.4 milestone*

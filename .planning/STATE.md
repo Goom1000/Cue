@@ -5,32 +5,33 @@
 See: .planning/PROJECT.md (updated 2026-01-26)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** v3.4 Ask AI — Phase 37
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 37 (History & Keyboard)
-Plan: 01 of 1 complete
-Status: Phase complete
-Last activity: 2026-01-26 — Completed 37-01-PLAN.md (History & Keyboard)
+Phase: Ready for next milestone
+Plan: N/A
+Status: v3.4 shipped
+Last activity: 2026-01-26 — v3.4 Ask AI milestone complete
 
-Progress: [██████████] 100% (Phase 36-37, 5 of 5 plans complete)
+Progress: [██████████] 100% (v3.4 complete, 37 phases shipped total)
 
 ## Performance Metrics
 
 **Velocity:**
-- Milestones shipped: 14 (v1.0 through v3.3)
+- Milestones shipped: 15 (v1.0 through v3.4)
 - Total phases completed: 37
-- Total plans completed: 105
+- Total plans completed: 110
 - Total LOC: ~18,420 TypeScript
 
-**v3.4 Milestone (in progress):**
+**v3.4 Milestone (shipped):**
 - Phases: 2 (36-37)
-- Requirements: 17 total
+- Requirements: 17 total, 17 shipped
 - Plans completed: 5/5
-- Started: 2026-01-26
+- Duration: 8 days (2026-01-18 → 2026-01-26)
 
 **Recent Milestones:**
+- v3.4: 2 phases, 5 plans, 8 days (2026-01-26)
 - v3.3: 3 phases, 3 plans, 1 day (2026-01-26)
 - v3.2: 4 phases, 4 plans, 1 day (2026-01-25)
 - v3.1: 2 phases, 3 plans, 1 day (2026-01-25)
@@ -41,26 +42,16 @@ Progress: [██████████] 100% (Phase 36-37, 5 of 5 plans compl
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting future work:
+v3.4 key decisions:
 
-- **v3.4**: Use inline panel in teleprompter (not modal) for Ask AI feature
-- **v3.4**: Streaming mandatory for response display (non-negotiable)
-- **v3.4**: Session-only history (not persisted to .cue files)
-- **36-01**: ChatContext includes gradeLevel field for age-appropriate AI responses
-- **36-01**: streamChat uses AsyncGenerator<string> pattern for streaming (not callbacks)
-- **36-01**: Context builder reuses pattern from buildSlideContext for consistency
-- **36-02**: Use gemini-2.0-flash-exp model for streaming chat
-- **36-02**: Plain prose responses (no markdown) for better teleprompter display
-- **36-02**: System prompt includes gradeLevel for age-appropriate language
-- **36-03**: Claude streaming uses manual SSE parsing (EventSource doesn't support POST)
-- **36-03**: Buffer strategy handles partial chunks split across network reads
-- **36-04**: Ask AI moved from inline teleprompter to header dropdown (better UX)
-- **36-04**: Dropdown overlays presentation area (not teleprompter) on left side
-- **36-04**: White/inverse button styling for high visibility in header
-- **36-04**: Character animation at 200 chars/sec using requestAnimationFrame
-- **37-01**: History saved after successful streaming completes (not during)
-- **37-01**: History displays newest first via reverse() on render
-- **37-01**: Timestamp used as React key (guaranteed unique)
+- **Header dropdown for Ask AI** — User testing showed inline teleprompter placement too cluttered
+- **AsyncGenerator for streaming** — Native TypeScript pattern, works with async/await
+- **ChatContext with gradeLevel** — Enables age-appropriate AI responses
+- **Manual SSE parsing for Claude** — EventSource doesn't support POST
+- **Character animation 200 chars/sec** — requestAnimationFrame with dual-state pattern
+- **Arrow keys blur input** — Preserves slide navigation while Ask AI panel open
+- **History saved after stream completes** — Only successful responses saved
+- **Timestamp as React key** — Guaranteed unique for history entries
 
 ### Pending Todos
 
@@ -73,11 +64,11 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: Completed 37-01-PLAN.md (History & Keyboard) — Phase 37 complete
+Stopped at: v3.4 milestone complete
 Resume file: None
 
-**Next step:** v3.4 Ask AI milestone complete - ready for final verification
+**Next step:** Run `/gsd:new-milestone` to define v3.5 requirements and roadmap
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-26 — v3.4 Ask AI milestone Phase 37 complete*
+*Last updated: 2026-01-26 — v3.4 Ask AI milestone shipped*

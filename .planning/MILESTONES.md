@@ -1,5 +1,33 @@
 # Project Milestones: Cue
 
+## v3.4 Ask AI (Shipped: 2026-01-26)
+
+**Delivered:** Teachers can ask AI anything during a presentation without leaving the app. In-presentation AI assistant with streaming responses, lesson context awareness, quick action buttons, and session history.
+
+**Phases completed:** 36-37 (5 plans total)
+
+**Key accomplishments:**
+
+- Streaming AI chat interface with character-by-character display animation (200 chars/sec)
+- Multi-provider support (Gemini and Claude) with age-appropriate responses based on grade level
+- Lesson context injection (AI receives current slide content, topic, and cumulative lesson context)
+- Header dropdown UI with quick action buttons ("Get 3 facts", "Explain simply", "Answer question")
+- Copy to clipboard with toast feedback and error handling with retry
+- Session history with Cmd/Ctrl+K quick access and Escape to return focus to slides
+
+**Stats:**
+
+- 22 files created/modified
+- ~18,420 lines of TypeScript (project total)
+- 2 phases, 5 plans, 17 requirements
+- 8 days (2026-01-18 → 2026-01-26)
+
+**Git range:** `cf5a02b` → `f065ea3`
+
+**What's next:** TBD with /gsd:new-milestone
+
+---
+
 ## v3.3 Deck-wide Verbosity (Shipped: 2026-01-26)
 
 **Delivered:** Extended v3.1's per-slide verbosity to work deck-wide. Teachers select verbosity upfront during upload, can change it globally during presentation mode (with confirmation and batch regeneration), and the setting persists in save files with backward compatibility.
