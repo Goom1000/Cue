@@ -6,6 +6,16 @@ A presentation tool for teachers that transforms PDF lesson plans into interacti
 
 **v3.4 shipped:** Ask AI — Teachers can ask AI anything during a presentation without leaving the app. In-presentation streaming AI assistant with lesson context awareness, quick action buttons, and session history. Deployed at https://goom1000.github.io/Cue/
 
+## Current Milestone: v3.5 Working Wall Export
+
+**Goal:** Enable teachers to export selected slides as printable A4 PDFs for classroom "Working Wall" displays, with optional AI poster enhancement that transforms raw class notes into polished educational reference materials.
+
+**Target features:**
+- Multi-select slides in thumbnail sidebar for batch operations
+- Quick export of selected slides as-is to A4 PDF
+- AI Poster Mode that transforms slides into visually attractive wall posters
+- Poster aesthetic optimized for classroom display (larger text, clearer hierarchy)
+
 ## Current State
 
 Shipped v3.4 with ~18,420 LOC TypeScript. Previous v3.4 delivered in-presentation AI assistant with streaming responses, lesson context injection, quick actions, and keyboard shortcuts (Cmd+K).
@@ -115,7 +125,12 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Active
 
-(None — run /gsd:new-milestone to define next milestone requirements)
+- [ ] Multi-select slides in thumbnail sidebar (checkboxes or selection mode)
+- [ ] "Export for Working Wall" button appears when slides selected
+- [ ] Quick export of selected slides as-is to A4 PDF
+- [ ] AI Poster Mode transforms selected slides into classroom wall posters
+- [ ] Poster aesthetic with larger text, clearer hierarchy, visual appeal
+- [ ] AI uses slide context (current + surrounding slides) for coherent poster content
 
 ### Deferred (v3.4+)
 
@@ -266,4 +281,4 @@ v3.3 delivered Deck-wide Verbosity:
 | Timestamp as React key | Guaranteed unique for history entries | ✓ Good — v3.4 |
 
 ---
-*Last updated: 2026-01-26 after v3.4 milestone*
+*Last updated: 2026-01-27 after starting v3.5 milestone*
