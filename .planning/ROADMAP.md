@@ -76,10 +76,10 @@ Plans:
 
 **Goal:** Session history for reference and keyboard shortcuts for quick access
 
-**Plans:** (created by /gsd:plan-phase)
+**Plans:** 1 plan
 
 Plans:
-- [ ] TBD — to be planned
+- [ ] 37-01-PLAN.md — History state, keyboard shortcuts, and history UI
 
 ### Requirements Covered
 
@@ -131,4 +131,4 @@ When v3.4 is complete, teacher can:
 ---
 
 *Roadmap created: 2026-01-26*
-*Last updated: 2026-01-26 — Phase 36 complete*
+*Last updated: 2026-01-26 — Phase 37 planned*
