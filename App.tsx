@@ -1521,6 +1521,33 @@ function App() {
                   }
                   return null;
                 })()}
+
+                {/* Slide Selection Controls */}
+                <div className="flex items-center gap-3 ml-4 pl-4 border-l border-slate-200 dark:border-slate-700">
+                  {selectedSlideIds.size === 0 ? (
+                    <span className="text-sm text-slate-400 dark:text-slate-500">
+                      Select slides to export
+                    </span>
+                  ) : (
+                    <span className="text-sm font-medium text-indigo-600 dark:text-amber-500">
+                      {selectedSlideIds.size} of {slides.length} selected
+                    </span>
+                  )}
+
+                  <button
+                    onClick={selectAllSlides}
+                    className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-amber-500 transition-colors"
+                  >
+                    Select All
+                  </button>
+
+                  <button
+                    onClick={deselectAllSlides}
+                    className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-amber-500 transition-colors"
+                  >
+                    Deselect All
+                  </button>
+                </div>
              </div>
 
              {/* MAIN WORKSPACE: Sidebar + Stage */}
