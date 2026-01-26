@@ -28,6 +28,30 @@ export interface Slide {
   challengePrompt?: string;
 }
 
+// AI Poster types for Working Wall export
+export interface PosterLayout {
+  title: string;              // Enhanced title (not verbatim from slide)
+  subtitle?: string;          // Optional context/hook
+  sections: PosterSection[];  // 5-8 content sections
+  colorScheme: {
+    primary: string;          // Hex code for headers, accents
+    secondary: string;        // Hex code for subheadings
+    background: string;       // Hex code for poster background
+    text: string;             // Hex code for body text
+  };
+  typography: {
+    titleSize: 'large' | 'xl' | '2xl';
+    bodyFormat: 'bullets' | 'paragraphs' | 'mixed';
+  };
+}
+
+export interface PosterSection {
+  heading?: string;           // Optional section heading
+  content: string;            // Main content (enhanced from slide)
+  format: 'bullet' | 'paragraph' | 'callout';  // How to display
+  emphasis?: boolean;         // Should this stand out? (colored background, border)
+}
+
 // Student pairs for Work Together slides
 // Stored separately from content so shuffle doesn't require AI regeneration
 export interface StudentPair {
