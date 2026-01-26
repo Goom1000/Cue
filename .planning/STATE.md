@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-27)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-01-27 — Milestone v3.5 started
+Phase: 38 - Slide Selection UI
+Plan: Not started
+Status: Roadmap created, ready for planning
+Last activity: 2026-01-27 — Roadmap v3.5 created
 
-Progress: [░░░░░░░░░░] 0% (v3.5 defining requirements)
+Progress: [░░░░░░░░░░] 0% (v3.5 phases 38-40)
 
 ## Performance Metrics
 
@@ -24,11 +24,11 @@ Progress: [░░░░░░░░░░] 0% (v3.5 defining requirements)
 - Total plans completed: 110
 - Total LOC: ~18,420 TypeScript
 
-**v3.4 Milestone (shipped):**
-- Phases: 2 (36-37)
-- Requirements: 17 total, 17 shipped
-- Plans completed: 5/5
-- Duration: 8 days (2026-01-18 → 2026-01-26)
+**v3.5 Milestone (in progress):**
+- Phases: 3 (38-40)
+- Requirements: 17 total, 0 shipped
+- Plans completed: 0
+- Started: 2026-01-27
 
 **Recent Milestones:**
 - v3.4: 2 phases, 5 plans, 8 days (2026-01-26)
@@ -42,16 +42,7 @@ Progress: [░░░░░░░░░░] 0% (v3.5 defining requirements)
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
-v3.4 key decisions:
-
-- **Header dropdown for Ask AI** — User testing showed inline teleprompter placement too cluttered
-- **AsyncGenerator for streaming** — Native TypeScript pattern, works with async/await
-- **ChatContext with gradeLevel** — Enables age-appropriate AI responses
-- **Manual SSE parsing for Claude** — EventSource doesn't support POST
-- **Character animation 200 chars/sec** — requestAnimationFrame with dual-state pattern
-- **Arrow keys blur input** — Preserves slide navigation while Ask AI panel open
-- **History saved after stream completes** — Only successful responses saved
-- **Timestamp as React key** — Guaranteed unique for history entries
+No v3.5 decisions yet.
 
 ### Pending Todos
 
@@ -63,12 +54,12 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-26
-Stopped at: v3.4 milestone complete
+Last session: 2026-01-27
+Stopped at: Roadmap created
 Resume file: None
 
-**Next step:** Define requirements and create roadmap for v3.5
+**Next step:** `/gsd:plan-phase 38` to create plan for Slide Selection UI
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-27 — Milestone v3.5 Working Wall Export started*
+*Last updated: 2026-01-27 — Roadmap v3.5 created*

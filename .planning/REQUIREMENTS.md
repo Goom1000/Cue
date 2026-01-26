@@ -63,29 +63,29 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEL-01 | — | Pending |
-| SEL-02 | — | Pending |
-| SEL-03 | — | Pending |
-| SEL-04 | — | Pending |
-| SEL-05 | — | Pending |
-| EXP-01 | — | Pending |
-| EXP-02 | — | Pending |
-| EXP-03 | — | Pending |
-| QEX-01 | — | Pending |
-| QEX-02 | — | Pending |
-| QEX-03 | — | Pending |
-| POS-01 | — | Pending |
-| POS-02 | — | Pending |
-| POS-03 | — | Pending |
-| POS-04 | — | Pending |
-| POS-05 | — | Pending |
-| POS-06 | — | Pending |
+| SEL-01 | Phase 38 | Pending |
+| SEL-02 | Phase 38 | Pending |
+| SEL-03 | Phase 38 | Pending |
+| SEL-04 | Phase 38 | Pending |
+| SEL-05 | Phase 38 | Pending |
+| EXP-01 | Phase 39 | Pending |
+| EXP-02 | Phase 39 | Pending |
+| EXP-03 | Phase 39 | Pending |
+| QEX-01 | Phase 39 | Pending |
+| QEX-02 | Phase 39 | Pending |
+| QEX-03 | Phase 39 | Pending |
+| POS-01 | Phase 40 | Pending |
+| POS-02 | Phase 40 | Pending |
+| POS-03 | Phase 40 | Pending |
+| POS-04 | Phase 40 | Pending |
+| POS-05 | Phase 40 | Pending |
+| POS-06 | Phase 40 | Pending |
 
 **Coverage:**
 - v3.5 requirements: 17 total
-- Mapped to phases: 0
-- Unmapped: 17
+- Mapped to phases: 17
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-27*
-*Last updated: 2026-01-27 after initial definition*
+*Last updated: 2026-01-27 after roadmap creation*
