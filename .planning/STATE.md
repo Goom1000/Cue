@@ -5,32 +5,34 @@
 See: .planning/PROJECT.md (updated 2026-01-27)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** v3.5 Working Wall Export
+**Current focus:** v3.5 Working Wall Export - COMPLETE
 
 ## Current Position
 
-Phase: 40 - AI Poster Mode
-Plan: 1 of 2 complete
-Status: In progress
-Last activity: 2026-01-27 — Completed 40-01-PLAN.md
+Phase: 40 - AI Poster Mode (COMPLETE)
+Plan: 2 of 2 complete
+Status: Milestone v3.5 complete
+Last activity: 2026-01-27 — Completed 40-02-PLAN.md
 
-Progress: [████████░░] 80% (v3.5 phases 38-40, 3 of 4 plans complete)
+Progress: [██████████] 100% (v3.5 phases 38-40, 4 of 4 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Milestones shipped: 15 (v1.0 through v3.4)
-- Total phases completed: 39
-- Total plans completed: 113
-- Total LOC: ~19,100 TypeScript
+- Milestones shipped: 16 (v1.0 through v3.5)
+- Total phases completed: 40
+- Total plans completed: 114
+- Total LOC: ~19,400 TypeScript
 
-**v3.5 Milestone (in progress):**
+**v3.5 Milestone (complete):**
 - Phases: 3 (38-40)
-- Requirements: 17 total, 11 shipped (SEL-01 through SEL-05, EXP-01 through EXP-03, QEX-01 through QEX-03)
-- Plans completed: 3
+- Requirements: 17 total, 17 shipped (SEL-01 through SEL-05, EXP-01 through EXP-03, QEX-01 through QEX-03, POS-01 through POS-06)
+- Plans completed: 4
 - Started: 2026-01-27
+- Completed: 2026-01-27
 
 **Recent Milestones:**
+- v3.5: 3 phases, 4 plans, 1 day (2026-01-27)
 - v3.4: 2 phases, 5 plans, 8 days (2026-01-26)
 - v3.3: 3 phases, 3 plans, 1 day (2026-01-26)
 - v3.2: 4 phases, 4 plans, 1 day (2026-01-25)
@@ -54,6 +56,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 | 40-01 | Claude structured outputs beta for poster JSON | Guarantees valid JSON matching PosterLayout schema | Type-safe AI responses |
 | 40-01 | Sequential poster generation with progress callbacks | Manage memory, provide UI feedback | Better UX during generation |
 | 40-01 | Subject inference from first slide | Keyword matching for color scheme selection | Subject-appropriate poster colors |
+| 40-02 | 595x842px poster dimensions at 72 DPI | A4 portrait standard, captured at 2x for ~150 DPI print | Print-quality classroom posters |
+| 40-02 | Per-poster regenerate button | Teachers can refine individual posters without re-generating all | Better UX for poster refinement |
 
 ### Pending Todos
 
@@ -66,11 +70,11 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-27
-Stopped at: Completed 40-01-PLAN.md
+Stopped at: Completed 40-02-PLAN.md (v3.5 milestone complete)
 Resume file: None
 
-**Next step:** Execute 40-02-PLAN.md for poster UI and PDF rendering
+**Next step:** Define v3.6 milestone or review pending todos
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-27 — Completed 40-01 (AI Poster Content Transformation)*
+*Last updated: 2026-01-27 — Completed 40-02 (AI Poster UI Integration) - v3.5 milestone complete*
