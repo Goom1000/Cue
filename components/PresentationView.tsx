@@ -1198,6 +1198,15 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
         fullResponse += chunk;
         setAskAIResponse(fullResponse);
       }
+
+      // Save successful Q&A to history
+      if (fullResponse) {
+        setAskAIHistory(prev => [...prev, {
+          question: message,
+          answer: fullResponse,
+          timestamp: Date.now()
+        }]);
+      }
     } catch (e) {
       if (!askAIMountedRef.current) return;
 
@@ -1240,6 +1249,11 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
     setAskAIError(null);
     setAskAIIsLoading(false);
     setAskAIIsStreaming(false);
+  }, []);
+
+  // Ask AI: Clear history
+  const handleClearHistory = useCallback(() => {
+    setAskAIHistory([]);
   }, []);
 
   // --- Student Assignment Logic ---
