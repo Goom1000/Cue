@@ -5,29 +5,29 @@
 See: .planning/PROJECT.md (updated 2026-01-26)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** v3.4 Ask AI — Phase 36
+**Current focus:** v3.4 Ask AI — Phase 37
 
 ## Current Position
 
-Phase: 36 (Core Ask AI)
-Plan: 04 of 4 complete
+Phase: 37 (History & Keyboard)
+Plan: 01 of 1 complete
 Status: Phase complete
-Last activity: 2026-01-26 — Completed 36-04-PLAN.md (Ask AI Panel UI)
+Last activity: 2026-01-26 — Completed 37-01-PLAN.md (History & Keyboard)
 
-Progress: [████░░░░░░] 40% (Phase 36-37, 4 of 10 plans complete)
+Progress: [█████░░░░░] 50% (Phase 36-37, 5 of 10 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 14 (v1.0 through v3.3)
-- Total phases completed: 35
-- Total plans completed: 103
-- Total LOC: ~18,345 TypeScript
+- Total phases completed: 36
+- Total plans completed: 104
+- Total LOC: ~18,420 TypeScript
 
 **v3.4 Milestone (in progress):**
 - Phases: 2 (36-37)
 - Requirements: 17 total
-- Plans completed: 4/10
+- Plans completed: 5/10
 - Started: 2026-01-26
 
 **Recent Milestones:**
@@ -58,6 +58,9 @@ Recent decisions affecting future work:
 - **36-04**: Dropdown overlays presentation area (not teleprompter) on left side
 - **36-04**: White/inverse button styling for high visibility in header
 - **36-04**: Character animation at 200 chars/sec using requestAnimationFrame
+- **37-01**: History saved after successful streaming completes (not during)
+- **37-01**: History displays newest first via reverse() on render
+- **37-01**: Timestamp used as React key (guaranteed unique)
 
 ### Pending Todos
 
@@ -70,11 +73,11 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: Completed 36-04-PLAN.md (Ask AI Panel UI) — Phase 36 complete
+Stopped at: Completed 37-01-PLAN.md (History & Keyboard) — Phase 37 complete
 Resume file: None
 
-**Next step:** Start Phase 37 (Multi-turn conversation history)
+**Next step:** v3.4 Ask AI milestone complete - ready for final verification
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-26 — v3.4 Ask AI milestone in progress*
+*Last updated: 2026-01-26 — v3.4 Ask AI milestone Phase 37 complete*
