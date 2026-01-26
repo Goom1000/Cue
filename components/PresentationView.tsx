@@ -1358,13 +1358,16 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
               {/* ASK AI BUTTON */}
               {isAIAvailable && (
                 <div className="relative">
-                  <Button
-                    variant="ghost-dim"
+                  <button
                     onClick={() => setAskAIPanelOpen(prev => !prev)}
-                    className={`!px-3 !py-1 text-xs ${askAIPanelOpen ? 'bg-indigo-600/20 text-indigo-300' : ''}`}
+                    className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
+                      askAIPanelOpen
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-white text-slate-900 hover:bg-slate-100 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white'
+                    }`}
                   >
                     Ask AI
-                  </Button>
+                  </button>
                 </div>
               )}
 
@@ -1508,7 +1511,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
 
       {/* ASK AI DROPDOWN PANEL */}
       {isAIAvailable && askAIPanelOpen && (
-        <div className="absolute top-14 right-4 w-96 max-w-[calc(100vw-2rem)] bg-slate-800 border border-slate-700 rounded-lg shadow-2xl z-40 animate-fade-in">
+        <div className="absolute top-14 right-4 w-96 max-w-[calc(100vw-2rem)] bg-slate-800 border border-slate-700 rounded-lg shadow-2xl z-[100] animate-fade-in">
           <div className="p-4">
             {/* Privacy Indicator */}
             <div className="flex items-center gap-1.5 mb-3">
