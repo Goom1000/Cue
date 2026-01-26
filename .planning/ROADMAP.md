@@ -46,6 +46,11 @@ Plans:
 
 **Dependencies:** Phase 38 (requires slide selection)
 
+**Plans:** 1 plan
+
+Plans:
+- [ ] 39-01-PLAN.md - Export modal with Quick Export PDF generation
+
 **Requirements:**
 - EXP-01: "Export for Working Wall" button appears when 1+ slides selected
 - EXP-02: Export button opens modal with export mode options
@@ -98,4 +103,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-01-27*
-*Last updated: 2026-01-27 — Phase 38 complete*
+*Last updated: 2026-01-27 — Phase 39 planned*
