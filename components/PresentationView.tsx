@@ -1332,6 +1332,22 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
               <h1 className="font-poppins font-semibold text-sm truncate tracking-tight">{currentSlide.title}</h1>
           </div>
           <div className="flex items-center gap-2">
+              {/* ASK AI BUTTON - Positioned first so dropdown overlays presentation (left side) */}
+              {isAIAvailable && (
+                <div className="relative">
+                  <button
+                    onClick={() => setAskAIPanelOpen(prev => !prev)}
+                    className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
+                      askAIPanelOpen
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-white text-slate-900 hover:bg-slate-100 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white'
+                    }`}
+                  >
+                    Ask AI
+                  </button>
+                </div>
+              )}
+
                {/* Next Slide Preview Toggle */}
                <NextSlidePreview
                  nextSlide={nextSlide}
@@ -1354,22 +1370,6 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
                    </span>
                  )}
                </div>
-
-              {/* ASK AI BUTTON */}
-              {isAIAvailable && (
-                <div className="relative">
-                  <button
-                    onClick={() => setAskAIPanelOpen(prev => !prev)}
-                    className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
-                      askAIPanelOpen
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-white text-slate-900 hover:bg-slate-100 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white'
-                    }`}
-                  >
-                    Ask AI
-                  </button>
-                </div>
-              )}
 
 
                <Button variant="ghost-dim" onClick={() => setLayoutMode(prev => prev === 'row' ? 'col' : 'row')} className="!px-3 !py-1 text-xs">
@@ -1511,7 +1511,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
 
       {/* ASK AI DROPDOWN PANEL */}
       {isAIAvailable && askAIPanelOpen && (
-        <div className="absolute top-14 right-4 w-96 max-w-[calc(100vw-2rem)] bg-slate-800 border border-slate-700 rounded-lg shadow-2xl z-[100] animate-fade-in">
+        <div className="absolute top-14 left-4 w-96 max-w-[calc(100vw-2rem)] bg-slate-800 border border-slate-700 rounded-lg shadow-2xl z-[100] animate-fade-in">
           <div className="p-4">
             {/* Privacy Indicator */}
             <div className="flex items-center gap-1.5 mb-3">
