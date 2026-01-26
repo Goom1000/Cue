@@ -188,6 +188,14 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
   const askAIAnimationRef = useRef<number | null>(null);
   const askAIMountedRef = useRef(true);
 
+  // NEW: Ask AI history state
+  const [askAIHistory, setAskAIHistory] = useState<Array<{
+    question: string;
+    answer: string;
+    timestamp: number;
+  }>>([]);
+  const askAIInputRef = useRef<HTMLInputElement>(null);
+
   // Helper to manually mark student as asked (voluntary answers)
   const markStudentAsAsked = useCallback((studentName: string) => {
     setCyclingState(prev => ({
@@ -387,6 +395,35 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
     };
   }, [askAIResponse]);
 
+  // Ask AI keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd+K or Ctrl+K to focus Ask AI input
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        if (!askAIPanelOpen) {
+          setAskAIPanelOpen(true);
+        } else {
+          askAIInputRef.current?.focus();
+        }
+      }
+
+      // Escape to blur input (allows arrow keys to navigate slides)
+      if (e.key === 'Escape' && document.activeElement === askAIInputRef.current) {
+        askAIInputRef.current?.blur();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [askAIPanelOpen]);
+
+  // Auto-focus Ask AI input when panel opens
+  useEffect(() => {
+    if (askAIPanelOpen && askAIInputRef.current) {
+      askAIInputRef.current.focus();
+    }
+  }, [askAIPanelOpen]);
 
   // Calculate next slide for preview
   const nextSlide = slides[currentIndex + 1] || null;
@@ -1538,6 +1575,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ slides, onExit, stu
             {/* Input Field */}
             <div className="flex gap-2 mb-3">
               <input
+                ref={askAIInputRef}
                 type="text"
                 value={askAIInput}
                 onChange={(e) => setAskAIInput(e.target.value)}
