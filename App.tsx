@@ -1547,10 +1547,32 @@ function App() {
                         
                         {slides.map((slide, idx) => (
                            <React.Fragment key={slide.id}>
-                               <button 
+                               <button
                                  onClick={() => setActiveSlideIndex(idx)}
-                                 className={`w-full group text-left rounded-xl p-3 border transition-all relative ${activeSlideIndex === idx ? 'bg-white dark:bg-slate-800 border-indigo-600 dark:border-amber-500 shadow-sm ring-1 ring-indigo-100 dark:ring-amber-900/50 translate-x-1' : 'bg-white/40 dark:bg-slate-800/30 border-transparent hover:bg-white dark:hover:bg-slate-800 hover:border-slate-200 dark:hover:border-slate-700'}`}
+                                 className={`w-full group text-left rounded-xl p-3 border transition-all relative ${
+                                   selectedSlideIds.has(slide.id)
+                                     ? 'ring-2 ring-indigo-600 dark:ring-amber-500 ring-offset-2 dark:ring-offset-slate-900'
+                                     : ''
+                                 } ${activeSlideIndex === idx ? 'bg-white dark:bg-slate-800 border-indigo-600 dark:border-amber-500 shadow-sm ring-1 ring-indigo-100 dark:ring-amber-900/50 translate-x-1' : 'bg-white/40 dark:bg-slate-800/30 border-transparent hover:bg-white dark:hover:bg-slate-800 hover:border-slate-200 dark:hover:border-slate-700'}`}
                                >
+                                  {/* Selection checkbox */}
+                                  <div
+                                    onClick={(e) => handleSlideCheckboxClick(slide.id, idx, e)}
+                                    className="absolute top-1 left-1 z-10"
+                                  >
+                                    <div className={`w-5 h-5 rounded border-2 transition-colors cursor-pointer flex items-center justify-center ${
+                                      selectedSlideIds.has(slide.id)
+                                        ? 'bg-indigo-600 dark:bg-amber-500 border-indigo-600 dark:border-amber-500'
+                                        : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-indigo-400 dark:hover:border-amber-400'
+                                    }`}>
+                                      {selectedSlideIds.has(slide.id) && (
+                                        <svg className="w-3 h-3 text-white dark:text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                      )}
+                                    </div>
+                                  </div>
+
                                   <div className="flex gap-3 items-start">
                                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${activeSlideIndex === idx ? 'bg-indigo-600 dark:bg-amber-500 text-white dark:text-slate-900' : 'bg-slate-300 dark:bg-slate-700 text-white dark:text-slate-400'}`}>{idx + 1}</span>
                                      <div className="flex-1 min-w-0">
