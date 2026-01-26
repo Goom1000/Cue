@@ -1,5 +1,5 @@
 import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, VerbosityLevel, ChatContext } from '../aiProvider';
-import { Slide, LessonResource } from '../../types';
+import { Slide, LessonResource, PosterLayout } from '../../types';
 import { QuizQuestion, QuestionWithAnswer } from '../geminiService';
 
 // Shared teleprompter rules used across all generation modes
@@ -75,6 +75,94 @@ Each slide object must have these properties:
 - layout (one of: 'split', 'full-image', 'center-text', 'flowchart', 'grid', 'tile-overlap')
 - theme (one of: 'default', 'purple', 'blue', 'green', 'warm')
 `.replace(/pointing_right/g, '\u{1F449}');
+
+// Poster generation system prompt for AI Working Wall export
+const POSTER_GENERATION_SYSTEM_PROMPT = `
+You are an expert educational poster designer for Year 6 (10-11 year old) classrooms.
+
+Your task: Transform presentation slide content into educational wall posters optimized for:
+- Readability from 10 feet distance
+- Student reference during independent work
+- Visual clarity with strong hierarchy
+
+CONTENT TRANSFORMATION RULES:
+1. DENSITY: 5-8 key points maximum (posters are reference aids, not textbooks)
+2. VOCABULARY: Year 6 reading level - explain technical terms simply, use concrete examples
+3. ENRICHMENT: Add relevant examples, analogies, or clarifications beyond the slide content
+4. TITLES: Create clear, engaging titles (don't copy slide title verbatim)
+5. NARRATIVE: Use surrounding slides to understand topic progression
+
+LAYOUT DECISION RULES:
+1. TYPOGRAPHY FORMAT: Choose based on content type
+   - Bullets: For lists, steps, features
+   - Paragraphs: For explanations, definitions, context
+   - Mixed: For posters with intro paragraph + detail points
+2. COLOR SCHEME: Subject-appropriate colors
+   - Science: Greens, teals (nature/discovery)
+   - Math: Blues, purples (logic/precision)
+   - Language: Warm tones (creativity/expression)
+   - History: Earth tones (heritage/time)
+   - Mixed/unclear: Neutral blues or school brand colors
+3. VISUAL HIERARCHY: Ensure title dominates, sections are distinct, content is scannable
+
+CONTEXT USAGE:
+- Previous slides show what students already learned
+- Next slides show where the lesson is heading
+- Use this to judge what needs emphasis, what can be brief
+
+OUTPUT REQUIREMENTS:
+- You MUST return valid JSON matching the provided schema
+- All content must be appropriate for Year 6 students
+- Color values must be valid hex codes (e.g., "#2563eb")
+- Typography sizes: "large" (36-48pt equiv), "xl" (48-64pt), "2xl" (64-72pt)
+`;
+
+// JSON schema for structured poster output
+const POSTER_SCHEMA = {
+  type: 'object',
+  properties: {
+    title: { type: 'string', description: 'Clear, engaging poster title' },
+    subtitle: { type: 'string', description: 'Optional hook or context' },
+    sections: {
+      type: 'array',
+      description: '5-8 key content sections',
+      minItems: 5,
+      maxItems: 8,
+      items: {
+        type: 'object',
+        properties: {
+          heading: { type: 'string' },
+          content: { type: 'string', description: 'Transformed, age-appropriate content' },
+          format: {
+            type: 'string',
+            enum: ['bullet', 'paragraph', 'callout']
+          },
+          emphasis: { type: 'boolean' }
+        },
+        required: ['content', 'format']
+      }
+    },
+    colorScheme: {
+      type: 'object',
+      properties: {
+        primary: { type: 'string', pattern: '^#[0-9A-Fa-f]{6}$' },
+        secondary: { type: 'string', pattern: '^#[0-9A-Fa-f]{6}$' },
+        background: { type: 'string', pattern: '^#[0-9A-Fa-f]{6}$' },
+        text: { type: 'string', pattern: '^#[0-9A-Fa-f]{6}$' }
+      },
+      required: ['primary', 'secondary', 'background', 'text']
+    },
+    typography: {
+      type: 'object',
+      properties: {
+        titleSize: { type: 'string', enum: ['large', 'xl', '2xl'] },
+        bodyFormat: { type: 'string', enum: ['bullets', 'paragraphs', 'mixed'] }
+      },
+      required: ['titleSize', 'bodyFormat']
+    }
+  },
+  required: ['title', 'sections', 'colorScheme', 'typography']
+};
 
 /**
  * Get the appropriate teleprompter rules based on verbosity level.
@@ -1171,6 +1259,74 @@ INSTRUCTIONS:
     } finally {
       reader.releaseLock();
     }
+  }
+
+  /**
+   * Generate a structured poster layout from slide context using structured outputs.
+   * Uses Claude's structured outputs beta for guaranteed valid JSON.
+   *
+   * @param slideContext Formatted context string including target slide and surrounding slides
+   * @param subject Optional subject hint for color scheme selection
+   */
+  async generatePosterLayout(
+    slideContext: string,
+    subject?: string
+  ): Promise<PosterLayout> {
+    const userPrompt = `
+Transform the [TARGET] slide into an educational poster.
+
+CONTEXT (surrounding slides for narrative understanding):
+${slideContext}
+
+PRESENTATION METADATA:
+- Subject: ${subject || 'inferred from content'}
+- Grade Level: Year 6 (10-11 years old)
+
+POSTER REQUIREMENTS:
+- Optimize for classroom wall display (A4 portrait)
+- Ensure readability from 10 feet
+- Include 5-8 key points
+- Add examples or analogies where helpful
+- Create an engaging, student-friendly title
+
+Generate the poster layout now.
+`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': this.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-beta': 'structured-outputs-2025-11-13',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4096,
+        output_format: {
+          type: 'json_schema',
+          json_schema: {
+            name: 'poster_layout',
+            strict: true,
+            schema: POSTER_SCHEMA
+          }
+        },
+        system: POSTER_GENERATION_SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: userPrompt }]
+      })
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({}));
+      const code = mapHttpToErrorCode(response.status, errorBody);
+      throw new AIProviderError(USER_ERROR_MESSAGES[code], code, errorBody);
+    }
+
+    const data = await response.json();
+
+    // Structured outputs guarantee valid JSON in content[0].text
+    return JSON.parse(data.content[0].text);
   }
 
   /**
