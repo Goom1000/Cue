@@ -1,0 +1,193 @@
+/* Import base driver.js styles */
+@import 'driver.js/dist/driver.css';
+
+/* ============================================================================
+   Cue-Themed Driver.js Tour Styles
+   ============================================================================ */
+
+/* Z-index overrides to ensure tour appears above all UI */
+.driver-overlay {
+  z-index: 10000 !important;
+}
+
+.driver-popover,
+.cue-tour-popover {
+  z-index: 10001 !important;
+}
+
+/* ============================================================================
+   Light Mode Theme (Default)
+   ============================================================================ */
+
+.cue-tour-popover {
+  /* Background and text */
+  background-color: #ffffff;
+  color: #1e293b; /* slate-800 */
+
+  /* Border radius - rounded-2xl */
+  border-radius: 16px;
+
+  /* Shadow - shadow-2xl */
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+
+  /* Padding */
+  padding: 1.5rem;
+}
+
+/* Popover title */
+.cue-tour-popover .driver-popover-title {
+  color: #1e293b; /* slate-800 */
+  font-weight: 700;
+  font-size: 1.125rem; /* text-lg */
+  margin-bottom: 0.75rem;
+}
+
+/* Popover description */
+.cue-tour-popover .driver-popover-description {
+  color: #475569; /* slate-600 */
+  font-size: 0.875rem; /* text-sm */
+  line-height: 1.5;
+}
+
+/* Footer with buttons */
+.cue-tour-popover .driver-popover-footer {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* Progress indicator */
+.cue-tour-popover .driver-popover-progress-text {
+  color: #64748b; /* slate-500 */
+  font-size: 0.875rem;
+  margin-right: auto;
+}
+
+/* Button base styles */
+.cue-tour-popover .driver-popover-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 12px; /* rounded-xl */
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+/* Previous/Close button (secondary) */
+.cue-tour-popover .driver-popover-prev-btn,
+.cue-tour-popover .driver-popover-close-btn {
+  background-color: #f1f5f9; /* slate-100 */
+  color: #475569; /* slate-600 */
+}
+
+.cue-tour-popover .driver-popover-prev-btn:hover,
+.cue-tour-popover .driver-popover-close-btn:hover {
+  background-color: #e2e8f0; /* slate-200 */
+}
+
+.cue-tour-popover .driver-popover-prev-btn:focus,
+.cue-tour-popover .driver-popover-close-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #6366f1; /* indigo-500 focus ring */
+}
+
+/* Next button (primary - indigo in light mode) */
+.cue-tour-popover .driver-popover-next-btn {
+  background-color: #4f46e5; /* indigo-600 */
+  color: #ffffff;
+}
+
+.cue-tour-popover .driver-popover-next-btn:hover {
+  background-color: #4338ca; /* indigo-700 */
+}
+
+.cue-tour-popover .driver-popover-next-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #6366f1; /* indigo-500 focus ring */
+}
+
+/* Arrow styling */
+.cue-tour-popover .driver-popover-arrow {
+  border-color: #ffffff;
+}
+
+/* ============================================================================
+   Dark Mode Theme
+   ============================================================================ */
+
+.dark .cue-tour-popover {
+  /* Background and text */
+  background-color: #1e293b; /* slate-800 */
+  color: #f8fafc; /* slate-50 */
+
+  /* Shadow adjusted for dark mode */
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+}
+
+/* Popover title in dark mode */
+.dark .cue-tour-popover .driver-popover-title {
+  color: #f8fafc; /* slate-50 */
+}
+
+/* Popover description in dark mode */
+.dark .cue-tour-popover .driver-popover-description {
+  color: #cbd5e1; /* slate-300 */
+}
+
+/* Progress indicator in dark mode */
+.dark .cue-tour-popover .driver-popover-progress-text {
+  color: #94a3b8; /* slate-400 */
+}
+
+/* Previous/Close button in dark mode */
+.dark .cue-tour-popover .driver-popover-prev-btn,
+.dark .cue-tour-popover .driver-popover-close-btn {
+  background-color: #334155; /* slate-700 */
+  color: #cbd5e1; /* slate-300 */
+}
+
+.dark .cue-tour-popover .driver-popover-prev-btn:hover,
+.dark .cue-tour-popover .driver-popover-close-btn:hover {
+  background-color: #475569; /* slate-600 */
+}
+
+.dark .cue-tour-popover .driver-popover-prev-btn:focus,
+.dark .cue-tour-popover .driver-popover-close-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #f59e0b; /* amber-500 focus ring */
+}
+
+/* Next button in dark mode (amber primary) */
+.dark .cue-tour-popover .driver-popover-next-btn {
+  background-color: #f59e0b; /* amber-500 */
+  color: #1e293b; /* slate-800 - dark text for contrast */
+}
+
+.dark .cue-tour-popover .driver-popover-next-btn:hover {
+  background-color: #d97706; /* amber-600 */
+}
+
+.dark .cue-tour-popover .driver-popover-next-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #f59e0b; /* amber-500 focus ring */
+}
+
+/* Arrow styling in dark mode */
+.dark .cue-tour-popover .driver-popover-arrow {
+  border-color: #1e293b; /* slate-800 */
+}
+
+/* ============================================================================
+   Overlay styling
+   ============================================================================ */
+
+.driver-overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.dark .driver-overlay {
+  background-color: rgba(0, 0, 0, 0.7);
+}
