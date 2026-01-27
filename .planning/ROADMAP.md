@@ -40,12 +40,13 @@ Previous milestone phases collapsed. See git history for details.
 7. User can trigger tooltips via keyboard focus, not just hover
 8. Screen readers announce tour dialogs and tooltip content with proper ARIA labels
 
-**Plans:** 3 plans
+**Plans:** 4 plans
 
 Plans:
-- [ ] 41-01-PLAN.md - Install driver.js and Floating UI, create InfoTooltip component
-- [ ] 41-02-PLAN.md - Implement useTourState hook with localStorage persistence
-- [ ] 41-03-PLAN.md - Create TourButton component and useTour hook with keyboard accessibility
+- [x] 41-01-PLAN.md - Install driver.js and Floating UI, create InfoTooltip component
+- [x] 41-02-PLAN.md - Implement useTourState hook with localStorage persistence
+- [x] 41-03-PLAN.md - Create TourButton component and useTour hook with keyboard accessibility
+- [ ] 41-04-PLAN.md - Gap closure: Minimal integration to prove components work
 
 #### Phase 42: Landing Page Tour & Tooltips
 
@@ -123,7 +124,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 41. Tour Infrastructure & Accessibility | v3.6 | 0/3 | Planned | - |
+| 41. Tour Infrastructure & Accessibility | v3.6 | 3/4 | In progress | - |
 | 42. Landing Page Tour & Tooltips | v3.6 | 0/2 | Not started | - |
 | 43. Editor Tour & Tooltips | v3.6 | 0/2 | Not started | - |
 | 44. Presentation Mode Tour & Tooltips | v3.6 | 0/2 | Not started | - |
@@ -131,4 +132,4 @@ Plans:
 ---
 
 *Roadmap created: 2026-01-27*
-*Last updated: 2026-01-27 - Phase 41 plans created*
+*Last updated: 2026-01-28 - Phase 41 gap closure plan added (41-04)*
