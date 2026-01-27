@@ -6,9 +6,14 @@ A presentation tool for teachers that transforms PDF lesson plans into interacti
 
 **v3.5 shipped:** Working Wall Export — Teachers can export selected slides as printable A4 PDFs for classroom "Working Wall" displays, with optional AI poster enhancement. Deployed at https://goom1000.github.io/Cue/
 
-## Current Milestone: None
+## Current Milestone: v3.6 Tooltips & Onboarding
 
-No active milestone. Use `/gsd:new-milestone` to start the next milestone.
+**Goal:** Help users discover and understand Cue's features through contextual tooltips and per-screen walkthrough tours.
+
+**Target features:**
+- Per-screen walkthrough tours (landing page, editor, presentation mode)
+- Manual trigger via button on each screen
+- Info icon tooltips next to features explaining what they do
 
 ## Current State
 
@@ -125,7 +130,11 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Active
 
-(None — define next milestone with /gsd:new-milestone)
+- [ ] Per-screen walkthrough tours with manual trigger
+- [ ] Info icon tooltips explaining features
+- [ ] Landing page tour and tooltips
+- [ ] Editor tour and tooltips
+- [ ] Presentation mode tour and tooltips
 
 ### Deferred (v3.5+)
 
@@ -270,4 +279,4 @@ v3.5 delivered Working Wall Export:
 | Timestamp as React key | Guaranteed unique for history entries | ✓ Good — v3.4 |
 
 ---
-*Last updated: 2026-01-27 after v3.5 milestone*
+*Last updated: 2026-01-27 after v3.6 milestone started*
