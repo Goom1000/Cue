@@ -1,5 +1,7 @@
 
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+// Tour styling
+import './styles/driver.css';
 import { Slide, AppState, SavedClass, StudentPair } from './types';
 import { createAIProvider, AIProviderError, AIProviderInterface, GenerationInput, GenerationMode, AIErrorCode, VerbosityLevel } from './services/aiProvider';
 import { useSettings } from './hooks/useSettings';
