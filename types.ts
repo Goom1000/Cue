@@ -375,3 +375,22 @@ declare global {
     readonly isExtended?: boolean;
   }
 }
+
+// --- Tour State ---
+
+/** Valid tour identifiers - one per screen */
+export type TourId = 'landing' | 'editor' | 'presentation';
+
+/** Tour completion state persisted to localStorage */
+export interface TourState {
+  /** Tour IDs that user has completed */
+  completedTours: TourId[];
+  /** Timestamp when tour was last dismissed (for "remind me later" if needed) */
+  lastDismissed: Partial<Record<TourId, number>>;
+}
+
+/** Default tour state for new users */
+export const DEFAULT_TOUR_STATE: TourState = {
+  completedTours: [],
+  lastDismissed: {},
+};
