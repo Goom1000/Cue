@@ -1,5 +1,33 @@
 # Project Milestones: Cue
 
+## v3.5 Working Wall Export (Shipped: 2026-01-27)
+
+**Delivered:** Teachers can export selected slides as printable A4 PDFs for classroom "Working Wall" displays, with optional AI poster enhancement that transforms raw class notes into polished educational reference materials.
+
+**Phases completed:** 38-40 (4 plans total)
+
+**Key accomplishments:**
+
+- Multi-select slide UI with Set-based selection, Shift+click range, Cmd/Ctrl+click toggle
+- Export modal with preview grid and mode selection (Quick Export vs AI Poster)
+- Quick Export PDF generation (A4 landscape, exact slide content preservation at 150+ DPI)
+- AI Poster Mode using Claude structured outputs for educational poster layouts
+- Subject-aware color schemes and Year 6 content transformation for wall display
+- Per-poster regenerate button for individual poster refinement
+
+**Stats:**
+
+- 8 files created/modified
+- ~20,083 lines of TypeScript (project total)
+- 3 phases, 4 plans, 17 requirements
+- 1 day (2026-01-27)
+
+**Git range:** `a2b2916` → `79fe32a`
+
+**What's next:** TBD with /gsd:new-milestone
+
+---
+
 ## v3.4 Ask AI (Shipped: 2026-01-26)
 
 **Delivered:** Teachers can ask AI anything during a presentation without leaving the app. In-presentation AI assistant with streaming responses, lesson context awareness, quick action buttons, and session history.

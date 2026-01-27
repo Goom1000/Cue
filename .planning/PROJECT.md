@@ -4,21 +4,15 @@
 
 A presentation tool for teachers that transforms PDF lesson plans into interactive slideshows with AI-generated content, a teleprompter script for the teacher, and progressive bullet reveal. Teachers upload their existing lesson plans, select student age/grade level, and the AI creates an engaging presentation with speaker notes that guide the teacher through natural, conversational delivery.
 
-**v3.4 shipped:** Ask AI — Teachers can ask AI anything during a presentation without leaving the app. In-presentation streaming AI assistant with lesson context awareness, quick action buttons, and session history. Deployed at https://goom1000.github.io/Cue/
+**v3.5 shipped:** Working Wall Export — Teachers can export selected slides as printable A4 PDFs for classroom "Working Wall" displays, with optional AI poster enhancement. Deployed at https://goom1000.github.io/Cue/
 
-## Current Milestone: v3.5 Working Wall Export
+## Current Milestone: None
 
-**Goal:** Enable teachers to export selected slides as printable A4 PDFs for classroom "Working Wall" displays, with optional AI poster enhancement that transforms raw class notes into polished educational reference materials.
-
-**Target features:**
-- Multi-select slides in thumbnail sidebar for batch operations
-- Quick export of selected slides as-is to A4 PDF
-- AI Poster Mode that transforms slides into visually attractive wall posters
-- Poster aesthetic optimized for classroom display (larger text, clearer hierarchy)
+No active milestone. Use `/gsd:new-milestone` to start the next milestone.
 
 ## Current State
 
-Shipped v3.4 with ~18,420 LOC TypeScript. Previous v3.4 delivered in-presentation AI assistant with streaming responses, lesson context injection, quick actions, and keyboard shortcuts (Cmd+K).
+Shipped v3.5 with ~20,083 LOC TypeScript. v3.5 delivered slide selection UI with multi-select, Quick Export PDF generation (A4 landscape, exact content preservation), and AI Poster Mode with Claude structured outputs for educational poster layouts.
 
 ## Core Value
 
@@ -122,17 +116,18 @@ Students see only the presentation; teachers see the presentation plus a telepro
 - ✓ Teacher-only visibility (no student sync) — v3.4
 - ✓ Session history with scrollable view and clear button — v3.4
 - ✓ Keyboard shortcut (Cmd+K) to focus input, Escape to blur — v3.4
+- ✓ Multi-select slides in thumbnail sidebar (Set-based, Shift+click, Cmd/Ctrl+click) — v3.5
+- ✓ "Export for Working Wall" button appears when slides selected — v3.5
+- ✓ Quick export of selected slides as-is to A4 PDF (150+ DPI print quality) — v3.5
+- ✓ AI Poster Mode transforms selected slides into classroom wall posters — v3.5
+- ✓ Poster aesthetic with larger text, clearer hierarchy, subject-aware colors — v3.5
+- ✓ AI uses slide context (current + surrounding slides) for coherent poster content — v3.5
 
 ### Active
 
-- [ ] Multi-select slides in thumbnail sidebar (checkboxes or selection mode)
-- [ ] "Export for Working Wall" button appears when slides selected
-- [ ] Quick export of selected slides as-is to A4 PDF
-- [ ] AI Poster Mode transforms selected slides into classroom wall posters
-- [ ] Poster aesthetic with larger text, clearer hierarchy, visual appeal
-- [ ] AI uses slide context (current + surrounding slides) for coherent poster content
+(None — define next milestone with /gsd:new-milestone)
 
-### Deferred (v3.4+)
+### Deferred (v3.5+)
 
 - [ ] Elapsed time display showing presentation duration
 - [ ] Fullscreen recovery (auto re-enter if exited)
@@ -158,24 +153,18 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Current State
 
-Shipped v3.4 with ~18,420 LOC TypeScript.
-Tech stack: React 19, Vite, Gemini/Claude API, Tailwind CSS, react-rnd.
+Shipped v3.5 with ~20,083 LOC TypeScript.
+Tech stack: React 19, Vite, Gemini/Claude API, Tailwind CSS, react-rnd, jsPDF, html2canvas.
 Client-side only (no backend).
 Deployed at: https://goom1000.github.io/Cue/
 
-v3.4 delivered Ask AI:
-- In-presentation AI assistant with streaming responses
-- Header dropdown UI (moved from inline teleprompter after user testing)
-- Lesson context injection (topic, slide content, grade level)
-- Quick action buttons ("Get 3 facts", "Explain simply", "Answer question")
-- Session history with Cmd/Ctrl+K shortcut and Escape to blur
-- Multi-provider support (Gemini and Claude) with age-appropriate responses
-
-v3.3 delivered Deck-wide Verbosity:
-- Upfront verbosity selection on landing page before slide generation
-- Deck-wide verbosity toggle replaces per-slide selector
-- Batch regeneration with confirmation dialog and progress overlay
-- File format v3 with deckVerbosity field and v2 backward compatibility
+v3.5 delivered Working Wall Export:
+- Multi-select slide UI with Set-based selection (Shift+click range, Cmd/Ctrl+click toggle)
+- Export modal with preview grid and mode selection (Quick Export vs AI Poster)
+- Quick Export PDF generation (A4 landscape, 150+ DPI print quality)
+- AI Poster Mode using Claude structured outputs for educational poster layouts
+- Subject-aware color schemes and Year 6 content transformation
+- Per-poster regenerate button for individual refinement
 
 ### Technical Environment
 
@@ -281,4 +270,4 @@ v3.3 delivered Deck-wide Verbosity:
 | Timestamp as React key | Guaranteed unique for history entries | ✓ Good — v3.4 |
 
 ---
-*Last updated: 2026-01-27 after starting v3.5 milestone*
+*Last updated: 2026-01-27 after v3.5 milestone*
