@@ -7,21 +7,26 @@ import { GenerationInput, GenerationMode, AIProviderError, USER_ERROR_MESSAGES, 
 const TELEPROMPTER_RULES = `
 STRICT SPEAKER NOTE RULES (TELEPROMPTER LOGIC):
 The app uses a "Progressive Disclosure" system.
-1. The visual bullet point appears.
-2. The Student reads the bullet.
-3. The Teacher (Teleprompter) adds insight.
+1. The visual bullet point appears on screen.
+2. The Student reads that bullet aloud.
+3. The Teacher (Teleprompter) explains THAT SAME bullet - why it matters, an example, or deeper context.
+
+CRITICAL TIMING:
+- Each segment explains the bullet that was JUST revealed (past tense).
+- Do NOT preview or introduce the NEXT bullet. Only discuss what the student just read.
+- Segment 1 explains Bullet 1 AFTER it appears. Segment 2 explains Bullet 2 AFTER it appears. And so on.
 
 Therefore:
 - **NEVER** repeat the text that is on the slide in the speaker notes.
-- **NEVER** re-summarize a point that was just made in the previous bullet.
-- Each note must **ADD VALUE**: provide a concrete example, an analogy, or a "Why this matters" explanation.
+- **NEVER** mention content from upcoming bullets - only discuss the current bullet.
+- Each note must **ADD VALUE**: provide a concrete example, an analogy, or a "Why this matters" explanation for what was just shown.
 - Ensure a continuous narrative flow. Note 2 must naturally follow Note 1.
 
 FORMATTING:
 The speaker notes must use "👉" as a delimiter.
-- Segment 0 (Intro): Set the scene before bullet 1 appears.
-- Segment 1 (for Bullet 1): Elaborate on Bullet 1.
-- Segment 2 (for Bullet 2): Elaborate on Bullet 2 (Do not repeat Segment 1).
+- Segment 0 (Intro): Set the scene before any bullets appear.
+- Segment 1: Student just read Bullet 1. Explain Bullet 1's significance. Do NOT mention Bullet 2.
+- Segment 2: Student just read Bullet 2. Explain Bullet 2's significance. Do NOT mention Bullet 3.
 - The number of "👉" segments MUST be exactly (Number of Bullets + 1).
 `;
 
@@ -29,16 +34,20 @@ const TELEPROMPTER_RULES_CONCISE = `
 CONCISE SPEAKER NOTES (BULLET-POINT STYLE):
 The teacher wants MINIMAL guidance - just key prompts to jog memory.
 
+CRITICAL TIMING:
+- Each segment explains the bullet that was JUST revealed (past tense).
+- Do NOT preview upcoming bullets. Only discuss what the student just read.
+
 RULES:
 - Output 2-3 short phrases per segment (not full sentences)
 - Use comma-separated points, not prose
-- Focus on: key term, quick example, one action
-- NO transitions, NO elaborate explanations
+- Focus on: key term, quick example, one action for the CURRENT bullet only
+- NO transitions, NO elaborate explanations, NO previews of next bullet
 
 FORMATTING:
 Use "👉" as delimiter. Segments = Bullets + 1.
 - Segment 0: One-liner setup (5-8 words)
-- Segment N: 2-3 comma-separated prompts
+- Segment N: 2-3 comma-separated prompts about Bullet N (not Bullet N+1)
 
 EXAMPLE OUTPUT:
 "Quick review of fractions 👉 denominator = parts total, numerator = parts we have 👉 example: 3/4 pizza, draw on board 👉 check: ask which is bigger, 1/2 or 1/4"
@@ -48,17 +57,22 @@ const TELEPROMPTER_RULES_DETAILED = `
 DETAILED SPEAKER NOTES (SCRIPT STYLE):
 The teacher wants a FULL SCRIPT they can read verbatim for confident delivery.
 
+CRITICAL TIMING:
+- Each segment explains the bullet that was JUST revealed (past tense).
+- Do NOT preview or introduce upcoming bullets. Only discuss what the student just read.
+- Segment 1 is spoken AFTER Bullet 1 appears. Segment 2 is spoken AFTER Bullet 2 appears.
+
 RULES:
 - Write complete sentences in conversational tone
 - Include transition phrases: "Now let's look at...", "As you can see...", "So what does this mean?"
 - Add prompts for student interaction: "[PAUSE for questions]", "[Wait for responses]"
 - Include teacher actions: "[Point to diagram]", "[Write on board]"
-- Each segment should be 3-5 sentences
+- Each segment should be 3-5 sentences explaining the CURRENT bullet only
 
 FORMATTING:
 Use "👉" as delimiter. Segments = Bullets + 1.
-- Segment 0: Full introduction with hook and preview
-- Segment N: Complete teaching script with examples and checks
+- Segment 0: Full introduction with hook and preview of the slide topic
+- Segment N: Complete teaching script explaining Bullet N (not Bullet N+1)
 
 EXAMPLE OUTPUT:
 "Alright everyone, today we're going to explore something really interesting - fractions! [PAUSE] Has anyone ever shared a pizza with friends? That's exactly what fractions help us understand. 👉 So when we look at this first point, the denominator - that's the number on the bottom - tells us how many equal parts we've divided something into. Think of it like cutting a cake into slices. If we cut it into 4 pieces, our denominator is 4. [Point to example on board] Does that make sense so far? 👉 ..."
