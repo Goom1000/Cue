@@ -46,7 +46,7 @@ Plans:
 - [x] 41-01-PLAN.md - Install driver.js and Floating UI, create InfoTooltip component
 - [x] 41-02-PLAN.md - Implement useTourState hook with localStorage persistence
 - [x] 41-03-PLAN.md - Create TourButton component and useTour hook with keyboard accessibility
-- [ ] 41-04-PLAN.md - Gap closure: Minimal integration to prove components work
+- [x] 41-04-PLAN.md - Gap closure: Minimal integration to prove components work
 
 #### Phase 42: Landing Page Tour & Tooltips
 
@@ -124,7 +124,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 41. Tour Infrastructure & Accessibility | v3.6 | 3/4 | In progress | - |
+| 41. Tour Infrastructure & Accessibility | v3.6 | 4/4 | Complete | 2026-01-28 |
 | 42. Landing Page Tour & Tooltips | v3.6 | 0/2 | Not started | - |
 | 43. Editor Tour & Tooltips | v3.6 | 0/2 | Not started | - |
 | 44. Presentation Mode Tour & Tooltips | v3.6 | 0/2 | Not started | - |
@@ -132,4 +132,4 @@ Plans:
 ---
 
 *Roadmap created: 2026-01-27*
-*Last updated: 2026-01-28 - Phase 41 gap closure plan added (41-04)*
+*Last updated: 2026-01-28 - Phase 41 complete (4/4 plans, goal verified)*

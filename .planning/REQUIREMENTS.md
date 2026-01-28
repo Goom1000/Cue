@@ -7,11 +7,11 @@
 
 ### Tour Infrastructure
 
-- [ ] **TOUR-01**: User can trigger walkthrough tour via button on each screen
-- [ ] **TOUR-02**: User can skip/dismiss tour at any step
-- [ ] **TOUR-03**: Tour state persists (completed tours don't replay on next visit)
-- [ ] **TOUR-04**: Progress indicator shows current step and total steps
-- [ ] **TOUR-05**: Tour overlay appears above all existing UI (z-index 10000+)
+- [x] **TOUR-01**: User can trigger walkthrough tour via button on each screen
+- [x] **TOUR-02**: User can skip/dismiss tour at any step
+- [x] **TOUR-03**: Tour state persists (completed tours don't replay on next visit)
+- [x] **TOUR-04**: Progress indicator shows current step and total steps
+- [x] **TOUR-05**: Tour overlay appears above all existing UI (z-index 10000+)
 
 ### Landing Page Tour
 
@@ -42,20 +42,20 @@
 
 ### Info Tooltips
 
-- [ ] **TIP-01**: Info icon (i) appears next to complex features
-- [ ] **TIP-02**: Clicking info icon shows tooltip with explanation
-- [ ] **TIP-03**: Tooltip explains feature purpose (why, not just what)
+- [x] **TIP-01**: Info icon (i) appears next to complex features
+- [x] **TIP-02**: Clicking info icon shows tooltip with explanation
+- [x] **TIP-03**: Tooltip explains feature purpose (why, not just what)
 - [ ] **TIP-04**: Tooltips on Landing: Upload zones, Settings, Verbosity
 - [ ] **TIP-05**: Tooltips on Editor: Insert menu options, Class Bank, Export
 - [ ] **TIP-06**: Tooltips on Presentation: Targeted Mode, Verbosity toggle, Ask AI
 
 ### Accessibility
 
-- [ ] **A11Y-01**: Tours navigable via keyboard (Tab, Enter, Escape)
-- [ ] **A11Y-02**: Tooltips accessible via keyboard focus (not just hover)
-- [ ] **A11Y-03**: ARIA labels on tour dialog and tooltip content
-- [ ] **A11Y-04**: Visible focus indicators on interactive elements
-- [ ] **A11Y-05**: Escape key dismisses tooltips and tours
+- [x] **A11Y-01**: Tours navigable via keyboard (Tab, Enter, Escape)
+- [x] **A11Y-02**: Tooltips accessible via keyboard focus (not just hover)
+- [x] **A11Y-03**: ARIA labels on tour dialog and tooltip content
+- [x] **A11Y-04**: Visible focus indicators on interactive elements
+- [x] **A11Y-05**: Escape key dismisses tooltips and tours
 
 ## Future Requirements (v3.7+)
 
@@ -86,11 +86,11 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TOUR-01 | Phase 41 | Pending |
-| TOUR-02 | Phase 41 | Pending |
-| TOUR-03 | Phase 41 | Pending |
-| TOUR-04 | Phase 41 | Pending |
-| TOUR-05 | Phase 41 | Pending |
+| TOUR-01 | Phase 41 | Complete |
+| TOUR-02 | Phase 41 | Complete |
+| TOUR-03 | Phase 41 | Complete |
+| TOUR-04 | Phase 41 | Complete |
+| TOUR-05 | Phase 41 | Complete |
 | LAND-01 | Phase 42 | Pending |
 | LAND-02 | Phase 42 | Pending |
 | LAND-03 | Phase 42 | Pending |
@@ -109,17 +109,17 @@
 | PRES-05 | Phase 44 | Pending |
 | PRES-06 | Phase 44 | Pending |
 | PRES-07 | Phase 44 | Pending |
-| TIP-01 | Phase 41 | Pending |
-| TIP-02 | Phase 41 | Pending |
-| TIP-03 | Phase 41 | Pending |
+| TIP-01 | Phase 41 | Complete |
+| TIP-02 | Phase 41 | Complete |
+| TIP-03 | Phase 41 | Complete |
 | TIP-04 | Phase 42 | Pending |
 | TIP-05 | Phase 43 | Pending |
 | TIP-06 | Phase 44 | Pending |
-| A11Y-01 | Phase 41 | Pending |
-| A11Y-02 | Phase 41 | Pending |
-| A11Y-03 | Phase 41 | Pending |
-| A11Y-04 | Phase 41 | Pending |
-| A11Y-05 | Phase 41 | Pending |
+| A11Y-01 | Phase 41 | Complete |
+| A11Y-02 | Phase 41 | Complete |
+| A11Y-03 | Phase 41 | Complete |
+| A11Y-04 | Phase 41 | Complete |
+| A11Y-05 | Phase 41 | Complete |
 
 **Coverage:**
 - v3.6 requirements: 34 total
@@ -128,4 +128,4 @@
 
 ---
 *Requirements defined: 2026-01-27*
-*Last updated: 2026-01-27 after roadmap creation*
+*Last updated: 2026-01-28 - Phase 41 requirements complete (13/34)*
