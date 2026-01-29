@@ -6,6 +6,10 @@ interface UploadPanelProps {
   resources: UploadedResource[];
   onResourcesChange: (resources: UploadedResource[]) => void;
   onError?: (error: UploadValidationError) => void;
+  // Enhancement flow support (optional for backward compatibility)
+  onResourceClick?: (resource: UploadedResource) => void;
+  selectedResourceId?: string | null;
+  resourceAnalysisStatus?: Map<string, 'analyzing' | 'complete'>; // For visual indicators
 }
 
 interface UploadState {
@@ -15,7 +19,14 @@ interface UploadState {
   error?: UploadValidationError;
 }
 
-const UploadPanel: React.FC<UploadPanelProps> = ({ resources, onResourcesChange, onError }) => {
+const UploadPanel: React.FC<UploadPanelProps> = ({
+  resources,
+  onResourcesChange,
+  onError,
+  onResourceClick,
+  selectedResourceId,
+  resourceAnalysisStatus
+}) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadState, setUploadState] = useState<UploadState>({ status: 'idle', progress: 0 });
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -192,46 +203,77 @@ const UploadPanel: React.FC<UploadPanelProps> = ({ resources, onResourcesChange,
             Uploaded ({resources.length})
           </p>
           <div className="grid grid-cols-2 gap-2">
-            {resources.map((resource) => (
-              <div
-                key={resource.id}
-                className="relative group bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-2 hover:border-indigo-400 dark:hover:border-indigo-500 transition-colors"
-              >
-                {/* Thumbnail */}
-                <div className="aspect-[4/3] rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-700 mb-2">
-                  <img
-                    src={resource.thumbnail}
-                    alt={resource.filename}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                {/* Filename */}
-                <p className="text-xs text-slate-600 dark:text-slate-300 truncate font-medium" title={resource.filename}>
-                  {resource.filename}
-                </p>
-                {/* Page count badge */}
-                <div className="flex items-center gap-1 mt-1">
-                  <span className="text-[10px] px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded font-medium uppercase">
-                    {resource.type}
-                  </span>
-                  {resource.pageCount > 1 && (
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500">
-                      {resource.type === 'docx' ? '~' : ''}{resource.pageCount} pg
-                    </span>
-                  )}
-                </div>
-                {/* Remove button */}
-                <button
-                  onClick={() => handleRemoveResource(resource.id)}
-                  className="absolute top-1 right-1 w-5 h-5 bg-slate-900/60 hover:bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  title="Remove"
+            {resources.map((resource) => {
+              const isSelected = selectedResourceId === resource.id;
+              const analysisStatus = resourceAnalysisStatus?.get(resource.id);
+              const isClickable = !!onResourceClick;
+
+              return (
+                <div
+                  key={resource.id}
+                  onClick={isClickable ? () => onResourceClick(resource) : undefined}
+                  className={`
+                    relative group rounded-xl border p-2 transition-all
+                    ${isClickable ? 'cursor-pointer' : ''}
+                    ${isSelected
+                      ? 'bg-white dark:bg-slate-800 border-indigo-500 shadow-md ring-1 ring-indigo-100 dark:ring-indigo-900'
+                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500'
+                    }
+                  `}
                 >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            ))}
+                  {/* Thumbnail */}
+                  <div className="aspect-[4/3] rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-700 mb-2 relative">
+                    <img
+                      src={resource.thumbnail}
+                      alt={resource.filename}
+                      className="w-full h-full object-contain"
+                    />
+                    {/* Analysis status indicator */}
+                    {analysisStatus === 'analyzing' && (
+                      <div className="absolute inset-0 bg-white/80 dark:bg-slate-800/80 flex items-center justify-center">
+                        <div className="animate-spin w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full" />
+                      </div>
+                    )}
+                  </div>
+                  {/* Filename */}
+                  <p className={`text-xs truncate font-medium ${isSelected ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-300'}`} title={resource.filename}>
+                    {resource.filename}
+                  </p>
+                  {/* Page count badge */}
+                  <div className="flex items-center gap-1 mt-1">
+                    <span className="text-[10px] px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded font-medium uppercase">
+                      {resource.type}
+                    </span>
+                    {resource.pageCount > 1 && (
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                        {resource.type === 'docx' ? '~' : ''}{resource.pageCount} pg
+                      </span>
+                    )}
+                    {/* Analysis complete checkmark */}
+                    {analysisStatus === 'complete' && (
+                      <span className="ml-auto text-green-500">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                      </span>
+                    )}
+                  </div>
+                  {/* Remove button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering card click
+                      handleRemoveResource(resource.id);
+                    }}
+                    className="absolute top-1 right-1 w-5 h-5 bg-slate-900/60 hover:bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Remove"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

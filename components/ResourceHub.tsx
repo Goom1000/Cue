@@ -1,20 +1,23 @@
 
-import React, { useState, useRef } from 'react';
-import { LessonResource, UploadedResource, UploadValidationError } from '../types';
+import React, { useState, useRef, useEffect } from 'react';
+import { LessonResource, UploadedResource, UploadValidationError, DocumentAnalysis, Slide } from '../types';
 import Button from './Button';
 import { AIProviderInterface, AIProviderError } from '../services/aiProvider';
 import UploadPanel from './UploadPanel';
+import EnhancementPanel from './EnhancementPanel';
+import { analyzeUploadedDocument } from '../services/documentAnalysis/documentAnalysisService';
 
 interface ResourceHubProps {
   lessonText: string;
   slideContext: string; // Stringified slides for context
+  slides: Slide[]; // Structured slides for enhancement context
   onClose: () => void;
   provider: AIProviderInterface | null;
   onError: (title: string, message: string) => void;
   onRequestAI: (featureName: string) => void;
 }
 
-const ResourceHub: React.FC<ResourceHubProps> = ({ lessonText, slideContext, onClose, provider, onError, onRequestAI }) => {
+const ResourceHub: React.FC<ResourceHubProps> = ({ lessonText, slideContext, slides, onClose, provider, onError, onRequestAI }) => {
   const isAIAvailable = provider !== null;
   const [resources, setResources] = useState<LessonResource[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -24,9 +27,51 @@ const ResourceHub: React.FC<ResourceHubProps> = ({ lessonText, slideContext, onC
   // Upload state for teacher-provided resources
   const [uploadedResources, setUploadedResources] = useState<UploadedResource[]>([]);
 
+  // Enhancement flow state
+  const [selectedUploadedResource, setSelectedUploadedResource] = useState<UploadedResource | null>(null);
+  const [resourceAnalysis, setResourceAnalysis] = useState<Map<string, DocumentAnalysis>>(new Map());
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
   // Export Menu State
   const [showExportMenu, setShowExportMenu] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Trigger analysis when an uploaded resource is selected
+  useEffect(() => {
+    if (!selectedUploadedResource || !provider) return;
+    if (resourceAnalysis.has(selectedUploadedResource.id)) return;
+
+    const analyzeResource = async () => {
+      setIsAnalyzing(true);
+      try {
+        // Note: originalFile not available after upload, but content is preserved
+        // Analysis service handles this (uses content.images and content.text)
+        const { analysis } = await analyzeUploadedDocument(
+          selectedUploadedResource,
+          provider
+        );
+        setResourceAnalysis(prev => new Map(prev).set(selectedUploadedResource.id, analysis));
+      } catch (err) {
+        onError('Analysis Failed', (err as Error).message);
+      } finally {
+        setIsAnalyzing(false);
+      }
+    };
+
+    analyzeResource();
+  }, [selectedUploadedResource, provider, resourceAnalysis, onError]);
+
+  // Handle selecting an uploaded resource (clear generated resource selection)
+  const handleSelectUploadedResource = (resource: UploadedResource) => {
+    setSelectedUploadedResource(resource);
+    setSelectedResource(null); // Clear generated resource selection
+  };
+
+  // Handle selecting a generated resource (clear uploaded resource selection)
+  const handleSelectGeneratedResource = (resource: LessonResource) => {
+    setSelectedResource(resource);
+    setSelectedUploadedResource(null); // Clear uploaded resource selection
+  };
 
   const handleUploadError = (error: UploadValidationError) => {
     // Use existing onError prop to show toast/modal
@@ -268,6 +313,18 @@ const ResourceHub: React.FC<ResourceHubProps> = ({ lessonText, slideContext, onC
                     resources={uploadedResources}
                     onResourcesChange={setUploadedResources}
                     onError={handleUploadError}
+                    onResourceClick={handleSelectUploadedResource}
+                    selectedResourceId={selectedUploadedResource?.id || null}
+                    resourceAnalysisStatus={(() => {
+                      const statusMap = new Map<string, 'analyzing' | 'complete'>();
+                      // All resources with analysis complete
+                      resourceAnalysis.forEach((_, id) => statusMap.set(id, 'complete'));
+                      // Currently analyzing resource
+                      if (isAnalyzing && selectedUploadedResource) {
+                        statusMap.set(selectedUploadedResource.id, 'analyzing');
+                      }
+                      return statusMap;
+                    })()}
                   />
                 </div>
 
@@ -303,9 +360,9 @@ const ResourceHub: React.FC<ResourceHubProps> = ({ lessonText, slideContext, onC
                 ) : (
                     <>
                         {resources.map((res) => (
-                            <button 
+                            <button
                                 key={res.id}
-                                onClick={() => setSelectedResource(res)}
+                                onClick={() => handleSelectGeneratedResource(res)}
                                 className={`text-left p-4 rounded-xl border transition-all ${selectedResource?.id === res.id ? 'bg-white dark:bg-slate-800 border-pink-500 shadow-md ring-1 ring-pink-100 dark:ring-pink-900' : 'bg-white dark:bg-slate-900 border-transparent hover:border-slate-200 dark:hover:border-slate-700'}`}
                             >
                                 <h4 className={`font-bold text-sm mb-1 ${selectedResource?.id === res.id ? 'text-pink-600 dark:text-pink-400' : 'text-slate-700 dark:text-slate-300'}`}>{res.title}</h4>
@@ -338,66 +395,96 @@ const ResourceHub: React.FC<ResourceHubProps> = ({ lessonText, slideContext, onC
             </div>
 
             {/* Preview Area */}
-            <div className="flex-1 bg-slate-100 dark:bg-slate-900 p-8 overflow-y-auto relative">
-                {selectedResource ? (
-                    <div 
-                        ref={contentRef}
-                        className="max-w-3xl mx-auto bg-white min-h-[800px] shadow-xl rounded-[40px] p-12 text-slate-800 print-preview relative animate-fade-in border-4 border-indigo-50/50"
-                    >
-                        {/* Export Button (General) */}
-                        <div className="absolute top-6 right-6 z-30" data-html2canvas-ignore>
-                            <div className="relative">
-                                <button 
-                                    onClick={() => setShowExportMenu(!showExportMenu)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors shadow-lg font-bold text-sm"
-                                >
-                                    <span>Export</span>
-                                    <svg className={`w-4 h-4 transition-transform ${showExportMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                                </button>
-
-                                {showExportMenu && (
-                                    <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden animate-fade-in flex flex-col z-40">
-                                        <button 
-                                            onClick={() => { setShowExportMenu(false); handlePrint(); }}
-                                            className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-left text-sm font-bold text-slate-700 transition-colors border-b border-slate-50 w-full"
-                                        >
-                                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-                                            Print Document
-                                        </button>
-                                        <button 
-                                            onClick={() => { setShowExportMenu(false); handleDownload(); }}
-                                            className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-left text-sm font-bold text-slate-700 transition-colors w-full"
-                                        >
-                                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                            Download PDF
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
+            <div className="flex-1 bg-slate-100 dark:bg-slate-900 overflow-hidden relative">
+                {/* EnhancementPanel for uploaded resources with analysis complete */}
+                {selectedUploadedResource && resourceAnalysis.has(selectedUploadedResource.id) && provider ? (
+                    <EnhancementPanel
+                      resource={selectedUploadedResource}
+                      analysis={resourceAnalysis.get(selectedUploadedResource.id)!}
+                      slides={slides}
+                      provider={provider}
+                      onError={onError}
+                    />
+                ) : selectedUploadedResource && isAnalyzing ? (
+                    <div className="h-full flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="animate-spin w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full mx-auto mb-4" />
+                        <p className="text-slate-500 dark:text-slate-400">Analyzing document...</p>
+                      </div>
+                    </div>
+                ) : selectedUploadedResource && !provider ? (
+                    <div className="h-full flex items-center justify-center">
+                      <div className="text-center max-w-sm">
+                        <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                          <svg className="w-8 h-8 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                          </svg>
                         </div>
+                        <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200 font-fredoka mb-2">API Key Required</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">Add your API key in Settings to enable document enhancement.</p>
+                      </div>
+                    </div>
+                ) : selectedResource ? (
+                    <div className="h-full p-8 overflow-y-auto">
+                      <div
+                          ref={contentRef}
+                          className="max-w-3xl mx-auto bg-white min-h-[800px] shadow-xl rounded-[40px] p-12 text-slate-800 print-preview relative animate-fade-in border-4 border-indigo-50/50"
+                      >
+                          {/* Export Button (General) */}
+                          <div className="absolute top-6 right-6 z-30" data-html2canvas-ignore>
+                              <div className="relative">
+                                  <button
+                                      onClick={() => setShowExportMenu(!showExportMenu)}
+                                      className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors shadow-lg font-bold text-sm"
+                                  >
+                                      <span>Export</span>
+                                      <svg className={`w-4 h-4 transition-transform ${showExportMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                  </button>
 
-                        {/* Document Header */}
-                        <div className="mb-10 pb-8 border-b-4 border-indigo-50 flex items-start justify-between">
-                             <div className="flex-1 pr-6 pt-4">
-                                <h1 className="text-4xl font-bold mb-3 font-fredoka text-slate-800">{selectedResource.title}</h1>
-                                <div className="flex gap-2">
-                                    <span className="px-3 py-1 bg-pink-100 text-pink-600 rounded-full text-xs font-bold uppercase tracking-wider">{selectedResource.type}</span>
-                                    <span className="px-3 py-1 bg-indigo-100 text-indigo-600 rounded-full text-xs font-bold uppercase tracking-wider">{selectedResource.targetAudience}</span>
-                                </div>
-                             </div>
-                        </div>
-                        
-                        {/* Live Markdown Preview */}
-                        <div 
-                            className="prose prose-slate max-w-none font-poppins prose-headings:font-fredoka prose-h1:text-3xl prose-h2:text-2xl prose-h2:text-indigo-600 prose-p:text-slate-600"
-                            dangerouslySetInnerHTML={{ __html: parseMarkdown(selectedResource.content) }}
-                        />
-                        
-                        {/* Footer */}
-                         <div className="mt-16 pt-8 border-t-2 border-dashed border-slate-100 flex justify-between text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                            <span>Teacher Resource • {new Date().getFullYear()}</span>
-                            <span>Cue</span>
-                         </div>
+                                  {showExportMenu && (
+                                      <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden animate-fade-in flex flex-col z-40">
+                                          <button
+                                              onClick={() => { setShowExportMenu(false); handlePrint(); }}
+                                              className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-left text-sm font-bold text-slate-700 transition-colors border-b border-slate-50 w-full"
+                                          >
+                                              <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                                              Print Document
+                                          </button>
+                                          <button
+                                              onClick={() => { setShowExportMenu(false); handleDownload(); }}
+                                              className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-left text-sm font-bold text-slate-700 transition-colors w-full"
+                                          >
+                                              <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                              Download PDF
+                                          </button>
+                                      </div>
+                                  )}
+                              </div>
+                          </div>
+
+                          {/* Document Header */}
+                          <div className="mb-10 pb-8 border-b-4 border-indigo-50 flex items-start justify-between">
+                               <div className="flex-1 pr-6 pt-4">
+                                  <h1 className="text-4xl font-bold mb-3 font-fredoka text-slate-800">{selectedResource.title}</h1>
+                                  <div className="flex gap-2">
+                                      <span className="px-3 py-1 bg-pink-100 text-pink-600 rounded-full text-xs font-bold uppercase tracking-wider">{selectedResource.type}</span>
+                                      <span className="px-3 py-1 bg-indigo-100 text-indigo-600 rounded-full text-xs font-bold uppercase tracking-wider">{selectedResource.targetAudience}</span>
+                                  </div>
+                               </div>
+                          </div>
+
+                          {/* Live Markdown Preview */}
+                          <div
+                              className="prose prose-slate max-w-none font-poppins prose-headings:font-fredoka prose-h1:text-3xl prose-h2:text-2xl prose-h2:text-indigo-600 prose-p:text-slate-600"
+                              dangerouslySetInnerHTML={{ __html: parseMarkdown(selectedResource.content) }}
+                          />
+
+                          {/* Footer */}
+                           <div className="mt-16 pt-8 border-t-2 border-dashed border-slate-100 flex justify-between text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                              <span>Teacher Resource • {new Date().getFullYear()}</span>
+                              <span>Cue</span>
+                           </div>
+                      </div>
                     </div>
                 ) : (
                     <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-600">

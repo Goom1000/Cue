@@ -1223,6 +1223,7 @@ function App() {
             <ResourceHub
                 lessonText={lessonText}
                 slideContext={JSON.stringify(slides)}
+                slides={slides}
                 onClose={() => setShowResourceHub(false)}
                 provider={provider}
                 onError={handleComponentError}
