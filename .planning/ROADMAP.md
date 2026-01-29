@@ -70,7 +70,11 @@ Plans:
 4. User sees clear error message when file exceeds 25MB or 20 pages
 5. User sees preview thumbnail of uploaded resource before proceeding
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 43-01-PLAN.md — Foundation: types, document processors, upload service
+- [ ] 43-02-PLAN.md — UI: upload panel with drop zone, progress, preview
 
 ---
 
@@ -156,7 +160,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 41. Tour Infrastructure | v3.6 | 4/4 | Complete | 2026-01-28 |
 | 42. Student-Friendly Slides | v3.7 | 2/2 | Complete | 2026-01-29 |
-| 43. Types and File Upload | v3.7 | 0/TBD | Not started | - |
+| 43. Types and File Upload | v3.7 | 0/2 | Not started | - |
 | 44. AI Document Analysis | v3.7 | 0/TBD | Not started | - |
 | 45. Enhancement with Lesson Context | v3.7 | 0/TBD | Not started | - |
 | 46. Preview, Edit, and Trust UI | v3.7 | 0/TBD | Not started | - |
@@ -192,4 +196,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-01-27*
-*Last updated: 2026-01-29 - Phase 42 complete (2 plans executed)*
+*Last updated: 2026-01-29 - Phase 43 planned (2 plans)*
