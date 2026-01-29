@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-29)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** v3.7 AI Resource Enhancement — Phase 42 complete, ready for Phase 43
+**Current focus:** v3.7 AI Resource Enhancement — Phase 43 in progress
 
 ## Current Position
 
-Phase: 42 of 47 (Student-Friendly Slide Generation)
-Plan: 2 of 2 complete
-Status: Phase complete
-Last activity: 2026-01-29 — Completed 42-02-PLAN.md (provider integration)
+Phase: 43 of 47 (Types and File Upload)
+Plan: 1 of 2 complete
+Status: In progress
+Last activity: 2026-01-29 — Completed 43-01-PLAN.md (types and document processors)
 
-Progress: [██░░░░░░░░] 20%
+Progress: [██░░░░░░░░] 22%
 Pending todos: 6
 
 ## Performance Metrics
@@ -22,7 +22,7 @@ Pending todos: 6
 **Velocity:**
 - Milestones shipped: 17 (v1.0 through v3.5)
 - Total phases completed: 42
-- Total plans completed: 125
+- Total plans completed: 126
 - Total LOC: ~20,433 TypeScript
 
 **v3.6 Tooltips & Onboarding (deferred):**
@@ -42,7 +42,7 @@ Pending todos: 6
 | Phase | Goal | Requirements | Status |
 |-------|------|--------------|--------|
 | 42 | Student-friendly slide language | SLIDE-01, SLIDE-02, SLIDE-03 | COMPLETE |
-| 43 | Resource file upload | UPLOAD-01 to UPLOAD-05 | Next |
+| 43 | Resource file upload | UPLOAD-01 to UPLOAD-05 | IN PROGRESS |
 | 44 | AI document analysis | (foundation) | |
 | 45 | Enhancement with lesson context | ENHANCE-01 to ENHANCE-06 | |
 | 46 | Preview, edit, and trust UI | PREVIEW-01 to PREVIEW-04 | |
@@ -63,6 +63,9 @@ Recent decisions for v3.7:
 - Prompt rules apply to slide content only, not speakerNotes (teleprompter remains teacher-facing)
 - Rules injected after role description, before mode-specific CRITICAL rules
 - Variant slides use hardcoded gradeLevel since they don't receive GenerationInput
+- Use existing pdf.js CDN (already loaded) instead of npm installing pdfjs-dist
+- DOCX page count estimated from character count (~3000 chars/page)
+- Document processors organized in services/documentProcessors/ directory
 
 ### Pending Todos
 
@@ -75,11 +78,11 @@ None identified yet for v3.7.
 ## Session Continuity
 
 Last session: 2026-01-29
-Stopped at: Completed 42-02-PLAN.md (Phase 42 complete)
+Stopped at: Completed 43-01-PLAN.md
 Resume file: None
 
-**Next step:** `/gsd:research-phase 43` to begin Resource file upload phase
+**Next step:** Execute 43-02-PLAN.md to create UploadPanel.tsx component
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-29 — Completed Phase 42 (student-friendly slide generation)*
+*Last updated: 2026-01-29 — Completed 43-01-PLAN.md (types and document processors)*
