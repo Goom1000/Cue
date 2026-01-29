@@ -5,25 +5,25 @@
 See: .planning/PROJECT.md (updated 2026-01-29)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** v3.7 AI Resource Enhancement — Phase 43 in progress
+**Current focus:** v3.7 AI Resource Enhancement — Phase 44 in progress
 
 ## Current Position
 
-Phase: 43 of 47 (Types and File Upload)
-Plan: 2 of 2 complete
+Phase: 44 of 47 (AI Document Analysis)
+Plan: 1 of 1 complete
 Status: Phase complete
-Last activity: 2026-01-29 — Completed 43-02-PLAN.md (upload panel UI)
+Last activity: 2026-01-29 — Completed 44-01-PLAN.md (document analysis foundation)
 
-Progress: [███░░░░░░░] 33%
+Progress: [████░░░░░░] 36%
 Pending todos: 8
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 17 (v1.0 through v3.5)
-- Total phases completed: 43
-- Total plans completed: 128
-- Total LOC: ~20,433 TypeScript
+- Total phases completed: 44
+- Total plans completed: 129
+- Total LOC: ~20,800 TypeScript
 
 **v3.6 Tooltips & Onboarding (deferred):**
 - Phase 41 complete (tour infrastructure)
@@ -42,9 +42,9 @@ Pending todos: 8
 | Phase | Goal | Requirements | Status |
 |-------|------|--------------|--------|
 | 42 | Student-friendly slide language | SLIDE-01, SLIDE-02, SLIDE-03 | COMPLETE |
-| 43 | Resource file upload | UPLOAD-01 to UPLOAD-05 | COMPLETE ✓ |
-| 44 | AI document analysis | (foundation) | Next |
-| 45 | Enhancement with lesson context | ENHANCE-01 to ENHANCE-06 | |
+| 43 | Resource file upload | UPLOAD-01 to UPLOAD-05 | COMPLETE |
+| 44 | AI document analysis | (foundation) | COMPLETE |
+| 45 | Enhancement with lesson context | ENHANCE-01 to ENHANCE-06 | Next |
 | 46 | Preview, edit, and trust UI | PREVIEW-01 to PREVIEW-04 | |
 | 47 | Export and persistence | EXPORT-01 to EXPORT-03 | |
 
@@ -68,6 +68,7 @@ Recent decisions for v3.7:
 - Document processors organized in services/documentProcessors/ directory
 - UploadPanel always visible in sidebar (not conditional)
 - Upload errors routed through existing onError callback
+- Gemini uses responseSchema for structured output, Claude uses tool_choice (DEC-44-01)
 
 ### Pending Todos
 
@@ -80,11 +81,11 @@ None identified yet for v3.7.
 ## Session Continuity
 
 Last session: 2026-01-29
-Stopped at: Completed 43-02-PLAN.md (phase 43 complete)
+Stopped at: Completed 44-01-PLAN.md (phase 44 complete)
 Resume file: None
 
-**Next step:** `/gsd:discuss-phase 44` to begin AI document analysis phase
+**Next step:** `/gsd:discuss-phase 45` to begin enhancement with lesson context
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-29 — Completed 43-02-PLAN.md (upload panel UI)*
+*Last updated: 2026-01-29 — Completed 44-01-PLAN.md (document analysis foundation)*
