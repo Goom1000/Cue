@@ -1,8 +1,9 @@
 
 import React, { useState, useRef } from 'react';
-import { LessonResource } from '../types';
+import { LessonResource, UploadedResource, UploadValidationError } from '../types';
 import Button from './Button';
 import { AIProviderInterface, AIProviderError } from '../services/aiProvider';
+import UploadPanel from './UploadPanel';
 
 interface ResourceHubProps {
   lessonText: string;
@@ -20,9 +21,17 @@ const ResourceHub: React.FC<ResourceHubProps> = ({ lessonText, slideContext, onC
   const [selectedResource, setSelectedResource] = useState<LessonResource | null>(null);
   const [hasGenerated, setHasGenerated] = useState(false);
 
+  // Upload state for teacher-provided resources
+  const [uploadedResources, setUploadedResources] = useState<UploadedResource[]>([]);
+
   // Export Menu State
   const [showExportMenu, setShowExportMenu] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  const handleUploadError = (error: UploadValidationError) => {
+    // Use existing onError prop to show toast/modal
+    onError('Upload Failed', error.message);
+  };
 
   const handleGenerate = async () => {
     if (!isAIAvailable) {
@@ -253,6 +262,20 @@ const ResourceHub: React.FC<ResourceHubProps> = ({ lessonText, slideContext, onC
         <div className="flex-1 flex overflow-hidden">
             {/* Sidebar List */}
             <div className="w-80 bg-slate-50 dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
+                {/* Upload Section */}
+                <div className="mb-2">
+                  <UploadPanel
+                    resources={uploadedResources}
+                    onResourcesChange={setUploadedResources}
+                    onError={handleUploadError}
+                  />
+                </div>
+
+                {/* Divider when resources uploaded */}
+                {uploadedResources.length > 0 && (
+                  <div className="border-t border-slate-200 dark:border-slate-700 my-2" />
+                )}
+
                 {!hasGenerated ? (
                     <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
                         <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 shadow-sm text-slate-300 dark:text-slate-600">
