@@ -15,7 +15,7 @@ Status: Phase complete
 Last activity: 2026-01-29 — Completed 43-02-PLAN.md (upload panel UI)
 
 Progress: [███░░░░░░░] 33%
-Pending todos: 6
+Pending todos: 8
 
 ## Performance Metrics
 
