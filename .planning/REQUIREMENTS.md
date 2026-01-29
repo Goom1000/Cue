@@ -1,131 +1,101 @@
-# Requirements: Cue v3.6 Tooltips & Onboarding
+# Requirements: Cue v3.7 AI Resource Enhancement
 
-**Defined:** 2026-01-27
-**Core Value:** Help users discover and understand Cue's features through contextual tooltips and per-screen walkthrough tours.
+**Defined:** 2026-01-29
+**Core Value:** Teachers can enhance their existing worksheets and handouts with AI while maintaining original intent, and slide content speaks directly to students.
 
-## v3.6 Requirements
+## v3.7 Requirements
 
-### Tour Infrastructure
+### Student-Friendly Slides
 
-- [x] **TOUR-01**: User can trigger walkthrough tour via button on each screen
-- [x] **TOUR-02**: User can skip/dismiss tour at any step
-- [x] **TOUR-03**: Tour state persists (completed tours don't replay on next visit)
-- [x] **TOUR-04**: Progress indicator shows current step and total steps
-- [x] **TOUR-05**: Tour overlay appears above all existing UI (z-index 10000+)
+- [ ] **SLIDE-01**: AI generates bullet points as conversational sentences directed at students
+- [ ] **SLIDE-02**: Bullet language adapts to grade level already set in Cue
+- [ ] **SLIDE-03**: Student-friendly style is the default for all new generations
 
-### Landing Page Tour
+### Resource Upload
 
-- [ ] **LAND-01**: Tour covers PDF upload zone (lesson plan + existing presentation)
-- [ ] **LAND-02**: Tour covers settings button and API key setup
-- [ ] **LAND-03**: Tour covers generation options (verbosity selector)
-- [ ] **LAND-04**: Tour is 3-5 steps maximum
-- [ ] **LAND-05**: Tour button visible in header/footer area
+- [ ] **UPLOAD-01**: User can upload PDF resources (worksheets, handouts)
+- [ ] **UPLOAD-02**: User can upload image resources (PNG, JPG photos of worksheets)
+- [ ] **UPLOAD-03**: User can upload Word documents (.docx)
+- [ ] **UPLOAD-04**: System enforces file size limits (25MB max, 20 pages)
+- [ ] **UPLOAD-05**: User sees preview of uploaded resource before enhancement
 
-### Editor Tour
+### AI Enhancement
 
-- [ ] **EDIT-01**: Tour covers slide thumbnail navigation
-- [ ] **EDIT-02**: Tour covers Insert menu (+ button with slide types)
-- [ ] **EDIT-03**: Tour covers slide editing (content, teleprompter)
-- [ ] **EDIT-04**: Tour covers Class Bank feature
-- [ ] **EDIT-05**: Tour is 3-5 steps maximum
-- [ ] **EDIT-06**: Tour button visible in editor header
+- [ ] **ENHANCE-01**: AI enhances resource while preserving original content/facts (preserve mode default)
+- [ ] **ENHANCE-02**: AI generates differentiated versions (simple/standard/detailed)
+- [ ] **ENHANCE-03**: AI uses lesson context to align enhanced resources with slides
+- [ ] **ENHANCE-04**: AI generates answer key for worksheet exercises
+- [ ] **ENHANCE-05**: User can cancel enhancement in progress
+- [ ] **ENHANCE-06**: User can regenerate enhancement if unhappy with result
 
-### Presentation Mode Tour
+### Preview & Editing
 
-- [ ] **PRES-01**: Tour covers teleprompter panel
-- [ ] **PRES-02**: Tour covers student window launch button
-- [ ] **PRES-03**: Tour covers Targeted Questioning controls
-- [ ] **PRES-04**: Tour covers Ask AI feature
-- [ ] **PRES-05**: Tour is 3-5 steps maximum
-- [ ] **PRES-06**: Tour button visible in teleprompter header
-- [ ] **PRES-07**: Tour does not interrupt live teaching (manual trigger only)
+- [ ] **PREVIEW-01**: User sees enhanced resource preview before export
+- [ ] **PREVIEW-02**: User can edit enhanced content inline before export
+- [ ] **PREVIEW-03**: User sees visual diff showing what AI changed from original
+- [ ] **PREVIEW-04**: User can regenerate individual sections
 
-### Info Tooltips
+### Export & Persistence
 
-- [x] **TIP-01**: Info icon (i) appears next to complex features
-- [x] **TIP-02**: Clicking info icon shows tooltip with explanation
-- [x] **TIP-03**: Tooltip explains feature purpose (why, not just what)
-- [ ] **TIP-04**: Tooltips on Landing: Upload zones, Settings, Verbosity
-- [ ] **TIP-05**: Tooltips on Editor: Insert menu options, Class Bank, Export
-- [ ] **TIP-06**: Tooltips on Presentation: Targeted Mode, Verbosity toggle, Ask AI
+- [ ] **EXPORT-01**: User can export enhanced resource as print-ready PDF
+- [ ] **EXPORT-02**: Enhanced resources persist in .cue save file
+- [ ] **EXPORT-03**: Enhanced resources restore when loading .cue file
 
-### Accessibility
+## Future Requirements (v3.8+)
 
-- [x] **A11Y-01**: Tours navigable via keyboard (Tab, Enter, Escape)
-- [x] **A11Y-02**: Tooltips accessible via keyboard focus (not just hover)
-- [x] **A11Y-03**: ARIA labels on tour dialog and tooltip content
-- [x] **A11Y-04**: Visible focus indicators on interactive elements
-- [x] **A11Y-05**: Escape key dismisses tooltips and tours
+### Advanced Enhancement
 
-## Future Requirements (v3.7+)
+- **ADV-01**: Batch enhancement of multiple resources at once
+- **ADV-02**: Per-slide resource linking (worksheet linked to specific slide)
+- **ADV-03**: Visual layout enhancement (graphics, colors, spacing)
+- **ADV-04**: Template library for common worksheet types
 
-### Advanced Feature Discovery
+### Collaboration
 
-- **DISC-01**: Hotspot indicators (pulsing dots) for new features
-- **DISC-02**: Onboarding checklist tracking first-time actions
-- **DISC-03**: "What's new" highlights after updates
-- **DISC-04**: Interactive walkthrough (user performs actions during tour)
-
-### Analytics
-
-- **ANLY-01**: Tour completion rate tracking
-- **ANLY-02**: Step abandonment tracking
-- **ANLY-03**: Tooltip engagement metrics
+- **COLLAB-01**: Share enhanced resources with colleagues
+- **COLLAB-02**: Resource library across presentations
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Auto-play tours on first visit | Manual trigger preferred (less intrusive) |
-| Video tutorials | Users ignore videos; doesn't teach muscle memory |
-| Keyboard shortcuts in tooltips | User requested no shortcuts |
-| Mobile-specific tours | Cue primarily desktop; defer if needed |
-| Localization (i18n) | English-only for v3.6 |
+| Real-time collaborative editing | High complexity, not core to enhancement value |
+| Cloud storage for resources | File-based sharing sufficient for team of 5 |
+| OCR/Tesseract.js | Gemini vision superior, avoids 5MB+ bloat |
+| Complex layout reconstruction | Tables/columns handled via multimodal AI, not manual parsing |
+| Mobile-first resource upload | Web-first, teachers use desktop primarily |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TOUR-01 | Phase 41 | Complete |
-| TOUR-02 | Phase 41 | Complete |
-| TOUR-03 | Phase 41 | Complete |
-| TOUR-04 | Phase 41 | Complete |
-| TOUR-05 | Phase 41 | Complete |
-| LAND-01 | Phase 42 | Pending |
-| LAND-02 | Phase 42 | Pending |
-| LAND-03 | Phase 42 | Pending |
-| LAND-04 | Phase 42 | Pending |
-| LAND-05 | Phase 42 | Pending |
-| EDIT-01 | Phase 43 | Pending |
-| EDIT-02 | Phase 43 | Pending |
-| EDIT-03 | Phase 43 | Pending |
-| EDIT-04 | Phase 43 | Pending |
-| EDIT-05 | Phase 43 | Pending |
-| EDIT-06 | Phase 43 | Pending |
-| PRES-01 | Phase 44 | Pending |
-| PRES-02 | Phase 44 | Pending |
-| PRES-03 | Phase 44 | Pending |
-| PRES-04 | Phase 44 | Pending |
-| PRES-05 | Phase 44 | Pending |
-| PRES-06 | Phase 44 | Pending |
-| PRES-07 | Phase 44 | Pending |
-| TIP-01 | Phase 41 | Complete |
-| TIP-02 | Phase 41 | Complete |
-| TIP-03 | Phase 41 | Complete |
-| TIP-04 | Phase 42 | Pending |
-| TIP-05 | Phase 43 | Pending |
-| TIP-06 | Phase 44 | Pending |
-| A11Y-01 | Phase 41 | Complete |
-| A11Y-02 | Phase 41 | Complete |
-| A11Y-03 | Phase 41 | Complete |
-| A11Y-04 | Phase 41 | Complete |
-| A11Y-05 | Phase 41 | Complete |
+| SLIDE-01 | TBD | Pending |
+| SLIDE-02 | TBD | Pending |
+| SLIDE-03 | TBD | Pending |
+| UPLOAD-01 | TBD | Pending |
+| UPLOAD-02 | TBD | Pending |
+| UPLOAD-03 | TBD | Pending |
+| UPLOAD-04 | TBD | Pending |
+| UPLOAD-05 | TBD | Pending |
+| ENHANCE-01 | TBD | Pending |
+| ENHANCE-02 | TBD | Pending |
+| ENHANCE-03 | TBD | Pending |
+| ENHANCE-04 | TBD | Pending |
+| ENHANCE-05 | TBD | Pending |
+| ENHANCE-06 | TBD | Pending |
+| PREVIEW-01 | TBD | Pending |
+| PREVIEW-02 | TBD | Pending |
+| PREVIEW-03 | TBD | Pending |
+| PREVIEW-04 | TBD | Pending |
+| EXPORT-01 | TBD | Pending |
+| EXPORT-02 | TBD | Pending |
+| EXPORT-03 | TBD | Pending |
 
 **Coverage:**
-- v3.6 requirements: 34 total
-- Mapped to phases: 34
-- Unmapped: 0
+- v3.7 requirements: 21 total
+- Mapped to phases: 0 (pending roadmap)
+- Unmapped: 21
 
 ---
-*Requirements defined: 2026-01-27*
-*Last updated: 2026-01-28 - Phase 41 requirements complete (13/34)*
+*Requirements defined: 2026-01-29*
+*Last updated: 2026-01-29 after scoping with user*
