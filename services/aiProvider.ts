@@ -1,4 +1,4 @@
-import { Slide, LessonResource, AIProvider, GameType, GameDifficulty, DocumentAnalysis } from '../types';
+import { Slide, LessonResource, AIProvider, GameType, GameDifficulty, DocumentAnalysis, EnhancementResult, EnhancementOptions } from '../types';
 import { QuizQuestion, QuestionWithAnswer, VerbosityLevel } from './geminiService';
 import { GeminiProvider } from './providers/geminiProvider';
 import { ClaudeProvider } from './providers/claudeProvider';
@@ -97,6 +97,29 @@ export function buildChatContext(
     cumulativeContent,
     gradeLevel,
   };
+}
+
+/**
+ * Build formatted slide context for document enhancement.
+ * Limits to first 15 slides to avoid token overflow.
+ * @param slides - All lesson slides
+ * @returns Formatted string with slide titles and content
+ */
+export function buildSlideContextForEnhancement(slides: Slide[]): string {
+  const MAX_SLIDES = 15;
+  const slidesToInclude = slides.slice(0, MAX_SLIDES);
+  const truncated = slides.length > MAX_SLIDES;
+
+  const formatted = slidesToInclude.map((slide, index) => {
+    const bullets = slide.content.slice(0, 5).join('; ');
+    return `Slide ${index + 1}: '${slide.title}'\nContent: ${bullets}`;
+  }).join('\n\n---\n\n');
+
+  if (truncated) {
+    return `${formatted}\n\n[Showing first ${MAX_SLIDES} of ${slides.length} slides]`;
+  }
+
+  return formatted;
 }
 
 /**
@@ -270,6 +293,14 @@ export interface AIProviderInterface {
     filename: string,
     pageCount: number
   ): Promise<DocumentAnalysis>;
+
+  // Document enhancement for resource differentiation (Phase 45)
+  enhanceDocument(
+    documentAnalysis: DocumentAnalysis,
+    slideContext: string,       // Formatted slide content for alignment
+    options: EnhancementOptions,
+    signal?: AbortSignal        // For cancellation support (ENHANCE-05)
+  ): Promise<EnhancementResult>;
 }
 
 // Factory function to create the appropriate provider instance

@@ -1,6 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES, GenerationInput, GameQuestionRequest, VerbosityLevel, ChatContext } from '../aiProvider';
-import { Slide, LessonResource, DocumentAnalysis } from '../../types';
+import { Slide, LessonResource, DocumentAnalysis, EnhancementResult, EnhancementOptions } from '../../types';
 import { DOCUMENT_ANALYSIS_SYSTEM_PROMPT, buildAnalysisUserPrompt } from '../documentAnalysis/analysisPrompts';
 import {
   QuizQuestion,
@@ -268,6 +268,23 @@ export class GeminiProvider implements AIProviderInterface {
     } catch (error) {
       throw this.wrapError(error);
     }
+  }
+
+  /**
+   * Enhance a document with differentiated versions and answer keys.
+   * Phase 45 Plan 02 will implement the full functionality.
+   */
+  async enhanceDocument(
+    _documentAnalysis: DocumentAnalysis,
+    _slideContext: string,
+    _options: EnhancementOptions,
+    _signal?: AbortSignal
+  ): Promise<EnhancementResult> {
+    // TODO: Implement in Phase 45 Plan 02
+    throw new AIProviderError(
+      'Document enhancement not yet implemented for Gemini provider',
+      'UNKNOWN_ERROR'
+    );
   }
 
   /**

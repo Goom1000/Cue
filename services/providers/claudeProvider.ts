@@ -1,5 +1,5 @@
 import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, VerbosityLevel, ChatContext } from '../aiProvider';
-import { Slide, LessonResource, PosterLayout, DocumentAnalysis } from '../../types';
+import { Slide, LessonResource, PosterLayout, DocumentAnalysis, EnhancementResult, EnhancementOptions } from '../../types';
 import { QuizQuestion, QuestionWithAnswer } from '../geminiService';
 import { getStudentFriendlyRules } from '../prompts/studentFriendlyRules';
 import { DOCUMENT_ANALYSIS_SYSTEM_PROMPT, buildAnalysisUserPrompt } from '../documentAnalysis/analysisPrompts';
@@ -1500,6 +1500,23 @@ Generate the poster layout now.
 
     // Structured outputs guarantee valid JSON in content[0].text
     return JSON.parse(data.content[0].text);
+  }
+
+  /**
+   * Enhance a document with differentiated versions and answer keys.
+   * Phase 45 Plan 02 will implement the full functionality.
+   */
+  async enhanceDocument(
+    _documentAnalysis: DocumentAnalysis,
+    _slideContext: string,
+    _options: EnhancementOptions,
+    _signal?: AbortSignal
+  ): Promise<EnhancementResult> {
+    // TODO: Implement in Phase 45 Plan 02
+    throw new AIProviderError(
+      'Document enhancement not yet implemented for Claude provider',
+      'UNKNOWN_ERROR'
+    );
   }
 
   /**
