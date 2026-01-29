@@ -69,33 +69,33 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SLIDE-01 | TBD | Pending |
-| SLIDE-02 | TBD | Pending |
-| SLIDE-03 | TBD | Pending |
-| UPLOAD-01 | TBD | Pending |
-| UPLOAD-02 | TBD | Pending |
-| UPLOAD-03 | TBD | Pending |
-| UPLOAD-04 | TBD | Pending |
-| UPLOAD-05 | TBD | Pending |
-| ENHANCE-01 | TBD | Pending |
-| ENHANCE-02 | TBD | Pending |
-| ENHANCE-03 | TBD | Pending |
-| ENHANCE-04 | TBD | Pending |
-| ENHANCE-05 | TBD | Pending |
-| ENHANCE-06 | TBD | Pending |
-| PREVIEW-01 | TBD | Pending |
-| PREVIEW-02 | TBD | Pending |
-| PREVIEW-03 | TBD | Pending |
-| PREVIEW-04 | TBD | Pending |
-| EXPORT-01 | TBD | Pending |
-| EXPORT-02 | TBD | Pending |
-| EXPORT-03 | TBD | Pending |
+| SLIDE-01 | Phase 42 | Pending |
+| SLIDE-02 | Phase 42 | Pending |
+| SLIDE-03 | Phase 42 | Pending |
+| UPLOAD-01 | Phase 43 | Pending |
+| UPLOAD-02 | Phase 43 | Pending |
+| UPLOAD-03 | Phase 43 | Pending |
+| UPLOAD-04 | Phase 43 | Pending |
+| UPLOAD-05 | Phase 43 | Pending |
+| ENHANCE-01 | Phase 45 | Pending |
+| ENHANCE-02 | Phase 45 | Pending |
+| ENHANCE-03 | Phase 45 | Pending |
+| ENHANCE-04 | Phase 45 | Pending |
+| ENHANCE-05 | Phase 45 | Pending |
+| ENHANCE-06 | Phase 45 | Pending |
+| PREVIEW-01 | Phase 46 | Pending |
+| PREVIEW-02 | Phase 46 | Pending |
+| PREVIEW-03 | Phase 46 | Pending |
+| PREVIEW-04 | Phase 46 | Pending |
+| EXPORT-01 | Phase 47 | Pending |
+| EXPORT-02 | Phase 47 | Pending |
+| EXPORT-03 | Phase 47 | Pending |
 
 **Coverage:**
 - v3.7 requirements: 21 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 21
+- Mapped to phases: 21
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-29*
-*Last updated: 2026-01-29 after scoping with user*
+*Last updated: 2026-01-29 — Phase traceability added after roadmap creation*

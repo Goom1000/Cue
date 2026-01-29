@@ -1,13 +1,14 @@
-# Roadmap: Cue v3.6 Tooltips & Onboarding
+# Roadmap: Cue v3.7 AI Resource Enhancement
 
 ## Overview
 
-v3.6 adds feature discovery through contextual tooltips and per-screen walkthrough tours. Using driver.js (5kb) and Floating UI (3kb), we implement manual-trigger tours (3-5 steps each) for Landing, Editor, and Presentation screens, plus info icon tooltips explaining complex features. Infrastructure first, then progressive screen-by-screen rollout to avoid tour fatigue.
+Cue v3.7 enables teachers to enhance their existing worksheets and handouts with AI while maintaining original intent. Slide content speaks directly to students via prompt improvements, and a full resource enhancement pipeline supports PDF/image/Word upload, AI-powered differentiation, preview with trust UI, and print-ready export.
 
 ## Milestones
 
 - v3.5 Working Wall Export - Phases 1-40 (shipped 2026-01-27)
-- v3.6 Tooltips & Onboarding - Phases 41-44 (in progress)
+- v3.6 Tooltips & Onboarding - Phase 41 complete (infrastructure only, phases 42-44 deferred)
+- v3.7 AI Resource Enhancement - Phases 42-47 (in progress)
 
 ## Phases
 
@@ -18,118 +19,173 @@ Previous milestone phases collapsed. See git history for details.
 
 </details>
 
-### v3.6 Tooltips & Onboarding (In Progress)
+<details>
+<summary>v3.6 Tooltips & Onboarding (Phase 41) - DEFERRED</summary>
 
-**Milestone Goal:** Help teachers discover and understand Cue's features through contextual tooltips and per-screen walkthrough tours.
+**Phase 41: Tour Infrastructure & Accessibility** - COMPLETE (2026-01-28)
 
-#### Phase 41: Tour Infrastructure & Accessibility
+Infrastructure complete. Phases 42-44 (Landing, Editor, Presentation tours) deferred to future milestone. Phase numbers 42-44 reused for v3.7.
 
-**Goal:** Establish reusable tour and tooltip components with full keyboard accessibility
+</details>
 
-**Depends on:** Phase 40 (v3.5 complete)
+### v3.7 AI Resource Enhancement (In Progress)
 
-**Requirements:** TOUR-01, TOUR-02, TOUR-03, TOUR-04, TOUR-05, TIP-01, TIP-02, TIP-03, A11Y-01, A11Y-02, A11Y-03, A11Y-04, A11Y-05
-
-**Success Criteria** (what must be TRUE):
-1. User can trigger tours via button on any screen
-2. User can skip/dismiss tours at any step using button or Escape key
-3. Completed tours don't replay on next visit (state persists in localStorage)
-4. User sees progress indicator showing current step and total steps
-5. Tour overlay appears above all existing UI including modals (z-index 10000+)
-6. User can navigate tours using keyboard (Tab, Enter, Escape)
-7. User can trigger tooltips via keyboard focus, not just hover
-8. Screen readers announce tour dialogs and tooltip content with proper ARIA labels
-
-**Plans:** 4 plans
-
-Plans:
-- [x] 41-01-PLAN.md - Install driver.js and Floating UI, create InfoTooltip component
-- [x] 41-02-PLAN.md - Implement useTourState hook with localStorage persistence
-- [x] 41-03-PLAN.md - Create TourButton component and useTour hook with keyboard accessibility
-- [x] 41-04-PLAN.md - Gap closure: Minimal integration to prove components work
-
-#### Phase 42: Landing Page Tour & Tooltips
-
-**Goal:** Guide new users through initial upload-to-generation workflow with contextual help
-
-**Depends on:** Phase 41
-
-**Requirements:** LAND-01, LAND-02, LAND-03, LAND-04, LAND-05, TIP-04
-
-**Success Criteria** (what must be TRUE):
-1. User can take 3-5 step tour covering PDF upload zone, settings button, and generation options
-2. Tour explains both lesson plan upload and existing presentation upload workflows
-3. Tour highlights API key setup requirement before generation
-4. Tour covers verbosity selector and explains purpose (detail level control)
-5. Info tooltips appear next to upload zones, settings, and verbosity selector explaining each feature
-6. Tour button is visible in landing page header/footer
-
-**Plans:** TBD
-
-Plans:
-- [ ] 42-01: Build landing page tour with data-tour attributes
-- [ ] 42-02: Add info tooltips to landing page features
-
-#### Phase 43: Editor Tour & Tooltips
-
-**Goal:** Help users master slide editing, insertion, and Class Bank features
-
-**Depends on:** Phase 42
-
-**Requirements:** EDIT-01, EDIT-02, EDIT-03, EDIT-04, EDIT-05, EDIT-06, TIP-05
-
-**Success Criteria** (what must be TRUE):
-1. User can take 3-5 step tour covering slide thumbnails, Insert menu, slide editing, and Class Bank
-2. Tour explains how to navigate slides using thumbnail sidebar
-3. Tour demonstrates Insert menu with different slide types (Elaborate, Work Together, Class Challenge)
-4. Tour shows how to edit slide content and teleprompter text
-5. Tour highlights Class Bank feature for loading saved student lists
-6. Info tooltips appear next to Insert menu options, Class Bank button, and Export button
-7. Tour button is visible in editor header
-
-**Plans:** TBD
-
-Plans:
-- [ ] 43-01: Build editor tour with data-tour attributes
-- [ ] 43-02: Add info tooltips to editor features
-
-#### Phase 44: Presentation Mode Tour & Tooltips
-
-**Goal:** Guide teachers through live presentation controls without interrupting teaching
-
-**Depends on:** Phase 43
-
-**Requirements:** PRES-01, PRES-02, PRES-03, PRES-04, PRES-05, PRES-06, PRES-07, TIP-06
-
-**Success Criteria** (what must be TRUE):
-1. User can take 3-5 step tour covering teleprompter, student window, Targeted Questioning, and Ask AI
-2. Tour explains teleprompter panel and how it helps teachers sound natural
-3. Tour demonstrates student window launch button for projector display
-4. Tour shows Targeted Questioning controls (grade level buttons, student cycling)
-5. Tour highlights Ask AI feature for on-the-fly teaching assistance
-6. Tour only triggers manually (never interrupts live teaching)
-7. Tour button is visible in teleprompter header
-8. Info tooltips appear next to Targeted Mode toggle, Verbosity selector, and Ask AI button
-9. Tooltips explain pedagogical benefits (why use this feature, not just what it does)
-
-**Plans:** TBD
-
-Plans:
-- [ ] 44-01: Build presentation mode tour with BroadcastChannel safety
-- [ ] 44-02: Add context-aware tooltips to presentation controls
-
-## Progress
-
-**Execution Order:** Phases execute in numeric order: 41 -> 42 -> 43 -> 44
-
-| Phase | Milestone | Plans Complete | Status | Completed |
-|-------|-----------|----------------|--------|-----------|
-| 41. Tour Infrastructure & Accessibility | v3.6 | 4/4 | Complete | 2026-01-28 |
-| 42. Landing Page Tour & Tooltips | v3.6 | 0/2 | Not started | - |
-| 43. Editor Tour & Tooltips | v3.6 | 0/2 | Not started | - |
-| 44. Presentation Mode Tour & Tooltips | v3.6 | 0/2 | Not started | - |
+**Milestone Goal:** Teachers can enhance existing worksheets and handouts with AI while maintaining original intent, and slide content speaks directly to students.
 
 ---
 
+#### Phase 42: Student-Friendly Slide Generation
+
+**Goal:** Slide content speaks directly to students in age-appropriate language.
+
+**Depends on:** Phase 41
+
+**Requirements:** SLIDE-01, SLIDE-02, SLIDE-03
+
+**Success Criteria:**
+1. User generates slides and sees conversational sentences directed at students (not teacher notes)
+2. Bullet language complexity matches the grade level setting (e.g., simpler for KS1 than A-Level)
+3. Student-friendly style applies automatically to all new generations without extra user action
+
+**Plans:** TBD
+
+---
+
+#### Phase 43: Types and File Upload
+
+**Goal:** Teachers can upload existing resources (worksheets, handouts) in common formats for AI enhancement.
+
+**Depends on:** Phase 42
+
+**Requirements:** UPLOAD-01, UPLOAD-02, UPLOAD-03, UPLOAD-04, UPLOAD-05
+
+**Success Criteria:**
+1. User can drag-and-drop or browse to upload PDF worksheets
+2. User can upload images (PNG, JPG) of photographed worksheets
+3. User can upload Word documents (.docx)
+4. User sees clear error message when file exceeds 25MB or 20 pages
+5. User sees preview thumbnail of uploaded resource before proceeding
+
+**Plans:** TBD
+
+---
+
+#### Phase 44: AI Document Analysis
+
+**Goal:** AI understands uploaded documents before enhancement begins.
+
+**Depends on:** Phase 43
+
+**Requirements:** (Foundation for ENHANCE requirements - no direct mapping)
+
+**Success Criteria:**
+1. User sees document type detected (worksheet, handout, quiz, etc.)
+2. User sees document structure identified (sections, exercises, answer blanks)
+3. Analysis completes within 10 seconds for typical 2-page worksheet
+
+**Plans:** TBD
+
+**Note:** This phase provides the analysis foundation that Phase 45 enhancement builds upon. Uses multimodal AI (Gemini/Claude vision) per research recommendations.
+
+---
+
+#### Phase 45: Enhancement with Lesson Context
+
+**Goal:** AI enhances resources while preserving original content and aligning with lesson context.
+
+**Depends on:** Phase 44
+
+**Requirements:** ENHANCE-01, ENHANCE-02, ENHANCE-03, ENHANCE-04, ENHANCE-05, ENHANCE-06
+
+**Success Criteria:**
+1. User receives enhanced resource that preserves all original facts/numbers/content (preserve mode default)
+2. User can select differentiation level (simple/standard/detailed) and receives appropriately adapted content
+3. User sees enhanced resource aligned with existing lesson slides (mentions same concepts, builds on lesson content)
+4. User can generate answer key for worksheet exercises
+5. User can cancel enhancement while it is processing
+6. User can regenerate enhancement if unhappy with result
+
+**Plans:** TBD
+
+---
+
+#### Phase 46: Preview, Edit, and Trust UI
+
+**Goal:** Teachers can see, understand, and approve AI changes before committing.
+
+**Depends on:** Phase 45
+
+**Requirements:** PREVIEW-01, PREVIEW-02, PREVIEW-03, PREVIEW-04
+
+**Success Criteria:**
+1. User sees preview of enhanced resource before export
+2. User can edit enhanced content inline (fix wording, adjust difficulty)
+3. User sees visual diff highlighting what AI changed from original
+4. User can regenerate individual sections that need improvement
+
+**Plans:** TBD
+
+---
+
+#### Phase 47: Export and Persistence
+
+**Goal:** Enhanced resources produce print-ready output and persist across sessions.
+
+**Depends on:** Phase 46
+
+**Requirements:** EXPORT-01, EXPORT-02, EXPORT-03
+
+**Success Criteria:**
+1. User can export enhanced resource as print-ready PDF
+2. Enhanced resources save within .cue file when user saves presentation
+3. Enhanced resources restore correctly when user loads .cue file
+
+**Plans:** TBD
+
+---
+
+## Progress
+
+**Execution Order:** Phases execute in numeric order: 42 -> 43 -> 44 -> 45 -> 46 -> 47
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 41. Tour Infrastructure | v3.6 | 4/4 | Complete | 2026-01-28 |
+| 42. Student-Friendly Slides | v3.7 | 0/TBD | Not started | - |
+| 43. Types and File Upload | v3.7 | 0/TBD | Not started | - |
+| 44. AI Document Analysis | v3.7 | 0/TBD | Not started | - |
+| 45. Enhancement with Lesson Context | v3.7 | 0/TBD | Not started | - |
+| 46. Preview, Edit, and Trust UI | v3.7 | 0/TBD | Not started | - |
+| 47. Export and Persistence | v3.7 | 0/TBD | Not started | - |
+
+## Coverage Validation
+
+| Requirement | Phase | Verified |
+|-------------|-------|----------|
+| SLIDE-01 | 42 | Yes |
+| SLIDE-02 | 42 | Yes |
+| SLIDE-03 | 42 | Yes |
+| UPLOAD-01 | 43 | Yes |
+| UPLOAD-02 | 43 | Yes |
+| UPLOAD-03 | 43 | Yes |
+| UPLOAD-04 | 43 | Yes |
+| UPLOAD-05 | 43 | Yes |
+| ENHANCE-01 | 45 | Yes |
+| ENHANCE-02 | 45 | Yes |
+| ENHANCE-03 | 45 | Yes |
+| ENHANCE-04 | 45 | Yes |
+| ENHANCE-05 | 45 | Yes |
+| ENHANCE-06 | 45 | Yes |
+| PREVIEW-01 | 46 | Yes |
+| PREVIEW-02 | 46 | Yes |
+| PREVIEW-03 | 46 | Yes |
+| PREVIEW-04 | 46 | Yes |
+| EXPORT-01 | 47 | Yes |
+| EXPORT-02 | 47 | Yes |
+| EXPORT-03 | 47 | Yes |
+
+**Coverage:** 21/21 requirements mapped (100%)
+
+---
 *Roadmap created: 2026-01-27*
-*Last updated: 2026-01-28 - Phase 41 complete (4/4 plans, goal verified)*
+*Last updated: 2026-01-29 - v3.7 roadmap added (phases 42-47)*

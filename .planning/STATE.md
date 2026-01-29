@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-01-29)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** v3.7 AI Resource Enhancement — Defining requirements
+**Current focus:** v3.7 AI Resource Enhancement — Roadmap complete, ready for phase planning
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-01-29 — Milestone v3.7 started (v3.6 deferred)
+Phase: 42 (Student-Friendly Slide Generation)
+Plan: Not started
+Status: Roadmap complete, awaiting phase planning
+Last activity: 2026-01-29 — Roadmap created for v3.7 (phases 42-47)
 
 Progress: [░░░░░░░░░░] 0%
 Pending todos: 6
@@ -37,6 +37,17 @@ Pending todos: 6
 - v3.2: 4 phases, 4 plans, 1 day (2026-01-25)
 - v3.1: 2 phases, 3 plans, 1 day (2026-01-25)
 
+## v3.7 Roadmap Summary
+
+| Phase | Goal | Requirements |
+|-------|------|--------------|
+| 42 | Student-friendly slide language | SLIDE-01, SLIDE-02, SLIDE-03 |
+| 43 | Resource file upload | UPLOAD-01 to UPLOAD-05 |
+| 44 | AI document analysis | (foundation) |
+| 45 | Enhancement with lesson context | ENHANCE-01 to ENHANCE-06 |
+| 46 | Preview, edit, and trust UI | PREVIEW-01 to PREVIEW-04 |
+| 47 | Export and persistence | EXPORT-01 to EXPORT-03 |
+
 ## Accumulated Context
 
 ### Decisions
@@ -44,7 +55,10 @@ Pending todos: 6
 Decisions are logged in PROJECT.md Key Decisions table.
 
 Recent decisions for v3.7:
-- (pending research and implementation)
+- Use multimodal AI (Gemini/Claude vision) for document analysis, not OCR
+- Add mammoth.js for Word support (only new dependency)
+- Preserve mode as default to prevent hallucination
+- Trust UI (visual diff, edit capability) is critical for teacher adoption
 
 ### Pending Todos
 
@@ -57,11 +71,11 @@ None identified yet for v3.7.
 ## Session Continuity
 
 Last session: 2026-01-29
-Stopped at: Milestone v3.7 initialization (defining requirements)
+Stopped at: Roadmap creation complete
 Resume file: None
 
-**Next step:** Complete requirements definition, then `/gsd:plan-phase [N]`
+**Next step:** `/gsd:plan-phase 42` to plan Student-Friendly Slide Generation
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-29 — v3.7 milestone started (v3.6 deferred)*
+*Last updated: 2026-01-29 — v3.7 roadmap created (phases 42-47)*
