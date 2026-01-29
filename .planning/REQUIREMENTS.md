@@ -13,11 +13,11 @@
 
 ### Resource Upload
 
-- [ ] **UPLOAD-01**: User can upload PDF resources (worksheets, handouts)
-- [ ] **UPLOAD-02**: User can upload image resources (PNG, JPG photos of worksheets)
-- [ ] **UPLOAD-03**: User can upload Word documents (.docx)
-- [ ] **UPLOAD-04**: System enforces file size limits (25MB max, 20 pages)
-- [ ] **UPLOAD-05**: User sees preview of uploaded resource before enhancement
+- [x] **UPLOAD-01**: User can upload PDF resources (worksheets, handouts)
+- [x] **UPLOAD-02**: User can upload image resources (PNG, JPG photos of worksheets)
+- [x] **UPLOAD-03**: User can upload Word documents (.docx)
+- [x] **UPLOAD-04**: System enforces file size limits (25MB max, 20 pages)
+- [x] **UPLOAD-05**: User sees preview of uploaded resource before enhancement
 
 ### AI Enhancement
 
@@ -72,11 +72,11 @@
 | SLIDE-01 | Phase 42 | Complete |
 | SLIDE-02 | Phase 42 | Complete |
 | SLIDE-03 | Phase 42 | Complete |
-| UPLOAD-01 | Phase 43 | Pending |
-| UPLOAD-02 | Phase 43 | Pending |
-| UPLOAD-03 | Phase 43 | Pending |
-| UPLOAD-04 | Phase 43 | Pending |
-| UPLOAD-05 | Phase 43 | Pending |
+| UPLOAD-01 | Phase 43 | Complete |
+| UPLOAD-02 | Phase 43 | Complete |
+| UPLOAD-03 | Phase 43 | Complete |
+| UPLOAD-04 | Phase 43 | Complete |
+| UPLOAD-05 | Phase 43 | Complete |
 | ENHANCE-01 | Phase 45 | Pending |
 | ENHANCE-02 | Phase 45 | Pending |
 | ENHANCE-03 | Phase 45 | Pending |
@@ -98,4 +98,4 @@
 
 ---
 *Requirements defined: 2026-01-29*
-*Last updated: 2026-01-29 — Phase 42 requirements complete (SLIDE-01, SLIDE-02, SLIDE-03)*
+*Last updated: 2026-01-29 — Phase 43 requirements complete (UPLOAD-01 through UPLOAD-05)*
