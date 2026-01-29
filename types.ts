@@ -251,6 +251,36 @@ export interface LessonResource {
   isGeneratingImage?: boolean; // Tracking state
 }
 
+// ============================================================================
+// UPLOADED RESOURCE TYPES (Phase 43+)
+// For AI enhancement of teacher-provided documents
+// ============================================================================
+
+// Uploaded resource file type
+export type UploadedResourceType = 'pdf' | 'image' | 'docx';
+
+// Uploaded resource for AI enhancement
+export interface UploadedResource {
+  id: string;                    // crypto.randomUUID()
+  filename: string;              // Original filename
+  type: UploadedResourceType;
+  thumbnail: string;             // Base64 data URL
+  pageCount: number;             // Actual for PDF, 1 for images, estimate for docx
+  sizeBytes: number;
+  uploadedAt: string;            // ISO 8601
+  // Raw content for AI processing (populated during enhancement phase)
+  content?: {
+    text?: string;               // Extracted text (all types)
+    images?: string[];           // Page images as base64 (PDF only)
+  };
+}
+
+// Upload validation error
+export interface UploadValidationError {
+  code: 'FILE_TOO_LARGE' | 'TOO_MANY_PAGES' | 'UNSUPPORTED_TYPE' | 'PROCESSING_ERROR';
+  message: string;
+}
+
 export interface LessonPlan {
   topic: string;
   gradeLevel: string; // Defaults to "Year 6" (10-11yo)
