@@ -1,5 +1,7 @@
+import { GoogleGenAI, Type } from "@google/genai";
 import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES, GenerationInput, GameQuestionRequest, VerbosityLevel, ChatContext } from '../aiProvider';
-import { Slide, LessonResource } from '../../types';
+import { Slide, LessonResource, DocumentAnalysis } from '../../types';
+import { DOCUMENT_ANALYSIS_SYSTEM_PROMPT, buildAnalysisUserPrompt } from '../documentAnalysis/analysisPrompts';
 import {
   QuizQuestion,
   QuestionWithAnswer,
@@ -176,6 +178,93 @@ export class GeminiProvider implements AIProviderInterface {
   ): AsyncGenerator<string, void, unknown> {
     try {
       yield* geminiStreamChatResponse(this.apiKey, message, context);
+    } catch (error) {
+      throw this.wrapError(error);
+    }
+  }
+
+  async analyzeDocument(
+    documentImages: string[],
+    documentText: string,
+    documentType: 'pdf' | 'image' | 'docx',
+    filename: string,
+    pageCount: number
+  ): Promise<DocumentAnalysis> {
+    try {
+      const ai = new GoogleGenAI({ apiKey: this.apiKey });
+
+      // Build content parts
+      const parts: any[] = [
+        { text: buildAnalysisUserPrompt(filename, documentType, documentText, pageCount) }
+      ];
+
+      // Add images (limit to 10 to avoid token overflow)
+      const limitedImages = documentImages.slice(0, 10);
+      for (const img of limitedImages) {
+        parts.push({
+          inlineData: { mimeType: 'image/jpeg', data: img }
+        });
+      }
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: { parts },
+        config: {
+          systemInstruction: DOCUMENT_ANALYSIS_SYSTEM_PROMPT,
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              documentType: {
+                type: Type.STRING,
+                enum: ['worksheet', 'handout', 'quiz', 'activity', 'assessment', 'other']
+              },
+              documentTypeConfidence: {
+                type: Type.STRING,
+                enum: ['high', 'medium', 'low']
+              },
+              alternativeTypes: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING }
+              },
+              title: { type: Type.STRING },
+              pageCount: { type: Type.INTEGER },
+              hasAnswerKey: { type: Type.BOOLEAN },
+              elements: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    type: {
+                      type: Type.STRING,
+                      enum: ['header', 'subheader', 'paragraph', 'question', 'answer',
+                             'instruction', 'table', 'diagram', 'image', 'list', 'blank-space']
+                    },
+                    content: { type: Type.STRING },
+                    position: { type: Type.INTEGER },
+                    visualContent: { type: Type.BOOLEAN },
+                    children: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    tableData: {
+                      type: Type.OBJECT,
+                      properties: {
+                        headers: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        rows: { type: Type.ARRAY, items: { type: Type.ARRAY, items: { type: Type.STRING } } }
+                      }
+                    }
+                  },
+                  required: ['type', 'content', 'position']
+                }
+              },
+              visualContentCount: { type: Type.INTEGER }
+            },
+            required: ['documentType', 'documentTypeConfidence', 'title', 'pageCount', 'hasAnswerKey', 'elements', 'visualContentCount']
+          },
+          temperature: 0 // Consistent classification
+        }
+      });
+
+      const text = response.text || '{}';
+      return JSON.parse(text) as DocumentAnalysis;
     } catch (error) {
       throw this.wrapError(error);
     }

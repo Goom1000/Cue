@@ -1,4 +1,4 @@
-import { Slide, LessonResource, AIProvider, GameType, GameDifficulty } from '../types';
+import { Slide, LessonResource, AIProvider, GameType, GameDifficulty, DocumentAnalysis } from '../types';
 import { QuizQuestion, QuestionWithAnswer, VerbosityLevel } from './geminiService';
 import { GeminiProvider } from './providers/geminiProvider';
 import { ClaudeProvider } from './providers/claudeProvider';
@@ -261,6 +261,15 @@ export interface AIProviderInterface {
     message: string,
     context: ChatContext
   ): AsyncGenerator<string, void, unknown>;
+
+  // Document analysis for resource enhancement (Phase 44)
+  analyzeDocument(
+    documentImages: string[],   // Base64 images (pages or single image, no data URL prefix)
+    documentText: string,       // Extracted text (from pdf.js or mammoth)
+    documentType: 'pdf' | 'image' | 'docx',
+    filename: string,
+    pageCount: number
+  ): Promise<DocumentAnalysis>;
 }
 
 // Factory function to create the appropriate provider instance

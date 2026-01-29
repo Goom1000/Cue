@@ -1,7 +1,8 @@
 import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, VerbosityLevel, ChatContext } from '../aiProvider';
-import { Slide, LessonResource, PosterLayout } from '../../types';
+import { Slide, LessonResource, PosterLayout, DocumentAnalysis } from '../../types';
 import { QuizQuestion, QuestionWithAnswer } from '../geminiService';
 import { getStudentFriendlyRules } from '../prompts/studentFriendlyRules';
+import { DOCUMENT_ANALYSIS_SYSTEM_PROMPT, buildAnalysisUserPrompt } from '../documentAnalysis/analysisPrompts';
 
 // Shared teleprompter rules used across all generation modes
 const TELEPROMPTER_RULES = `
@@ -178,6 +179,66 @@ const POSTER_SCHEMA = {
   },
   required: ['title', 'sections', 'colorScheme', 'typography']
 };
+
+// JSON Schema for document analysis structured output
+const DOCUMENT_ANALYSIS_JSON_SCHEMA = {
+  name: 'document_analysis',
+  strict: true,
+  schema: {
+    type: 'object',
+    properties: {
+      documentType: {
+        type: 'string',
+        enum: ['worksheet', 'handout', 'quiz', 'activity', 'assessment', 'other']
+      },
+      documentTypeConfidence: {
+        type: 'string',
+        enum: ['high', 'medium', 'low']
+      },
+      alternativeTypes: {
+        type: 'array',
+        items: { type: 'string' }
+      },
+      title: { type: 'string' },
+      pageCount: { type: 'integer' },
+      hasAnswerKey: { type: 'boolean' },
+      elements: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            type: {
+              type: 'string',
+              enum: ['header', 'subheader', 'paragraph', 'question', 'answer',
+                     'instruction', 'table', 'diagram', 'image', 'list', 'blank-space']
+            },
+            content: { type: 'string' },
+            position: { type: 'integer' },
+            visualContent: { type: 'boolean' },
+            children: { type: 'array', items: { type: 'string' } },
+            tableData: {
+              type: 'object',
+              properties: {
+                headers: { type: 'array', items: { type: 'string' } },
+                rows: { type: 'array', items: { type: 'array', items: { type: 'string' } } }
+              },
+              required: ['headers', 'rows'],
+              additionalProperties: false
+            }
+          },
+          required: ['type', 'content', 'position'],
+          additionalProperties: false
+        }
+      },
+      visualContentCount: { type: 'integer' }
+    },
+    required: ['documentType', 'documentTypeConfidence', 'title', 'pageCount', 'hasAnswerKey', 'elements', 'visualContentCount'],
+    additionalProperties: false
+  }
+};
+
+// Model constant
+const MODEL = 'claude-sonnet-4-20250514';
 
 /**
  * Get the appropriate teleprompter rules based on verbosity level.
@@ -1300,6 +1361,77 @@ INSTRUCTIONS:
     } finally {
       reader.releaseLock();
     }
+  }
+
+  async analyzeDocument(
+    documentImages: string[],
+    documentText: string,
+    documentType: 'pdf' | 'image' | 'docx',
+    filename: string,
+    pageCount: number
+  ): Promise<DocumentAnalysis> {
+    // Build message content with text and images
+    const content: any[] = [
+      { type: 'text', text: buildAnalysisUserPrompt(filename, documentType, documentText, pageCount) }
+    ];
+
+    // Add images (limit to 10 to avoid token overflow)
+    const limitedImages = documentImages.slice(0, 10);
+    for (const img of limitedImages) {
+      content.push({
+        type: 'image',
+        source: { type: 'base64', media_type: 'image/jpeg', data: img }
+      });
+    }
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': this.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 4096,
+        system: DOCUMENT_ANALYSIS_SYSTEM_PROMPT,
+        messages: [{
+          role: 'user',
+          content
+        }],
+        // Use tool_choice for structured output (Claude's approach)
+        tools: [{
+          name: 'document_analysis_result',
+          description: 'Return the document analysis result',
+          input_schema: DOCUMENT_ANALYSIS_JSON_SCHEMA.schema
+        }],
+        tool_choice: { type: 'tool', name: 'document_analysis_result' }
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new AIProviderError(
+        this.getErrorMessage(response.status, errorText),
+        this.getErrorCode(response.status),
+        errorText
+      );
+    }
+
+    const data = await response.json();
+
+    // Extract tool use result
+    const toolUse = data.content?.find((c: any) => c.type === 'tool_use');
+    if (!toolUse?.input) {
+      throw new AIProviderError(
+        USER_ERROR_MESSAGES.PARSE_ERROR,
+        'PARSE_ERROR',
+        'No tool result in response'
+      );
+    }
+
+    return toolUse.input as DocumentAnalysis;
   }
 
   /**
