@@ -1,6 +1,7 @@
 import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, VerbosityLevel, ChatContext } from '../aiProvider';
 import { Slide, LessonResource, PosterLayout } from '../../types';
 import { QuizQuestion, QuestionWithAnswer } from '../geminiService';
+import { getStudentFriendlyRules } from '../prompts/studentFriendlyRules';
 
 // Shared teleprompter rules used across all generation modes
 const TELEPROMPTER_RULES = `
@@ -196,13 +197,21 @@ function getTeleprompterRulesForVerbosity(verbosity: VerbosityLevel = 'standard'
 /**
  * Get the appropriate system prompt based on generation mode.
  */
-function getSystemPromptForMode(mode: GenerationMode, verbosity: VerbosityLevel = 'standard'): string {
+function getSystemPromptForMode(
+  mode: GenerationMode,
+  verbosity: VerbosityLevel = 'standard',
+  gradeLevel: string = 'Year 6 (10-11 years old)'
+): string {
   const teleprompterRules = getTeleprompterRulesForVerbosity(verbosity);
+  const studentFriendlyRules = getStudentFriendlyRules(gradeLevel);
+
   switch (mode) {
     case 'fresh':
       return `
 You are an elite Primary Education Consultant.
 Your goal is to transform a formal lesson plan into a teaching slideshow.
+
+${studentFriendlyRules}
 
 CRITICAL: You will be provided with text content from the document.
 - Preserve the pedagogical structure: 'Hook', 'I Do', 'We Do', 'You Do'.
@@ -221,6 +230,8 @@ ${JSON_OUTPUT_FORMAT}
       return `
 You are an elite Primary Education Consultant.
 Your goal is to transform an existing presentation into clean, less text-dense Cue-style slides.
+
+${studentFriendlyRules}
 
 CRITICAL RULE - CONTENT PRESERVATION:
 **You MUST preserve ALL content from the original presentation.**
@@ -250,6 +261,8 @@ ${JSON_OUTPUT_FORMAT}
       return `
 You are an elite Primary Education Consultant.
 Your goal is to create slides that combine lesson content with an existing presentation.
+
+${studentFriendlyRules}
 
 BLEND MODE RULES:
 - Analyze BOTH the lesson plan AND existing presentation provided.
@@ -415,7 +428,7 @@ export class ClaudeProvider implements AIProviderInterface {
       ? { lessonText: inputOrText, lessonImages: pageImages, mode: 'fresh' }
       : inputOrText;
 
-    const systemPrompt = getSystemPromptForMode(input.mode, input.verbosity);
+    const systemPrompt = getSystemPromptForMode(input.mode, input.verbosity, input.gradeLevel);
 
     // Verbosity instruction to reinforce system prompt
     const verbosityLevel = input.verbosity || 'standard';
@@ -641,6 +654,8 @@ Do not include any text before or after the JSON.
   }
 
   async generateElaborateSlide(lessonTopic: string, sourceSlide: Slide, allSlides: Slide[]): Promise<Slide> {
+    const studentFriendlyRules = getStudentFriendlyRules('Year 6 (10-11 years old)');
+
     // Build full presentation context for coherence
     const presentationContext = allSlides
       .map((s, i) => `Slide ${i + 1}: "${s.title}" - ${s.content.slice(0, 2).join('; ')}`)
@@ -651,6 +666,8 @@ You are an educational designer creating "Elaborate" slides for Year 6 (10-11 ye
 Topic: ${lessonTopic}
 You are expanding on: "${sourceSlide.title}"
 Source content: ${sourceSlide.content.join('; ')}
+
+${studentFriendlyRules}
 
 PRESENTATION CONTEXT (maintain coherence, don't repeat earlier content):
 ${presentationContext}
@@ -698,6 +715,8 @@ Do not include any text before or after the JSON.
   }
 
   async generateWorkTogetherSlide(lessonTopic: string, sourceSlide: Slide, allSlides: Slide[]): Promise<Slide> {
+    const studentFriendlyRules = getStudentFriendlyRules('Year 6 (10-11 years old)');
+
     // Build full presentation context for coherence
     const presentationContext = allSlides
       .map((s, i) => `Slide ${i + 1}: "${s.title}" - ${s.content.slice(0, 2).join('; ')}`)
@@ -708,6 +727,8 @@ You are an educational designer creating "Work Together" collaborative activitie
 Topic: ${lessonTopic}
 Creating activity based on: "${sourceSlide.title}"
 Source content: ${sourceSlide.content.join('; ')}
+
+${studentFriendlyRules}
 
 PRESENTATION CONTEXT (maintain coherence):
 ${presentationContext}
@@ -763,6 +784,8 @@ Do not include any text before or after the JSON.
   }
 
   async generateClassChallengeSlide(lessonTopic: string, sourceSlide: Slide, allSlides: Slide[]): Promise<Slide> {
+    const studentFriendlyRules = getStudentFriendlyRules('Year 6 (10-11 years old)');
+
     // Build full presentation context for coherence
     const presentationContext = allSlides
       .map((s, i) => `Slide ${i + 1}: "${s.title}" - ${s.content.slice(0, 2).join('; ')}`)
@@ -773,6 +796,8 @@ You are an educational designer creating "Class Challenge" slides for Year 6 (10
 Topic: ${lessonTopic}
 Creating challenge based on: "${sourceSlide.title}"
 Source content: ${sourceSlide.content.join('; ')}
+
+${studentFriendlyRules}
 
 PRESENTATION CONTEXT (maintain coherence):
 ${presentationContext}
