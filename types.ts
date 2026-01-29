@@ -281,6 +281,61 @@ export interface UploadValidationError {
   message: string;
 }
 
+// ============================================================================
+// DOCUMENT ANALYSIS TYPES (Phase 44)
+// For AI-powered structure detection and content extraction
+// ============================================================================
+
+// Document classification types
+export type DocumentClassification = 'worksheet' | 'handout' | 'quiz' | 'activity' | 'assessment' | 'other';
+export type ConfidenceLevel = 'high' | 'medium' | 'low';
+
+// Structural element types detected in documents
+export type ElementType =
+  | 'header'
+  | 'subheader'
+  | 'paragraph'
+  | 'question'
+  | 'answer'
+  | 'instruction'
+  | 'table'
+  | 'diagram'
+  | 'image'
+  | 'list'
+  | 'blank-space';
+
+// Individual detected element in document
+export interface AnalyzedElement {
+  type: ElementType;
+  content: string;           // Full text, or caption for visual elements
+  position: number;          // Order in document (0-indexed)
+  visualContent?: boolean;   // True if needs manual review during enhancement
+  children?: string[];       // For lists, numbered items, or multi-part questions
+  tableData?: {              // For tables only
+    headers: string[];
+    rows: string[][];
+  };
+}
+
+// Complete document analysis result
+export interface DocumentAnalysis {
+  // Classification
+  documentType: DocumentClassification;
+  documentTypeConfidence: ConfidenceLevel;
+  alternativeTypes?: DocumentClassification[]; // If confidence not high, top 2-3 alternatives
+
+  // Metadata
+  title: string;
+  pageCount: number;
+  hasAnswerKey: boolean;
+
+  // Detected elements in document order
+  elements: AnalyzedElement[];
+
+  // Visual content summary
+  visualContentCount: number; // Number of diagrams/images flagged for review
+}
+
 export interface LessonPlan {
   topic: string;
   gradeLevel: string; // Defaults to "Year 6" (10-11yo)
