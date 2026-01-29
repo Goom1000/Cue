@@ -50,8 +50,8 @@ Infrastructure complete. Phases 42-44 (Landing, Editor, Presentation tours) defe
 **Plans:** 2 plans
 
 Plans:
-- [ ] 42-01-PLAN.md — Foundation: shared prompt rules and gradeLevel wiring
-- [ ] 42-02-PLAN.md — Integration: apply rules to both AI providers
+- [x] 42-01-PLAN.md — Foundation: shared prompt rules and gradeLevel wiring
+- [x] 42-02-PLAN.md — Integration: apply rules to both AI providers
 
 ---
 
@@ -155,7 +155,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 41. Tour Infrastructure | v3.6 | 4/4 | Complete | 2026-01-28 |
-| 42. Student-Friendly Slides | v3.7 | 0/2 | Planning complete | - |
+| 42. Student-Friendly Slides | v3.7 | 2/2 | Complete | 2026-01-29 |
 | 43. Types and File Upload | v3.7 | 0/TBD | Not started | - |
 | 44. AI Document Analysis | v3.7 | 0/TBD | Not started | - |
 | 45. Enhancement with Lesson Context | v3.7 | 0/TBD | Not started | - |
@@ -192,4 +192,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-01-27*
-*Last updated: 2026-01-29 - Phase 42 planning complete (2 plans)*
+*Last updated: 2026-01-29 - Phase 42 complete (2 plans executed)*
