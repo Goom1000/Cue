@@ -1,11 +1,13 @@
 
-import React, { useState, useRef, useEffect } from 'react';
-import { LessonResource, UploadedResource, UploadValidationError, DocumentAnalysis, Slide } from '../types';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { LessonResource, UploadedResource, UploadValidationError, DocumentAnalysis, Slide, EnhancedResourceState, EnhancementResult, EditState } from '../types';
 import Button from './Button';
 import { AIProviderInterface, AIProviderError } from '../services/aiProvider';
 import UploadPanel from './UploadPanel';
 import EnhancementPanel from './EnhancementPanel';
 import { analyzeUploadedDocument } from '../services/documentAnalysis/documentAnalysisService';
+import { serializeEditState } from '../services/saveService';
+import { deserializeEditState } from '../services/loadService';
 
 interface ResourceHubProps {
   lessonText: string;
@@ -15,9 +17,22 @@ interface ResourceHubProps {
   provider: AIProviderInterface | null;
   onError: (title: string, message: string) => void;
   onRequestAI: (featureName: string) => void;
+  // Persistence props for save/load
+  enhancedResourceStates?: EnhancedResourceState[];
+  onEnhancedResourcesChange?: (states: EnhancedResourceState[]) => void;
 }
 
-const ResourceHub: React.FC<ResourceHubProps> = ({ lessonText, slideContext, slides, onClose, provider, onError, onRequestAI }) => {
+const ResourceHub: React.FC<ResourceHubProps> = ({
+  lessonText,
+  slideContext,
+  slides,
+  onClose,
+  provider,
+  onError,
+  onRequestAI,
+  enhancedResourceStates = [],
+  onEnhancedResourcesChange
+}) => {
   const isAIAvailable = provider !== null;
   const [resources, setResources] = useState<LessonResource[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -32,9 +47,87 @@ const ResourceHub: React.FC<ResourceHubProps> = ({ lessonText, slideContext, sli
   const [resourceAnalysis, setResourceAnalysis] = useState<Map<string, DocumentAnalysis>>(new Map());
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
+  // Enhancement state tracking per resource (for persistence)
+  const [enhancementStates, setEnhancementStates] = useState<Map<string, { result: EnhancementResult | null; editState: EditState }>>(new Map());
+
   // Export Menu State
   const [showExportMenu, setShowExportMenu] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Restore enhanced resources on mount
+  useEffect(() => {
+    if (enhancedResourceStates.length > 0) {
+      // Restore uploadedResources
+      const restoredUploads = enhancedResourceStates.map(state => state.originalResource);
+      setUploadedResources(restoredUploads);
+
+      // Restore analysis cache
+      const analysisMap = new Map<string, DocumentAnalysis>();
+      enhancedResourceStates.forEach(state => {
+        analysisMap.set(state.resourceId, state.analysis);
+      });
+      setResourceAnalysis(analysisMap);
+
+      // Restore enhancement states
+      const statesMap = new Map<string, { result: EnhancementResult | null; editState: EditState }>();
+      enhancedResourceStates.forEach(state => {
+        const editState = deserializeEditState(state.editOverlays);
+        statesMap.set(state.resourceId, { result: state.enhancementResult, editState });
+      });
+      setEnhancementStates(statesMap);
+    }
+  }, []); // Only run on mount - enhancedResourceStates is initial data
+
+  // Handler for EnhancementPanel state changes
+  const handleEnhancementStateChange = useCallback((resourceId: string, state: { result: EnhancementResult | null; editState: EditState }) => {
+    setEnhancementStates(prev => {
+      const next = new Map(prev);
+      next.set(resourceId, state);
+      return next;
+    });
+
+    // Notify parent of changes for persistence
+    if (onEnhancedResourcesChange && state.result) {
+      const resource = uploadedResources.find(r => r.id === resourceId);
+      const analysis = resourceAnalysis.get(resourceId);
+
+      if (resource && analysis) {
+        // Build the complete EnhancedResourceState for this resource
+        const enhancedState: EnhancedResourceState = {
+          resourceId,
+          originalResource: resource,
+          analysis,
+          enhancementResult: state.result,
+          editOverlays: serializeEditState(state.editState.edits),
+          enhancedAt: new Date().toISOString()
+        };
+
+        // Update the parent's state
+        setEnhancementStates(currentStates => {
+          // Build complete list from all resources with results
+          const allStates: EnhancedResourceState[] = [];
+          currentStates.forEach((s, id) => {
+            if (s.result) {
+              const res = uploadedResources.find(r => r.id === id);
+              const ana = resourceAnalysis.get(id);
+              if (res && ana) {
+                allStates.push({
+                  resourceId: id,
+                  originalResource: res,
+                  analysis: ana,
+                  enhancementResult: s.result,
+                  editOverlays: serializeEditState(s.editState.edits),
+                  enhancedAt: id === resourceId ? enhancedState.enhancedAt : new Date().toISOString()
+                });
+              }
+            }
+          });
+          onEnhancedResourcesChange(allStates);
+          return currentStates;
+        });
+      }
+    }
+  }, [uploadedResources, resourceAnalysis, onEnhancedResourcesChange]);
 
   // Trigger analysis when an uploaded resource is selected
   useEffect(() => {
@@ -404,6 +497,9 @@ const ResourceHub: React.FC<ResourceHubProps> = ({ lessonText, slideContext, sli
                       slides={slides}
                       provider={provider}
                       onError={onError}
+                      onStateChange={(state) => handleEnhancementStateChange(selectedUploadedResource.id, state)}
+                      initialResult={enhancementStates.get(selectedUploadedResource.id)?.result ?? undefined}
+                      initialEditState={enhancementStates.get(selectedUploadedResource.id)?.editState}
                     />
                 ) : selectedUploadedResource && isAnalyzing ? (
                     <div className="h-full flex items-center justify-center">

@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 // Tour styling
 import './styles/driver.css';
-import { Slide, AppState, SavedClass, StudentPair } from './types';
+import { Slide, AppState, SavedClass, StudentPair, EnhancedResourceState } from './types';
 import { createAIProvider, AIProviderError, AIProviderInterface, GenerationInput, GenerationMode, AIErrorCode, VerbosityLevel } from './services/aiProvider';
 import { useSettings } from './hooks/useSettings';
 import { useClassBank } from './hooks/useClassBank';
@@ -256,6 +256,9 @@ function App() {
   const [studentNames, setStudentNames] = useState<string[]>([]);
   const [studentGrades, setStudentGrades] = useState<import('./types').StudentWithGrade[]>([]);
   const [nameInput, setNameInput] = useState('');
+
+  // Enhanced resource state for persistence
+  const [enhancedResourceStates, setEnhancedResourceStates] = useState<EnhancedResourceState[]>([]);
 
   // Class Bank state
   const { classes, saveClass, deleteClass, renameClass, updateClassStudents, updateStudentGrade } = useClassBank();
@@ -983,8 +986,8 @@ function App() {
   // ============================================================================
 
   const handleSaveClick = useCallback(() => {
-    // Check file size first (use local studentGrades)
-    const file = createCueFile(lessonTitle, slides, studentNames, lessonText, undefined, studentGrades, deckVerbosity);
+    // Check file size first (use local studentGrades and enhancedResourceStates)
+    const file = createCueFile(lessonTitle, slides, studentNames, lessonText, undefined, studentGrades, deckVerbosity, enhancedResourceStates);
     const sizeInfo = checkFileSize(file);
 
     if (sizeInfo.exceeds50MB) {
@@ -997,8 +1000,8 @@ function App() {
   }, [lessonTitle, slides, studentNames, lessonText, addToast, studentGrades, deckVerbosity]);
 
   const handleSaveConfirm = useCallback(() => {
-    // Use local studentGrades
-    const file = createCueFile(lessonTitle, slides, studentNames, lessonText, undefined, studentGrades, deckVerbosity);
+    // Use local studentGrades and enhancedResourceStates
+    const file = createCueFile(lessonTitle, slides, studentNames, lessonText, undefined, studentGrades, deckVerbosity, enhancedResourceStates);
     downloadPresentation(file, pendingSaveFilename);
     addToast('Presentation saved successfully!', 3000, 'success');
     setHasUnsavedChanges(false);
@@ -1040,6 +1043,9 @@ function App() {
 
       // Restore deck verbosity (defaults to standard for v2 files)
       setDeckVerbosity(cueFile.deckVerbosity || 'standard');
+
+      // Restore enhanced resources if present (v4+)
+      setEnhancedResourceStates(cueFile.content.enhancedResources || []);
 
       // Also save as class with grades if students present
       if (loadedGrades.length > 0 && loadedStudents.length > 0) {
@@ -1228,6 +1234,8 @@ function App() {
                 provider={provider}
                 onError={handleComponentError}
                 onRequestAI={handleRequestAI}
+                enhancedResourceStates={enhancedResourceStates}
+                onEnhancedResourcesChange={setEnhancedResourceStates}
             />
         )}
 
