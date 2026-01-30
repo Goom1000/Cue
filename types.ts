@@ -433,6 +433,23 @@ export interface EditState {
   edits: Record<'simple' | 'standard' | 'detailed', Map<number, string>>;
 }
 
+// Serializable edit state (Map doesn't serialize to JSON)
+export interface SerializedEditState {
+  simple: [number, string][];   // Array of [position, content] tuples
+  standard: [number, string][];
+  detailed: [number, string][];
+}
+
+// Enhanced resource state for .cue file persistence
+export interface EnhancedResourceState {
+  resourceId: string;                    // Links to UploadedResource.id
+  originalResource: UploadedResource;    // Full resource data
+  analysis: DocumentAnalysis;            // Cached analysis
+  enhancementResult: EnhancementResult;  // All three versions + answer keys
+  editOverlays: SerializedEditState;     // User edits stored separately
+  enhancedAt: string;                    // ISO 8601 timestamp
+}
+
 export interface LessonPlan {
   topic: string;
   gradeLevel: string; // Defaults to "Year 6" (10-11yo)
@@ -454,7 +471,7 @@ export const DEFAULT_SETTINGS: Settings = {
 };
 
 // File format version - increment on breaking changes
-export const CURRENT_FILE_VERSION = 3;
+export const CURRENT_FILE_VERSION = 4;
 
 // Content structure stored in .cue files
 export interface CueFileContent {
@@ -462,6 +479,7 @@ export interface CueFileContent {
   studentNames: string[];
   lessonText: string;
   studentGrades?: StudentWithGrade[];  // Optional for backward compatibility
+  enhancedResources?: EnhancedResourceState[];  // NEW in v4
 }
 
 // .cue file format with version metadata
