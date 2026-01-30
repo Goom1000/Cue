@@ -1,5 +1,26 @@
-import { Slide, CueFile, CURRENT_FILE_VERSION, StudentWithGrade } from '../types';
+import {
+  Slide,
+  CueFile,
+  CURRENT_FILE_VERSION,
+  StudentWithGrade,
+  EnhancedResourceState,
+  SerializedEditState
+} from '../types';
 import { VerbosityLevel } from './aiProvider';
+
+/**
+ * Serialize EditState Maps to JSON-compatible format.
+ * Maps don't serialize to JSON directly, so convert to array tuples.
+ */
+export function serializeEditState(
+  edits: Record<'simple' | 'standard' | 'detailed', Map<number, string>>
+): SerializedEditState {
+  return {
+    simple: Array.from(edits.simple.entries()),
+    standard: Array.from(edits.standard.entries()),
+    detailed: Array.from(edits.detailed.entries())
+  };
+}
 
 /**
  * Create a CueFile object for saving.
@@ -11,6 +32,7 @@ import { VerbosityLevel } from './aiProvider';
  * @param existingFile - Optional existing file to preserve createdAt
  * @param studentGrades - Optional array of student grade assignments
  * @param deckVerbosity - Optional deck-wide verbosity level
+ * @param enhancedResources - Optional array of enhanced resource states
  * @returns CueFile object ready for serialization
  */
 export function createCueFile(
@@ -20,7 +42,8 @@ export function createCueFile(
   lessonText: string,
   existingFile?: CueFile,
   studentGrades?: StudentWithGrade[],
-  deckVerbosity?: VerbosityLevel
+  deckVerbosity?: VerbosityLevel,
+  enhancedResources?: EnhancedResourceState[]
 ): CueFile {
   const now = new Date().toISOString();
 
@@ -35,6 +58,7 @@ export function createCueFile(
       studentNames,
       lessonText,
       ...(studentGrades && studentGrades.length > 0 ? { studentGrades } : {}),
+      ...(enhancedResources && enhancedResources.length > 0 ? { enhancedResources } : {}),
     },
   };
 }
