@@ -417,6 +417,22 @@ export interface EnhancementOptions {
   gradeLevel: string;         // e.g., "Year 6 (10-11 years old)"
 }
 
+// ============================================================================
+// EDIT STATE TYPES (Phase 46)
+// For tracking user modifications to enhanced content
+// ============================================================================
+
+// Edit state for tracking user modifications to enhanced content
+export type EditAction =
+  | { type: 'EDIT_ELEMENT'; level: 'simple' | 'standard' | 'detailed'; position: number; content: string }
+  | { type: 'REVERT_ELEMENT'; level: 'simple' | 'standard' | 'detailed'; position: number }
+  | { type: 'DISCARD_ALL' };
+
+export interface EditState {
+  // Map: level -> (position -> edited content)
+  edits: Record<'simple' | 'standard' | 'detailed', Map<number, string>>;
+}
+
 export interface LessonPlan {
   topic: string;
   gradeLevel: string; // Defaults to "Year 6" (10-11yo)

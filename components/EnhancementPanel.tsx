@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useReducer } from 'react';
 import {
   UploadedResource,
   DocumentAnalysis,
@@ -7,7 +7,9 @@ import {
   SlideMatch,
   DifferentiatedVersion,
   EnhancedElement,
-  AnswerKeyItem
+  AnswerKeyItem,
+  EditState,
+  EditAction
 } from '../types';
 import { AIProviderInterface } from '../services/aiProvider';
 import {
@@ -27,6 +29,35 @@ interface EnhancementPanelProps {
 
 type DifferentiationLevel = 'simple' | 'standard' | 'detailed';
 
+const initialEditState: EditState = {
+  edits: {
+    simple: new Map(),
+    standard: new Map(),
+    detailed: new Map()
+  }
+};
+
+function editReducer(state: EditState, action: EditAction): EditState {
+  switch (action.type) {
+    case 'EDIT_ELEMENT': {
+      const newEdits = { ...state.edits };
+      newEdits[action.level] = new Map(state.edits[action.level]);
+      newEdits[action.level].set(action.position, action.content);
+      return { edits: newEdits };
+    }
+    case 'REVERT_ELEMENT': {
+      const newEdits = { ...state.edits };
+      newEdits[action.level] = new Map(state.edits[action.level]);
+      newEdits[action.level].delete(action.position);
+      return { edits: newEdits };
+    }
+    case 'DISCARD_ALL':
+      return initialEditState;
+    default:
+      return state;
+  }
+}
+
 const EnhancementPanel: React.FC<EnhancementPanelProps> = ({
   resource,
   analysis,
@@ -39,6 +70,8 @@ const EnhancementPanel: React.FC<EnhancementPanelProps> = ({
   const [result, setResult] = useState<EnhancementResult | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<DifferentiationLevel>('standard');
   const [showAnswerKey, setShowAnswerKey] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editState, dispatch] = useReducer(editReducer, initialEditState);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const handleEnhance = async () => {
