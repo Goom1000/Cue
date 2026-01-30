@@ -163,8 +163,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 47-01-PLAN.md — PDF export service and zip bundling with UI button
-- [ ] 47-02-PLAN.md — CueFile v4 persistence with save/load integration
+- [x] 47-01-PLAN.md — PDF export service and zip bundling with UI button
+- [x] 47-02-PLAN.md — CueFile v4 persistence with save/load integration
 
 ---
 
@@ -180,7 +180,7 @@ Plans:
 | 44. AI Document Analysis | v3.7 | 1/1 | Complete | 2026-01-30 |
 | 45. Enhancement with Lesson Context | v3.7 | 3/3 | Complete | 2026-01-30 |
 | 46. Preview, Edit, and Trust UI | v3.7 | 2/2 | Complete | 2026-01-30 |
-| 47. Export and Persistence | v3.7 | 0/2 | Planned | - |
+| 47. Export and Persistence | v3.7 | 2/2 | Complete | 2026-01-31 |
 
 ## Coverage Validation
 
@@ -212,4 +212,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-01-27*
-*Last updated: 2026-01-31 - Phase 47 planned (2 plans, export + persistence)*
+*Last updated: 2026-01-31 - Phase 47 complete (2 plans, export + persistence)*

@@ -37,9 +37,9 @@
 
 ### Export & Persistence
 
-- [ ] **EXPORT-01**: User can export enhanced resource as print-ready PDF
-- [ ] **EXPORT-02**: Enhanced resources persist in .cue save file
-- [ ] **EXPORT-03**: Enhanced resources restore when loading .cue file
+- [x] **EXPORT-01**: User can export enhanced resource as print-ready PDF
+- [x] **EXPORT-02**: Enhanced resources persist in .cue save file
+- [x] **EXPORT-03**: Enhanced resources restore when loading .cue file
 
 ## Future Requirements (v3.8+)
 
@@ -87,9 +87,9 @@
 | PREVIEW-02 | Phase 46 | Complete |
 | PREVIEW-03 | Phase 46 | Complete |
 | PREVIEW-04 | Phase 46 | Complete |
-| EXPORT-01 | Phase 47 | Pending |
-| EXPORT-02 | Phase 47 | Pending |
-| EXPORT-03 | Phase 47 | Pending |
+| EXPORT-01 | Phase 47 | Complete |
+| EXPORT-02 | Phase 47 | Complete |
+| EXPORT-03 | Phase 47 | Complete |
 
 **Coverage:**
 - v3.7 requirements: 21 total
@@ -98,4 +98,4 @@
 
 ---
 *Requirements defined: 2026-01-29*
-*Last updated: 2026-01-30 — Phase 46 requirements complete (PREVIEW-01 through PREVIEW-04)*
+*Last updated: 2026-01-31 — Phase 47 requirements complete (EXPORT-01 through EXPORT-03)*
