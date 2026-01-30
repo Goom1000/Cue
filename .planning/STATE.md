@@ -22,7 +22,7 @@ Pending todos: 9
 **Velocity:**
 - Milestones shipped: 17 (v1.0 through v3.5)
 - Total phases completed: 45
-- Total plans completed: 133
+- Total plans completed: 134
 - Total LOC: ~22,000 TypeScript
 
 **v3.6 Tooltips & Onboarding (deferred):**
@@ -45,7 +45,7 @@ Pending todos: 9
 | 43 | Resource file upload | UPLOAD-01 to UPLOAD-05 | COMPLETE |
 | 44 | AI document analysis | (foundation) | COMPLETE |
 | 45 | Enhancement with lesson context | ENHANCE-01 to ENHANCE-06 | COMPLETE |
-| 46 | Preview, edit, and trust UI | PREVIEW-01 to PREVIEW-04 | |
+| 46 | Preview, edit, and trust UI | PREVIEW-01 to PREVIEW-04 | Plan 01 COMPLETE |
 | 47 | Export and persistence | EXPORT-01 to EXPORT-03 | |
 
 ## Accumulated Context
@@ -74,6 +74,9 @@ Recent decisions for v3.7:
 - Gemini AbortSignal via config.abortSignal, Claude via fetch signal (DEC-45-02)
 - Progress callbacks report enhancing state at 0% and 50% (DEC-45-02)
 - Analysis cached per resource.id to avoid re-analyzing (DEC-45-03)
+- Use contenteditable="plaintext-only" for inline editing security (DEC-46-01)
+- Store edits in Map per differentiation level for O(1) lookup (DEC-46-01)
+- Lists editable as newline-separated text in edit mode (DEC-46-01)
 
 ### Pending Todos
 
@@ -86,11 +89,11 @@ None identified yet for v3.7.
 ## Session Continuity
 
 Last session: 2026-01-30
-Stopped at: Phase 45 complete (enhancement UI verified and working)
+Stopped at: Completed 46-01-PLAN.md (edit mode and inline editing)
 Resume file: None
 
-**Next step:** Execute Phase 46 (Preview, edit, and trust UI)
+**Next step:** Execute Phase 46 Plan 02 (Diff view and per-element regeneration)
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-30 — Phase 45 complete (enhancement with lesson context)*
+*Last updated: 2026-01-30 — Completed 46-01 (edit mode and inline editing)*
