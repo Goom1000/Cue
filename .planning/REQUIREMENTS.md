@@ -59,28 +59,28 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DET-01 | TBD | Pending |
-| DET-02 | TBD | Pending |
-| DET-03 | TBD | Pending |
-| DET-04 | TBD | Pending |
-| DET-05 | TBD | Pending |
-| PRES-01 | TBD | Pending |
-| PRES-02 | TBD | Pending |
-| PRES-03 | TBD | Pending |
-| PRES-04 | TBD | Pending |
-| PRES-05 | TBD | Pending |
-| PRES-06 | TBD | Pending |
-| PRES-07 | TBD | Pending |
-| QUAL-01 | TBD | Pending |
-| QUAL-02 | TBD | Pending |
-| QUAL-03 | TBD | Pending |
-| QUAL-04 | TBD | Pending |
+| DET-01 | Phase 48 | Pending |
+| DET-02 | Phase 48 | Pending |
+| DET-03 | Phase 48 | Pending |
+| DET-04 | Phase 48 | Pending |
+| DET-05 | Phase 48 | Pending |
+| PRES-01 | Phase 49 | Pending |
+| PRES-02 | Phase 49 | Pending |
+| PRES-03 | Phase 49 | Pending |
+| PRES-04 | Phase 49 | Pending |
+| PRES-05 | Phase 49 | Pending |
+| PRES-06 | Phase 49 | Pending |
+| PRES-07 | Phase 49 | Pending |
+| QUAL-01 | Phase 50 | Pending |
+| QUAL-02 | Phase 50 | Pending |
+| QUAL-03 | Phase 50 | Pending |
+| QUAL-04 | Phase 50 | Pending |
 
 **Coverage:**
 - v3.8 requirements: 16 total
-- Mapped to phases: 0
-- Unmapped: 16
+- Mapped to phases: 16
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-01*
-*Last updated: 2026-02-01 after initial definition*
+*Last updated: 2026-02-01 — Traceability updated after roadmap creation*
