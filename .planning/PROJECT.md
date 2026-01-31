@@ -131,7 +131,15 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Active
 
-(None — ready for next milestone planning)
+## Current Milestone: v3.8 Preserve Teacher Content
+
+**Goal:** Ensure AI-generated slides preserve specific questions, activities, and instructions from lesson plans verbatim rather than generalizing them.
+
+**Target features:**
+- Detect specific questions (?, "Ask:" prefix, question headings) in source materials
+- Detect specific activities and instructions in source materials
+- Preserve these verbatim on slides AND in teleprompter
+- Work across all input types (lesson plan PDF, PowerPoints, resources)
 
 ### Deferred (v3.8+)
 
@@ -291,4 +299,4 @@ v3.7 delivered AI Resource Enhancement:
 | v3→v4 migration defaults empty array | Backward compatible, no breaking changes | ✓ Good — v3.7 |
 
 ---
-*Last updated: 2026-01-31 after v3.7 milestone shipped*
+*Last updated: 2026-02-01 after v3.8 milestone started*

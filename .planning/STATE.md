@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** Planning next milestone
+**Current focus:** v3.8 Preserve Teacher Content
 
 ## Current Position
 
-Phase: Ready for next milestone
-Plan: N/A
-Status: v3.7 SHIPPED
-Last activity: 2026-01-31 — Completed v3.7 AI Resource Enhancement milestone
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-02-01 — Milestone v3.8 started
 
-Progress: [          ] 0% (next milestone not started)
+Progress: [          ] 0%
 Pending todos: 9
 
 ## Performance Metrics
@@ -71,12 +71,12 @@ None - v3.7 milestone shipped.
 
 ## Session Continuity
 
-Last session: 2026-01-31
-Stopped at: v3.7 milestone archived and tagged
+Last session: 2026-02-01
+Stopped at: Defining requirements for v3.8
 Resume file: None
 
-**Next step:** Start next milestone with `/gsd:new-milestone`
+**Next step:** Define requirements and create roadmap
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-01-31 — v3.7 AI Resource Enhancement SHIPPED*
+*Last updated: 2026-02-01 — v3.8 Preserve Teacher Content started*
