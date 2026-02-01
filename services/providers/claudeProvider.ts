@@ -409,10 +409,21 @@ function getMinConfidenceForMode(mode: GenerationMode): ConfidenceLevel {
 function getSystemPromptForMode(
   mode: GenerationMode,
   verbosity: VerbosityLevel = 'standard',
-  gradeLevel: string = 'Year 6 (10-11 years old)'
+  gradeLevel: string = 'Year 6 (10-11 years old)',
+  preservableContent?: PreservableContent
 ): string {
   const teleprompterRules = getTeleprompterRulesForVerbosity(verbosity);
   const studentFriendlyRules = getStudentFriendlyRules(gradeLevel);
+
+  // Build preservation rules if content detected
+  const minConfidence = getMinConfidenceForMode(mode);
+  const preservationRules = preservableContent && preservableContent.all.length > 0
+    ? getPreservationRules(preservableContent, minConfidence)
+    : '';
+
+  const teleprompterPreservationRules = preservableContent
+    ? getTeleprompterPreservationRules(preservableContent)
+    : '';
 
   switch (mode) {
     case 'fresh':
@@ -422,6 +433,8 @@ Your goal is to transform a formal lesson plan into a teaching slideshow.
 
 ${studentFriendlyRules}
 
+${preservationRules}
+
 CRITICAL: You will be provided with text content from the document.
 - Preserve the pedagogical structure: 'Hook', 'I Do', 'We Do', 'You Do'.
 - **MANDATORY**: You MUST include distinct slides for **'Success Criteria'** and **'Differentiation'** (Support, Extension, Intervention) found in the document.
@@ -429,6 +442,8 @@ CRITICAL: You will be provided with text content from the document.
   - Differentiation should explain how to adapt for different levels (e.g., C Grade, B Grade, A Grade).
 
 ${teleprompterRules}
+
+${teleprompterPreservationRules}
 
 LAYOUTS: Use 'split' for content with images, 'grid' or 'flowchart' for process stages, 'full-image' for hooks, and 'grid' for Success Criteria/Differentiation.
 
@@ -441,6 +456,8 @@ You are an elite Primary Education Consultant.
 Your goal is to transform an existing presentation into clean, less text-dense Cue-style slides.
 
 ${studentFriendlyRules}
+
+${preservationRules}
 
 CRITICAL RULE - CONTENT PRESERVATION:
 **You MUST preserve ALL content from the original presentation.**
@@ -461,6 +478,8 @@ REFINE MODE RULES:
 
 ${teleprompterRules}
 
+${teleprompterPreservationRules}
+
 LAYOUTS: Use 'split' for content with images, 'grid' or 'flowchart' for process stages, 'full-image' for hooks.
 
 ${JSON_OUTPUT_FORMAT}
@@ -473,6 +492,8 @@ Your goal is to create slides that combine lesson content with an existing prese
 
 ${studentFriendlyRules}
 
+${preservationRules}
+
 BLEND MODE RULES:
 - Analyze BOTH the lesson plan AND existing presentation provided.
 - Determine content overlap between sources.
@@ -483,6 +504,8 @@ BLEND MODE RULES:
 - Synthesize both sources into a cohesive teaching narrative for the teleprompter scripts.
 
 ${teleprompterRules}
+
+${teleprompterPreservationRules}
 
 LAYOUTS: Use 'split' for content with images, 'grid' or 'flowchart' for process stages, 'full-image' for hooks.
 
