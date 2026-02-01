@@ -52,7 +52,11 @@ Plans:
 
 **Dependencies:** Phase 48 (detection patterns and rules must exist)
 
-**Plans:** (created by /gsd:plan-phase)
+**Plans:** 2 plans
+
+Plans:
+- [ ] 49-01-PLAN.md — Claude provider integration with detection and preservation rules
+- [ ] 49-02-PLAN.md — Gemini service integration with detection and preservation rules
 
 **Requirements:**
 - PRES-01: Preserved questions appear verbatim on slides
