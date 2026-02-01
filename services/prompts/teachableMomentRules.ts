@@ -174,43 +174,59 @@ Separate each question with [PAUSE] for teacher wait time (3-5 seconds).
 const TEACHABLE_MOMENT_EXAMPLES = `
 <teachable_moment_examples>
 
-<example scenario="multi-part-math">
-Input: "What is 3 + 4 = 7 and 5 + 6 = 11"
-Handling: Split into separate problem/answer pairs for each equation.
+<example scenario="math-discount-calculation">
+Input: "A $60 bag has 10% off. What is the new price? (Expected: $54)"
+Correct output:
+  Bullet 1: "A $60 bag has 10% off. What is the new price?"
+  Bullet 2: "$54"
+Teleprompter for Bullet 1 (SCAFFOLDING - questions only):
+  "What information do we have? [PAUSE] How do we find 10% of something? [PAUSE] Once we know 10%, what do we do with it?"
+Teleprompter for Bullet 2 (CONFIRMATION):
+  "That's right! 10% of $60 is $6, and $60 minus $6 gives us $54."
+
+WRONG teleprompter for Bullet 1:
+  "Ten percent of sixty is six dollars, so sixty minus six is fifty-four."
+  ^^^ This explains the answer instead of prompting thinking!
+</example>
+
+<example scenario="math-addition">
+Input: "What is 3 + 4? The answer is 7."
 Correct output:
   Bullet 1: "What is 3 + 4?"
   Bullet 2: "7"
-  Bullet 3: "What is 5 + 6?"
-  Bullet 4: "11"
-Each problem-answer pair gets its own scaffolding segment in the teleprompter.
+Teleprompter for Bullet 1 (SCAFFOLDING):
+  "What are we adding together? [PAUSE] Can you count on from 3? [PAUSE] What do you get?"
+Teleprompter for Bullet 2 (CONFIRMATION):
+  "Yes! 3 plus 4 equals 7."
 </example>
 
-<example scenario="vocabulary-in-context">
-Input: "The word 'photosynthesis' appears in the sentence: Plants use photosynthesis to make food."
-Handling: Present word standalone, then definition without repeating the word.
+<example scenario="vocabulary-definition">
+Input: "Photosynthesis: The process plants use to make food from sunlight."
 Correct output:
-  Bullet 5: "Photosynthesis"
-  Bullet 6: "The process plants use to make food from sunlight"
-Note: Definition does NOT say "Photosynthesis is..." - the word is already visible above.
+  Bullet 1: "Photosynthesis"
+  Bullet 2: "The process plants use to make food from sunlight"
+Teleprompter for Bullet 1 (SCAFFOLDING):
+  "Have you seen this word before? [PAUSE] Look at the parts - 'photo' and 'synthesis'. What might they mean? [PAUSE]"
+Teleprompter for Bullet 2 (CONFIRMATION):
+  "Exactly! Photo means light, synthesis means putting together. Plants put together food using light."
+Note: Definition does NOT repeat "Photosynthesis is..." - the word is already visible.
+</example>
+
+<example scenario="comprehension-question">
+Input: "Why did the character leave home? Because she wanted adventure."
+Correct output:
+  Bullet 1: "Why did the character leave home?"
+  Bullet 2: "Because she wanted adventure"
+Teleprompter for Bullet 1 (SCAFFOLDING):
+  "What clues from the story help us? [PAUSE] What was she feeling at home? [PAUSE] What did she want?"
+Teleprompter for Bullet 2 (CONFIRMATION):
+  "Good thinking! The story showed us she felt trapped and dreamed of something more."
 </example>
 
 <example scenario="rhetorical-question">
 Input: "Have you ever wondered why the sky is blue?"
 Handling: Rhetorical questions (no real answer expected) should NOT be split.
-Correct output:
-  Bullet 7: "Have you ever wondered why the sky is blue?"
-This is a hook/engagement question, not a problem requiring an answer reveal.
-</example>
-
-<example scenario="multiple-moments-one-slide">
-Input: A slide with "What is the capital of France? Paris. What is the capital of Germany? Berlin."
-Handling: Sequence problem-answer pairs in order, with scaffolding between each.
-Correct output:
-  Bullet 1: "What is the capital of France?"
-  Bullet 2: "Paris"
-  Bullet 3: "What is the capital of Germany?"
-  Bullet 4: "Berlin"
-Teleprompter segments: scaffolding before Bullet 2, confirmation after Bullet 2, scaffolding before Bullet 4, confirmation after Bullet 4.
+This is a hook/engagement question, not a problem requiring scaffolding.
 </example>
 
 </teachable_moment_examples>
@@ -291,13 +307,27 @@ Correct split:
 WRONG:
   Bullet 5: "Photosynthesis means the process plants use..." (repeated word in definition!)
 
-== TELEPROMPTER SCAFFOLDING ==
+== TELEPROMPTER SCAFFOLDING (CRITICAL) ==
 
-The teleprompter segment AFTER the problem bullet (BEFORE answer reveal) contains scaffolding guidance.
-This gives the teacher question prompts to guide student thinking before the answer appears.
+The teleprompter segment AFTER the problem bullet (BEFORE answer reveal) must contain QUESTIONS that guide student thinking - NOT explanations or answers.
 
-Format: 2-3 question prompts with [PAUSE] timing cue
-Keep scaffolding brief and actionable - these are teacher cues, not scripts.
+SCAFFOLDING = Questions that help students figure it out themselves
+SCAFFOLDING ≠ Telling students the answer or explaining how to solve it
+
+Format: 2-3 SHORT questions with [PAUSE] timing cues (3-5 seconds each)
+
+CORRECT scaffolding for "A $60 bag has 10% off. What is the new price?":
+  "What do we know here? [PAUSE] How do we find 10% of a number? [PAUSE] What's 10% of 60?"
+
+WRONG scaffolding (DO NOT DO THIS):
+  "Ten percent of sixty is six dollars. So sixty minus six gives us fifty-four dollars."
+  ^^^ This EXPLAINS the answer - it defeats the purpose! Students don't think, they just listen.
+
+WRONG scaffolding (DO NOT DO THIS):
+  "Let me show you how to calculate this discount step by step..."
+  ^^^ This is teacher-led explanation, not student thinking prompts.
+
+The goal is to make students THINK before the answer appears, not to explain the answer to them.
 
 Content-Specific Scaffolding Templates:
 ${scaffoldingTemplates.join('\n')}

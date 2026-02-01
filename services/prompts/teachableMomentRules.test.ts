@@ -454,18 +454,18 @@ describe('Multi-Category Content Handling', () => {
 // =============================================================================
 
 describe('Edge Case Examples', () => {
-  it('includes multi-part-math example', () => {
+  it('includes math-discount-calculation example', () => {
     const moments = [createMockMoment('math')];
     const rules = getTeachableMomentRules(moments);
 
-    expect(rules).toContain('multi-part-math');
+    expect(rules).toContain('math-discount-calculation');
   });
 
-  it('includes vocabulary-in-context example', () => {
+  it('includes vocabulary-definition example', () => {
     const moments = [createMockMoment('vocabulary')];
     const rules = getTeachableMomentRules(moments);
 
-    expect(rules).toContain('vocabulary-in-context');
+    expect(rules).toContain('vocabulary-definition');
   });
 
   it('includes rhetorical-question example', () => {
@@ -475,11 +475,11 @@ describe('Edge Case Examples', () => {
     expect(rules).toContain('rhetorical-question');
   });
 
-  it('includes multiple-moments-one-slide example', () => {
-    const moments = [createMockMoment('math')];
+  it('includes comprehension-question example', () => {
+    const moments = [createMockMoment('comprehension')];
     const rules = getTeachableMomentRules(moments);
 
-    expect(rules).toContain('multiple-moments-one-slide');
+    expect(rules).toContain('comprehension-question');
   });
 });
 
