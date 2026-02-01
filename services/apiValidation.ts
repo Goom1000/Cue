@@ -6,6 +6,7 @@ import { AIProvider } from '../types';
 export interface ValidationResult {
   valid: boolean;
   error?: string;
+  models?: string[];  // Available models for the validated key
 }
 
 /**
@@ -74,7 +75,55 @@ export async function validateApiKey(
     const response = await fetch(url, { headers });
 
     if (response.ok) {
-      return { valid: true };
+      // Parse response to get available models
+      try {
+        const data = await response.json();
+        let models: string[] = [];
+
+        if (provider === 'gemini' && data.models) {
+          // Gemini returns { models: [{ name: "models/gemini-2.0-flash", ... }] }
+          // Filter to only include generative models that support generateContent
+          models = data.models
+            .filter((m: any) =>
+              m.supportedGenerationMethods?.includes('generateContent') &&
+              m.name?.includes('gemini')
+            )
+            .map((m: any) => m.name.replace('models/', ''))
+            .sort((a: string, b: string) => {
+              // Sort by version (higher first) then by variant
+              const getVersion = (name: string) => {
+                const match = name.match(/gemini-(\d+\.?\d*)/);
+                return match ? parseFloat(match[1]) : 0;
+              };
+              const versionDiff = getVersion(b) - getVersion(a);
+              if (versionDiff !== 0) return versionDiff;
+              // Pro before Flash before others
+              if (a.includes('pro') && !b.includes('pro')) return -1;
+              if (!a.includes('pro') && b.includes('pro')) return 1;
+              return a.localeCompare(b);
+            });
+        } else if (provider === 'claude' && data.data) {
+          // Claude returns { data: [{ id: "claude-3-opus-20240229", ... }] }
+          models = data.data
+            .map((m: any) => m.id)
+            .filter((id: string) => id.startsWith('claude'))
+            .sort((a: string, b: string) => {
+              // Sort by model tier (opus > sonnet > haiku)
+              const getTier = (name: string) => {
+                if (name.includes('opus')) return 3;
+                if (name.includes('sonnet')) return 2;
+                if (name.includes('haiku')) return 1;
+                return 0;
+              };
+              return getTier(b) - getTier(a);
+            });
+        }
+
+        return { valid: true, models };
+      } catch {
+        // If parsing fails, still valid but no models list
+        return { valid: true, models: [] };
+      }
     }
 
     // Handle authentication errors

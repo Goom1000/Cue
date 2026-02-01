@@ -19,6 +19,15 @@ function isValidSettings(data: unknown): data is Settings {
   // Validate apiKey is a string
   if (typeof obj.apiKey !== 'string') return false;
 
+  // Optional: selectedModel must be string if present
+  if (obj.selectedModel !== undefined && typeof obj.selectedModel !== 'string') return false;
+
+  // Optional: availableModels must be array of strings if present
+  if (obj.availableModels !== undefined) {
+    if (!Array.isArray(obj.availableModels)) return false;
+    if (!obj.availableModels.every((m: unknown) => typeof m === 'string')) return false;
+  }
+
   return true;
 }
 

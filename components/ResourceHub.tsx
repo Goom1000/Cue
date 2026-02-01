@@ -54,6 +54,15 @@ const ResourceHub: React.FC<ResourceHubProps> = ({
   const [showExportMenu, setShowExportMenu] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
+  // Refs to access latest state values in callbacks without causing dependency changes
+  // This prevents infinite re-render loops when callbacks need to read current state
+  const uploadedResourcesRef = useRef(uploadedResources);
+  const resourceAnalysisRef = useRef(resourceAnalysis);
+  const onEnhancedResourcesChangeRef = useRef(onEnhancedResourcesChange);
+  useEffect(() => { uploadedResourcesRef.current = uploadedResources; }, [uploadedResources]);
+  useEffect(() => { resourceAnalysisRef.current = resourceAnalysis; }, [resourceAnalysis]);
+  useEffect(() => { onEnhancedResourcesChangeRef.current = onEnhancedResourcesChange; }, [onEnhancedResourcesChange]);
+
   // Restore enhanced resources on mount
   useEffect(() => {
     if (enhancedResourceStates.length > 0) {
@@ -79,55 +88,61 @@ const ResourceHub: React.FC<ResourceHubProps> = ({
   }, []); // Only run on mount - enhancedResourceStates is initial data
 
   // Handler for EnhancementPanel state changes
+  // Uses refs instead of state dependencies to maintain stable callback identity
+  // and prevent infinite re-render loops
   const handleEnhancementStateChange = useCallback((resourceId: string, state: { result: EnhancementResult | null; editState: EditState }) => {
+    // Update local enhancement states
     setEnhancementStates(prev => {
-      const next = new Map(prev);
+      const next = new Map<string, { result: EnhancementResult | null; editState: EditState }>(prev);
       next.set(resourceId, state);
       return next;
     });
 
     // Notify parent of changes for persistence
-    if (onEnhancedResourcesChange && state.result) {
+    // Done outside setState to avoid "Cannot update App while rendering ResourceHub" error
+    // Uses refs to access current state without creating callback dependencies
+    if (state.result) {
+      const uploadedResources = uploadedResourcesRef.current;
+      const resourceAnalysis = resourceAnalysisRef.current;
+      const onEnhancedResourcesChange = onEnhancedResourcesChangeRef.current;
+
+      if (!onEnhancedResourcesChange) return;
+
       const resource = uploadedResources.find(r => r.id === resourceId);
       const analysis = resourceAnalysis.get(resourceId);
 
       if (resource && analysis) {
-        // Build the complete EnhancedResourceState for this resource
-        const enhancedState: EnhancedResourceState = {
-          resourceId,
-          originalResource: resource,
-          analysis,
-          enhancementResult: state.result,
-          editOverlays: serializeEditState(state.editState.edits),
-          enhancedAt: new Date().toISOString()
-        };
-
-        // Update the parent's state
-        setEnhancementStates(currentStates => {
-          // Build complete list from all resources with results
-          const allStates: EnhancedResourceState[] = [];
-          currentStates.forEach((s, id) => {
-            if (s.result) {
-              const res = uploadedResources.find(r => r.id === id);
-              const ana = resourceAnalysis.get(id);
-              if (res && ana) {
-                allStates.push({
-                  resourceId: id,
-                  originalResource: res,
-                  analysis: ana,
-                  enhancementResult: s.result,
-                  editOverlays: serializeEditState(s.editState.edits),
-                  enhancedAt: id === resourceId ? enhancedState.enhancedAt : new Date().toISOString()
-                });
+        // Schedule parent update for after render completes using requestAnimationFrame
+        // to ensure we're fully out of the React render cycle
+        requestAnimationFrame(() => {
+          // Re-read enhancementStates to get the latest value after setState
+          setEnhancementStates(currentStates => {
+            const allStates: EnhancedResourceState[] = [];
+            currentStates.forEach((s, id) => {
+              if (s.result) {
+                const res = uploadedResourcesRef.current.find(r => r.id === id);
+                const ana = resourceAnalysisRef.current.get(id);
+                if (res && ana) {
+                  allStates.push({
+                    resourceId: id,
+                    originalResource: res,
+                    analysis: ana,
+                    enhancementResult: s.result,
+                    editOverlays: serializeEditState(s.editState.edits),
+                    enhancedAt: new Date().toISOString()
+                  });
+                }
               }
-            }
+            });
+            // Call parent update
+            onEnhancedResourcesChangeRef.current?.(allStates);
+            // Return unchanged state - we're just reading
+            return currentStates;
           });
-          onEnhancedResourcesChange(allStates);
-          return currentStates;
         });
       }
     }
-  }, [uploadedResources, resourceAnalysis, onEnhancedResourcesChange]);
+  }, []); // No dependencies - uses refs for all state access
 
   // Trigger analysis when an uploaded resource is selected
   useEffect(() => {
@@ -165,6 +180,17 @@ const ResourceHub: React.FC<ResourceHubProps> = ({
     setSelectedResource(resource);
     setSelectedUploadedResource(null); // Clear uploaded resource selection
   };
+
+  // Stable callback for EnhancementPanel state changes - prevents infinite re-render loop
+  // by keeping the same function identity when selectedUploadedResource.id hasn't changed
+  const handleSelectedResourceStateChange = useCallback(
+    (state: { result: EnhancementResult | null; editState: EditState }) => {
+      if (selectedUploadedResource) {
+        handleEnhancementStateChange(selectedUploadedResource.id, state);
+      }
+    },
+    [selectedUploadedResource?.id, handleEnhancementStateChange]
+  );
 
   const handleUploadError = (error: UploadValidationError) => {
     // Use existing onError prop to show toast/modal
@@ -497,7 +523,7 @@ const ResourceHub: React.FC<ResourceHubProps> = ({
                       slides={slides}
                       provider={provider}
                       onError={onError}
-                      onStateChange={(state) => handleEnhancementStateChange(selectedUploadedResource.id, state)}
+                      onStateChange={handleSelectedResourceStateChange}
                       initialResult={enhancementStates.get(selectedUploadedResource.id)?.result ?? undefined}
                       initialEditState={enhancementStates.get(selectedUploadedResource.id)?.editState}
                     />

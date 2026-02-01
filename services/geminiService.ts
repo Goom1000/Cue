@@ -262,13 +262,14 @@ export const generateLessonSlides = async (
   }
 
   // Detect teachable moments for delayed answer reveal
+  console.log('[GeminiService] Detecting teachable moments in source text, length:', sourceText.length);
   const teachableMoments = detectTeachableMoments(sourceText);
+  console.log(`[GeminiService] Detected ${teachableMoments.length} teachable moments`);
 
   // Debug logging for teachable moments
   if (teachableMoments.length > 0) {
-    console.log(`[GeminiService] Detected ${teachableMoments.length} teachable moments`);
     teachableMoments.forEach(tm => {
-      console.log(`  - ${tm.contentCategory}: ${tm.problem.text.substring(0, 50)}...`);
+      console.log(`  - ${tm.contentCategory}: "${tm.problem.text.substring(0, 50)}..." answer: ${tm.answer ? `"${tm.answer.text.substring(0, 30)}..."` : 'none'}`);
     });
   }
 

@@ -313,12 +313,13 @@ export interface AIProviderInterface {
 export function createAIProvider(config: {
   provider: AIProvider;
   apiKey: string;
+  selectedModel?: string;
 }): AIProviderInterface {
   switch (config.provider) {
     case 'gemini':
-      return new GeminiProvider(config.apiKey);
+      return new GeminiProvider(config.apiKey, config.selectedModel);
     case 'claude':
-      return new ClaudeProvider(config.apiKey);
+      return new ClaudeProvider(config.apiKey, config.selectedModel);
     default:
       throw new AIProviderError(
         USER_ERROR_MESSAGES.UNKNOWN_ERROR,

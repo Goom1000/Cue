@@ -463,11 +463,15 @@ export type AIProvider = 'gemini' | 'claude';
 export interface Settings {
   provider: AIProvider;
   apiKey: string;
+  selectedModel?: string;  // Optional - defaults to provider's default model
+  availableModels?: string[];  // Cached list of models for the current API key
 }
 
 export const DEFAULT_SETTINGS: Settings = {
   provider: 'gemini',
   apiKey: '',
+  selectedModel: undefined,
+  availableModels: undefined,
 };
 
 // File format version - increment on breaking changes

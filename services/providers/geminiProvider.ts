@@ -25,10 +25,34 @@ import {
 } from '../geminiService';
 
 /**
- * JSON Schema for EnhancementResult structured output.
- * Defines the shape of AI-generated document enhancement results.
+ * Shared schema for worksheet version elements.
  */
-const ENHANCEMENT_RESULT_SCHEMA = {
+const VERSION_ELEMENT_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    type: { type: Type.STRING, enum: ['header', 'subheader', 'paragraph', 'question', 'answer', 'instruction', 'table', 'diagram', 'image', 'list', 'blank-space'] },
+    originalContent: { type: Type.STRING },
+    enhancedContent: { type: Type.STRING },
+    position: { type: Type.INTEGER },
+    visualContent: { type: Type.BOOLEAN },
+    slideReference: { type: Type.STRING },
+    children: { type: Type.ARRAY, items: { type: Type.STRING } },
+    tableData: {
+      type: Type.OBJECT,
+      properties: {
+        headers: { type: Type.ARRAY, items: { type: Type.STRING } },
+        rows: { type: Type.ARRAY, items: { type: Type.ARRAY, items: { type: Type.STRING } } }
+      }
+    }
+  },
+  required: ['type', 'originalContent', 'enhancedContent', 'position']
+};
+
+/**
+ * Schema for generating a single version with slide matches.
+ * Used for split API calls to avoid token limits.
+ */
+const createSingleVersionSchema = (level: 'simple' | 'standard' | 'detailed') => ({
   type: Type.OBJECT,
   properties: {
     slideMatches: {
@@ -44,111 +68,27 @@ const ENHANCEMENT_RESULT_SCHEMA = {
         required: ['slideIndex', 'slideTitle', 'relevanceScore', 'reason']
       }
     },
-    versions: {
+    version: {
       type: Type.OBJECT,
       properties: {
-        simple: {
-          type: Type.OBJECT,
-          properties: {
-            level: { type: Type.STRING, enum: ['simple'] },
-            title: { type: Type.STRING },
-            alignedSlides: { type: Type.ARRAY, items: { type: Type.INTEGER } },
-            slideAlignmentNote: { type: Type.STRING },
-            elements: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  type: { type: Type.STRING, enum: ['header', 'subheader', 'paragraph', 'question', 'answer', 'instruction', 'table', 'diagram', 'image', 'list', 'blank-space'] },
-                  originalContent: { type: Type.STRING },
-                  enhancedContent: { type: Type.STRING },
-                  position: { type: Type.INTEGER },
-                  visualContent: { type: Type.BOOLEAN },
-                  slideReference: { type: Type.STRING },
-                  children: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  tableData: {
-                    type: Type.OBJECT,
-                    properties: {
-                      headers: { type: Type.ARRAY, items: { type: Type.STRING } },
-                      rows: { type: Type.ARRAY, items: { type: Type.ARRAY, items: { type: Type.STRING } } }
-                    }
-                  }
-                },
-                required: ['type', 'originalContent', 'enhancedContent', 'position']
-              }
-            }
-          },
-          required: ['level', 'title', 'alignedSlides', 'slideAlignmentNote', 'elements']
-        },
-        standard: {
-          type: Type.OBJECT,
-          properties: {
-            level: { type: Type.STRING, enum: ['standard'] },
-            title: { type: Type.STRING },
-            alignedSlides: { type: Type.ARRAY, items: { type: Type.INTEGER } },
-            slideAlignmentNote: { type: Type.STRING },
-            elements: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  type: { type: Type.STRING, enum: ['header', 'subheader', 'paragraph', 'question', 'answer', 'instruction', 'table', 'diagram', 'image', 'list', 'blank-space'] },
-                  originalContent: { type: Type.STRING },
-                  enhancedContent: { type: Type.STRING },
-                  position: { type: Type.INTEGER },
-                  visualContent: { type: Type.BOOLEAN },
-                  slideReference: { type: Type.STRING },
-                  children: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  tableData: {
-                    type: Type.OBJECT,
-                    properties: {
-                      headers: { type: Type.ARRAY, items: { type: Type.STRING } },
-                      rows: { type: Type.ARRAY, items: { type: Type.ARRAY, items: { type: Type.STRING } } }
-                    }
-                  }
-                },
-                required: ['type', 'originalContent', 'enhancedContent', 'position']
-              }
-            }
-          },
-          required: ['level', 'title', 'alignedSlides', 'slideAlignmentNote', 'elements']
-        },
-        detailed: {
-          type: Type.OBJECT,
-          properties: {
-            level: { type: Type.STRING, enum: ['detailed'] },
-            title: { type: Type.STRING },
-            alignedSlides: { type: Type.ARRAY, items: { type: Type.INTEGER } },
-            slideAlignmentNote: { type: Type.STRING },
-            elements: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  type: { type: Type.STRING, enum: ['header', 'subheader', 'paragraph', 'question', 'answer', 'instruction', 'table', 'diagram', 'image', 'list', 'blank-space'] },
-                  originalContent: { type: Type.STRING },
-                  enhancedContent: { type: Type.STRING },
-                  position: { type: Type.INTEGER },
-                  visualContent: { type: Type.BOOLEAN },
-                  slideReference: { type: Type.STRING },
-                  children: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  tableData: {
-                    type: Type.OBJECT,
-                    properties: {
-                      headers: { type: Type.ARRAY, items: { type: Type.STRING } },
-                      rows: { type: Type.ARRAY, items: { type: Type.ARRAY, items: { type: Type.STRING } } }
-                    }
-                  }
-                },
-                required: ['type', 'originalContent', 'enhancedContent', 'position']
-              }
-            }
-          },
-          required: ['level', 'title', 'alignedSlides', 'slideAlignmentNote', 'elements']
-        }
+        level: { type: Type.STRING, enum: [level] },
+        title: { type: Type.STRING },
+        alignedSlides: { type: Type.ARRAY, items: { type: Type.INTEGER } },
+        slideAlignmentNote: { type: Type.STRING },
+        elements: { type: Type.ARRAY, items: VERSION_ELEMENT_SCHEMA }
       },
-      required: ['simple', 'standard', 'detailed']
-    },
+      required: ['level', 'title', 'alignedSlides', 'slideAlignmentNote', 'elements']
+    }
+  },
+  required: ['slideMatches', 'version']
+});
+
+/**
+ * Schema for generating answer keys for all versions.
+ */
+const ANSWER_KEYS_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
     answerKeys: {
       type: Type.OBJECT,
       properties: {
@@ -187,8 +127,11 @@ const ENHANCEMENT_RESULT_SCHEMA = {
       required: ['structure', 'keys']
     }
   },
-  required: ['slideMatches', 'versions', 'answerKeys']
+  required: ['answerKeys']
 };
+
+// Default model to use if none is selected
+const DEFAULT_GEMINI_MODEL = 'gemini-2.0-flash';
 
 /**
  * GeminiProvider wraps the existing geminiService functions.
@@ -196,7 +139,12 @@ const ENHANCEMENT_RESULT_SCHEMA = {
  * The apiKey passed to the constructor is forwarded to all geminiService functions.
  */
 export class GeminiProvider implements AIProviderInterface {
-  constructor(private apiKey: string) {}
+  private model: string;
+
+  constructor(private apiKey: string, selectedModel?: string) {
+    this.model = selectedModel || DEFAULT_GEMINI_MODEL;
+    console.log(`[GeminiProvider] Using model: ${this.model}`);
+  }
 
 
   async generateLessonSlides(
@@ -374,7 +322,7 @@ export class GeminiProvider implements AIProviderInterface {
       }
 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.0-flash',
+        model: this.model,
         contents: { parts },
         config: {
           systemInstruction: DOCUMENT_ANALYSIS_SYSTEM_PROMPT,
@@ -438,8 +386,130 @@ export class GeminiProvider implements AIProviderInterface {
   }
 
   /**
+   * Generate a single worksheet version using a separate API call.
+   * This avoids token limits by splitting the work.
+   */
+  private async generateSingleVersion(
+    ai: GoogleGenAI,
+    level: 'simple' | 'standard' | 'detailed',
+    documentAnalysis: DocumentAnalysis,
+    slideContext: string,
+    options: EnhancementOptions,
+    signal?: AbortSignal
+  ): Promise<{ slideMatches: any[]; version: any }> {
+    const levelDescriptions = {
+      simple: 'SIMPLE LEVEL: Shorter sentences (max 15 words), simpler vocabulary (Year 4, ages 8-9), visual scaffolding, familiar concrete language.',
+      standard: 'STANDARD LEVEL: Clean formatting, echo slide terminology, add "See Slide X" references, Year 6 reading level (ages 10-11), light enhancement only.',
+      detailed: 'DETAILED LEVEL: Add extension questions, hints, worked examples, reasoning prompts, Year 7-8 vocabulary (ages 11-13), deeper explanations.'
+    };
+
+    const formattedElements = documentAnalysis.elements.map((element, index) => {
+      const visualMarker = element.visualContent ? ' [Visual element - preserve placeholder]' : '';
+      const childrenText = element.children?.length ? `\n  Children: ${element.children.join('; ')}` : '';
+      const tableText = element.tableData
+        ? `\n  Table: ${element.tableData.headers.join(' | ')}\n  ${element.tableData.rows.map(r => r.join(' | ')).join('\n  ')}`
+        : '';
+      return `${index + 1}. [${element.type.toUpperCase()}]${visualMarker}: ${element.content}${childrenText}${tableText}`;
+    }).join('\n\n');
+
+    const prompt = `DOCUMENT TO ENHANCE:
+
+Title: ${documentAnalysis.title}
+Type: ${documentAnalysis.documentType}
+Grade Level: ${options.gradeLevel}
+Pages: ${documentAnalysis.pageCount}
+
+DOCUMENT ELEMENTS:
+${formattedElements}
+
+---
+
+LESSON SLIDES FOR ALIGNMENT:
+${slideContext}
+
+---
+
+TASK: Generate ONLY the ${level.toUpperCase()} version of this worksheet.
+
+${levelDescriptions[level]}
+
+PRESERVATION RULES:
+1. Keep ALL original questions and exercises
+2. Keep ALL factual information unchanged
+3. Mark visual content as "[Original diagram: description]"
+4. NEVER invent content not in the original
+
+Return JSON with slideMatches (which slides relate to this document) and version (the ${level} version).`;
+
+    const response = await ai.models.generateContent({
+      model: this.model,
+      contents: { parts: [{ text: prompt }] },
+      config: {
+        systemInstruction: ENHANCEMENT_SYSTEM_PROMPT,
+        responseMimeType: 'application/json',
+        responseSchema: createSingleVersionSchema(level),
+        temperature: 0.3,
+        abortSignal: signal
+      }
+    });
+
+    const text = response.text || '{}';
+    return JSON.parse(text);
+  }
+
+  /**
+   * Generate answer keys for all versions.
+   */
+  private async generateAnswerKeys(
+    ai: GoogleGenAI,
+    versions: { simple: any; standard: any; detailed: any },
+    signal?: AbortSignal
+  ): Promise<{ answerKeys: any }> {
+    // Summarize questions from each version for answer key generation
+    const summarizeQuestions = (version: any, level: string) => {
+      const questions = version.elements
+        .filter((e: any) => e.type === 'question')
+        .map((e: any, i: number) => `${level} Q${i + 1}: ${e.enhancedContent}`)
+        .join('\n');
+      return questions || `${level}: No explicit questions`;
+    };
+
+    const prompt = `GENERATE ANSWER KEYS for these worksheet versions:
+
+SIMPLE VERSION QUESTIONS:
+${summarizeQuestions(versions.simple, 'Simple')}
+
+STANDARD VERSION QUESTIONS:
+${summarizeQuestions(versions.standard, 'Standard')}
+
+DETAILED VERSION QUESTIONS:
+${summarizeQuestions(versions.detailed, 'Detailed')}
+
+RULES:
+- For closed questions: provide specific answers
+- For open-ended questions: provide rubric with criteria, exemplar, and common mistakes
+- Use "unified" structure if questions are similar across levels
+- Use "per-level" structure if questions differ significantly`;
+
+    const response = await ai.models.generateContent({
+      model: this.model,
+      contents: { parts: [{ text: prompt }] },
+      config: {
+        systemInstruction: 'Generate comprehensive answer keys for educational worksheets.',
+        responseMimeType: 'application/json',
+        responseSchema: ANSWER_KEYS_SCHEMA,
+        temperature: 0.2,
+        abortSignal: signal
+      }
+    });
+
+    const text = response.text || '{}';
+    return JSON.parse(text);
+  }
+
+  /**
    * Enhance a document with differentiated versions and answer keys.
-   * Generates three versions (simple/standard/detailed) aligned with lesson slides.
+   * Uses split API calls (one per version) to avoid token limits.
    */
   async enhanceDocument(
     documentAnalysis: DocumentAnalysis,
@@ -450,46 +520,52 @@ export class GeminiProvider implements AIProviderInterface {
     try {
       const ai = new GoogleGenAI({ apiKey: this.apiKey });
 
-      const userPrompt = buildEnhancementUserPrompt(documentAnalysis, slideContext, options);
+      console.log('[GeminiProvider] Starting split enhancement (3 parallel calls)...');
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.0-flash',
-        contents: { parts: [{ text: userPrompt }] },
-        config: {
-          systemInstruction: ENHANCEMENT_SYSTEM_PROMPT,
-          responseMimeType: 'application/json',
-          responseSchema: ENHANCEMENT_RESULT_SCHEMA,
-          temperature: 0.3,  // Some creativity for enhancements, but consistent
-          abortSignal: signal  // For cancellation support
-        }
-      });
+      // Generate all 3 versions in parallel
+      const [simpleResult, standardResult, detailedResult] = await Promise.all([
+        this.generateSingleVersion(ai, 'simple', documentAnalysis, slideContext, options, signal),
+        this.generateSingleVersion(ai, 'standard', documentAnalysis, slideContext, options, signal),
+        this.generateSingleVersion(ai, 'detailed', documentAnalysis, slideContext, options, signal)
+      ]);
 
-      const text = response.text || '{}';
+      console.log('[GeminiProvider] All versions generated, combining results...');
 
-      // Parse the response
-      let result: EnhancementResult;
-      try {
-        result = JSON.parse(text) as EnhancementResult;
-      } catch (parseError) {
-        console.error('[GeminiProvider] Failed to parse enhancement response:', parseError);
-        console.error('[GeminiProvider] Raw response (first 500 chars):', text.substring(0, 500));
-        throw new AIProviderError(
-          'Failed to process enhancement response. Please try again.',
-          'PARSE_ERROR',
-          parseError
-        );
+      // Use slideMatches from any result (they should be the same)
+      const slideMatches = simpleResult.slideMatches || standardResult.slideMatches || detailedResult.slideMatches || [];
+
+      // Combine versions
+      const versions = {
+        simple: simpleResult.version,
+        standard: standardResult.version,
+        detailed: detailedResult.version
+      };
+
+      // Generate answer keys if requested
+      let answerKeys = { structure: 'unified' as const, keys: [] as any[] };
+      if (options.generateAnswerKey) {
+        console.log('[GeminiProvider] Generating answer keys...');
+        const answerKeyResult = await this.generateAnswerKeys(ai, versions, signal);
+        answerKeys = answerKeyResult.answerKeys;
       }
 
+      const result: EnhancementResult = {
+        slideMatches,
+        versions,
+        answerKeys
+      };
+
       // Validate required fields exist
-      if (!result.versions || !result.slideMatches || !result.answerKeys) {
-        console.error('[GeminiProvider] Enhancement response missing required fields:', text.substring(0, 500));
+      if (!result.versions?.simple || !result.versions?.standard || !result.versions?.detailed) {
+        console.error('[GeminiProvider] Enhancement response missing version(s)');
         throw new AIProviderError(
           'Enhancement response was incomplete. Please try again.',
           'PARSE_ERROR',
-          'Missing required fields in response'
+          'Missing required version in response'
         );
       }
 
+      console.log('[GeminiProvider] Enhancement complete');
       return result;
     } catch (error) {
       // Let AbortError propagate for cancellation handling

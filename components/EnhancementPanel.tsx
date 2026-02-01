@@ -1,4 +1,4 @@
-import React, { useState, useRef, useReducer, useEffect } from 'react';
+import React, { useState, useRef, useReducer, useEffect, useCallback } from 'react';
 import ReactDiffViewer, { DiffMethod } from 'react-diff-viewer-continued';
 import {
   UploadedResource,
@@ -90,6 +90,13 @@ const EnhancementPanel: React.FC<EnhancementPanelProps> = ({
   const [editState, dispatch] = useReducer(editReducer, initialEditStateProp ?? defaultEditState);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // Store onStateChange in a ref to avoid triggering useEffect when callback identity changes
+  // This is a React pattern for stable callbacks that shouldn't cause re-renders
+  const onStateChangeRef = useRef(onStateChange);
+  useEffect(() => {
+    onStateChangeRef.current = onStateChange;
+  }, [onStateChange]);
+
   // When entering diff mode, exit edit mode (mutually exclusive)
   useEffect(() => {
     if (showDiff && isEditMode) {
@@ -98,11 +105,13 @@ const EnhancementPanel: React.FC<EnhancementPanelProps> = ({
   }, [showDiff, isEditMode]);
 
   // Notify parent of state changes for persistence
+  // Uses ref to avoid infinite loop: onStateChange changes identity on parent re-render,
+  // but we only want to fire this effect when result or editState actually change.
   useEffect(() => {
-    if (onStateChange) {
-      onStateChange({ result, editState });
+    if (onStateChangeRef.current) {
+      onStateChangeRef.current({ result, editState });
     }
-  }, [result, editState, onStateChange]);
+  }, [result, editState]);
 
   const handleEnhance = async () => {
     abortControllerRef.current = new AbortController();

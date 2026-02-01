@@ -365,9 +365,9 @@ const ANSWER_PATTERNS: Array<{ pattern: RegExp; extractor: (match: RegExpExecArr
     pattern: /[Ii]t(?:'s|'s|\s+is)\s+([^.!?\n]+[.!?]?)/g,
     extractor: (match) => match[1].trim()
   },
-  // "= 15", "= 3.14" - math results with equals
+  // "= 15", "= $51", "= 3.14" - math results with equals (handles currency)
   {
-    pattern: /=\s*(\d+(?:\.\d+)?)/g,
+    pattern: /=\s*[$£€]?(\d+(?:\.\d+)?)/g,
     extractor: (match) => match[1]
   },
   // "equals 42" - written equals

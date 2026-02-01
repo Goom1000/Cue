@@ -53,6 +53,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, autoFocusApiKey 
   const [showKey, setShowKey] = useState(false);
   const [confirmText, setConfirmText] = useState('');
 
+  // Model selection state
+  const [availableModels, setAvailableModels] = useState<string[]>(savedSettings.availableModels || []);
+  const [selectedModel, setSelectedModel] = useState<string | undefined>(savedSettings.selectedModel);
+
   // Test status state
   const [testStatus, setTestStatus] = useState<TestStatus>({ state: 'idle' });
 
@@ -70,6 +74,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, autoFocusApiKey 
   useEffect(() => {
     setProvider(savedSettings.provider);
     setApiKey(savedSettings.apiKey);
+    setAvailableModels(savedSettings.availableModels || []);
+    setSelectedModel(savedSettings.selectedModel);
     // If there's already a saved key, consider it tested
     if (savedSettings.apiKey) {
       setTestPassed(true);
@@ -95,6 +101,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, autoFocusApiKey 
       // No existing key or same provider - just change
       setProvider(newProvider);
       setApiKey('');
+      setSelectedModel(undefined);
+      setAvailableModels([]);
       setTestStatus({ state: 'idle' });
       setTestPassed(false);
     }
@@ -105,6 +113,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, autoFocusApiKey 
     if (pendingProvider) {
       setProvider(pendingProvider);
       setApiKey('');
+      setSelectedModel(undefined);
+      setAvailableModels([]);
       setTestStatus({ state: 'idle' });
       setTestPassed(false);
       setPendingProvider(null);
@@ -127,9 +137,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, autoFocusApiKey 
     if (result.valid) {
       setTestStatus({ state: 'success' });
       setTestPassed(true);
+      // Store available models and auto-select first if none selected
+      if (result.models && result.models.length > 0) {
+        setAvailableModels(result.models);
+        if (!selectedModel || !result.models.includes(selectedModel)) {
+          setSelectedModel(result.models[0]);
+        }
+      }
     } else {
       setTestStatus({ state: 'error', message: result.error || 'Validation failed' });
       setTestPassed(false);
+      setAvailableModels([]);
     }
   };
 
@@ -137,12 +155,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, autoFocusApiKey 
   const handleSave = () => {
     // Save directly to localStorage before closing to avoid race condition
     // (useEffect won't run if component unmounts immediately)
+    const settingsToSave = { provider, apiKey, selectedModel, availableModels };
     try {
-      window.localStorage.setItem('pipi-settings', JSON.stringify({ provider, apiKey }));
+      window.localStorage.setItem('pipi-settings', JSON.stringify(settingsToSave));
     } catch (e) {
       console.warn('Failed to save settings:', e);
     }
-    updateSettings({ provider, apiKey });
+    updateSettings(settingsToSave);
     onClose();
   };
 
@@ -156,6 +175,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, autoFocusApiKey 
     clearSettings();
     setProvider(DEFAULT_SETTINGS.provider);
     setApiKey(DEFAULT_SETTINGS.apiKey);
+    setSelectedModel(undefined);
+    setAvailableModels([]);
     setTestStatus({ state: 'idle' });
     setTestPassed(false);
     setConfirmText('');
@@ -271,6 +292,30 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, autoFocusApiKey 
               </div>
             )}
           </div>
+
+          {/* Model Selection Section - shown after successful validation */}
+          {testPassed && availableModels.length > 0 && (
+            <div>
+              <label className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                AI Model
+                <InfoTooltip content="Select which AI model to use. Newer models (higher version numbers) generally have better capabilities. Pro models are more capable but slower than Flash models." />
+              </label>
+              <select
+                value={selectedModel || ''}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-amber-500 transition-colors"
+              >
+                {availableModels.map((model) => (
+                  <option key={model} value={model}>
+                    {model}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-2 text-xs text-slate-500 dark:text-slate-500">
+                {availableModels.length} model{availableModels.length !== 1 ? 's' : ''} available for your API key
+              </p>
+            </div>
+          )}
 
           {/* Setup Instructions Accordion */}
           <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
