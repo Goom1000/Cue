@@ -32,7 +32,11 @@ This milestone transforms Cue's AI slide generation to create deliberate "thinki
 3. Each detected moment includes content type classification (math, vocabulary, comprehension, science)
 4. Problem-answer pairs are correctly associated (answer follows its problem)
 
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 51-01-PLAN.md - Answer detection and content classification (TDD)
+- [ ] 51-02-PLAN.md - Main detectTeachableMoments with throttling (TDD)
 
 ---
 
@@ -94,7 +98,7 @@ This milestone transforms Cue's AI slide generation to create deliberate "thinki
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 51. Detection Foundation | v3.9 | 0/TBD | Not started | - |
+| 51. Detection Foundation | v3.9 | 0/2 | Planned | - |
 | 52. Prompt Engineering Core | v3.9 | 0/TBD | Not started | - |
 | 53. Scaffolding Templates | v3.9 | 0/TBD | Not started | - |
 | 54. Quality Assurance | v3.9 | 0/TBD | Not started | - |
