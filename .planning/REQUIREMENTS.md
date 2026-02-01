@@ -66,24 +66,24 @@ Explicitly excluded from v3.9.
 
 Which phases cover which requirements. Updated during roadmap creation.
 
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| DET-01 | Phase 51 | Complete |
-| DET-02 | Phase 51 | Complete |
-| DET-03 | Phase 51 | Complete |
-| DET-04 | Phase 51 | Complete |
-| RST-01 | Phase 52 | Pending |
-| RST-02 | Phase 52 | Pending |
-| RST-03 | Phase 52 | Pending |
-| RST-04 | Phase 52 | Pending |
-| SCF-01 | Phase 52 | Pending |
-| SCF-02 | Phase 52 | Pending |
-| SCF-03 | Phase 52 | Pending |
-| SCF-04 | Phase 53 | Pending |
-| SCF-05 | Phase 53 | Pending |
-| QUA-01 | Phase 54 | Pending |
-| QUA-02 | Phase 54 | Pending |
-| QUA-03 | Phase 54 | Pending |
+| Requirement | Phase | Status | Notes |
+|-------------|-------|--------|-------|
+| DET-01 | Phase 51 | Complete | |
+| DET-02 | Phase 51 | Complete | |
+| DET-03 | Phase 51 | Complete | |
+| DET-04 | Phase 51 | Complete | |
+| RST-01 | Phase 52 | Pending | |
+| RST-02 | Phase 52 | Pending | |
+| RST-03 | Phase 52 | Pending | |
+| RST-04 | Phase 52 | Pending | |
+| SCF-01 | Phase 52 | Pending | |
+| SCF-02 | Phase 52 | Pending | |
+| SCF-03 | Phase 52 | Pending | |
+| SCF-04 | Phase 52 | Pending | Plan 52-01 creates 5 content-specific templates (math, vocabulary, comprehension, science, general) |
+| SCF-05 | Phase 53 | Pending | Phase 53 validates word count constraints |
+| QUA-01 | Phase 54 | Pending | |
+| QUA-02 | Phase 54 | Pending | |
+| QUA-03 | Phase 54 | Pending | |
 
 **Coverage:**
 - v3.9 requirements: 16 total
@@ -92,4 +92,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-01*
-*Last updated: 2026-02-01 - Traceability updated with phase mappings*
+*Last updated: 2026-02-01 - SCF-04 traceability corrected (Phase 52 creates templates, Phase 53 validates)*
