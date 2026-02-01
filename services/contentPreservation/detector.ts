@@ -166,3 +166,161 @@ export function detectQuestions(text: string): DetectedContent[] {
 
   return deduplicateOverlapping(results);
 }
+
+// =============================================================================
+// Activity Detection (DET-03)
+// =============================================================================
+
+/**
+ * Bloom's Taxonomy action verbs organized by cognitive level.
+ * Used to detect instructional activities in text.
+ */
+const BLOOM_ACTION_VERBS = {
+  remember: ['define', 'identify', 'describe', 'list', 'label', 'name', 'state', 'match', 'select', 'recall'],
+  understand: ['summarize', 'interpret', 'classify', 'compare', 'explain', 'discuss', 'distinguish', 'paraphrase'],
+  apply: ['solve', 'complete', 'use', 'demonstrate', 'show', 'illustrate', 'apply', 'calculate'],
+  analyze: ['analyze', 'contrast', 'differentiate', 'categorize', 'examine', 'investigate', 'organize'],
+  evaluate: ['evaluate', 'judge', 'defend', 'critique', 'prioritize', 'assess', 'justify'],
+  create: ['create', 'design', 'develop', 'formulate', 'construct', 'plan', 'compose', 'produce']
+};
+
+/**
+ * Flatten all action verbs into a single array.
+ */
+const ALL_ACTION_VERBS = Object.values(BLOOM_ACTION_VERBS).flat();
+
+/**
+ * Patterns that indicate descriptive context (not imperative instructions).
+ * These should be downgraded to low confidence.
+ */
+const DESCRIPTIVE_PATTERNS = [
+  /students\s+will/i,
+  /they\s+will/i,
+  /you\s+will/i,
+  /learners\s+will/i,
+  /pupils\s+will/i,
+];
+
+/**
+ * Check if text is descriptive rather than imperative.
+ */
+function isDescriptive(text: string): boolean {
+  return DESCRIPTIVE_PATTERNS.some(pattern => pattern.test(text));
+}
+
+/**
+ * Detect activities in text by identifying Bloom's taxonomy action verbs.
+ *
+ * Detection focuses on imperative mood (direct instructions like "List 3 examples")
+ * vs. descriptive future tense ("Students will list examples").
+ *
+ * Imperative activities get high confidence, descriptive get low.
+ */
+export function detectActivities(text: string): DetectedContent[] {
+  const results: DetectedContent[] = [];
+
+  // Build pattern for action verbs at sentence start (imperative mood)
+  // Match: action verb + rest of sentence up to punctuation
+  const verbPattern = new RegExp(
+    `(?:^|[.!?]\\s+)(${ALL_ACTION_VERBS.join('|')})\\s+([^.!?]+[.!?])`,
+    'gim'
+  );
+
+  let match;
+  while ((match = verbPattern.exec(text)) !== null) {
+    const verb = match[1];
+    const restOfSentence = match[2];
+    const fullActivity = `${verb} ${restOfSentence}`.trim();
+
+    // Check if it's imperative (direct instruction) vs. descriptive
+    const confidence: ConfidenceLevel = isDescriptive(restOfSentence) ? 'low' : 'high';
+
+    results.push({
+      type: 'activity',
+      text: fullActivity,
+      confidence,
+      detectionMethod: 'action-verb',
+      startIndex: match.index,
+      endIndex: verbPattern.lastIndex
+    });
+  }
+
+  return results;
+}
+
+// =============================================================================
+// Instruction Detection
+// =============================================================================
+
+/**
+ * Instruction markers that indicate explicit teacher instructions.
+ */
+const INSTRUCTION_MARKERS = [
+  'Note:',
+  'Remember:',
+  'Important:',
+  'Tip:',
+  'Hint:',
+  'Warning:',
+  'Key point:',
+  'Key points:',
+];
+
+/**
+ * Detect instructions in text by identifying instruction markers.
+ *
+ * Instructions with explicit markers (Note:, Remember:, Important:) get high confidence.
+ */
+export function detectInstructions(text: string): DetectedContent[] {
+  const results: DetectedContent[] = [];
+
+  // Build pattern for instruction markers
+  const markersPattern = INSTRUCTION_MARKERS.map(m => m.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+  const instructionPattern = new RegExp(
+    `(${markersPattern})\\s*([^.!?\\n]+[.!?]?)`,
+    'gi'
+  );
+
+  let match;
+  while ((match = instructionPattern.exec(text)) !== null) {
+    const instructionText = match[2].trim();
+
+    // Skip if empty or too short
+    if (instructionText.length < 3) continue;
+
+    results.push({
+      type: 'instruction',
+      text: instructionText,
+      confidence: 'high',
+      detectionMethod: 'instruction-prefix',
+      startIndex: match.index,
+      endIndex: instructionPattern.lastIndex
+    });
+  }
+
+  return results;
+}
+
+// =============================================================================
+// Main Aggregation Function
+// =============================================================================
+
+/**
+ * Detect all preservable content in text.
+ *
+ * Returns an aggregated result with questions, activities, and instructions
+ * categorized separately, plus an 'all' array sorted by position in text.
+ *
+ * This is a pure function (no side effects) and deterministic (same input = same output).
+ */
+export function detectPreservableContent(text: string): PreservableContent {
+  const questions = detectQuestions(text);
+  const activities = detectActivities(text);
+  const instructions = detectInstructions(text);
+
+  // Combine and sort by position in text
+  const all = [...questions, ...activities, ...instructions]
+    .sort((a, b) => a.startIndex - b.startIndex);
+
+  return { questions, activities, instructions, all };
+}
