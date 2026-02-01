@@ -77,7 +77,10 @@ Plans:
 3. Comprehension gets evidence scaffolding (find in text, connect ideas, infer meaning)
 4. Each scaffold prompt is verbally deliverable in under 20 words
 
-**Plans**: TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 53-01-PLAN.md - Add word count constraints to scaffolding templates
 
 ---
 
@@ -104,9 +107,9 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 51. Detection Foundation | v3.9 | 2/2 | Complete | 2026-02-01 |
 | 52. Prompt Engineering Core | v3.9 | 2/2 | Complete | 2026-02-01 |
-| 53. Scaffolding Templates | v3.9 | 0/TBD | Not started | - |
+| 53. Scaffolding Templates | v3.9 | 0/1 | Not started | - |
 | 54. Quality Assurance | v3.9 | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-02-01*
-*Last updated: 2026-02-01 - Phase 52 complete*
+*Last updated: 2026-02-01 - Phase 53 planned*
