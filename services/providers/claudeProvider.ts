@@ -4,6 +4,9 @@ import { QuizQuestion, QuestionWithAnswer } from '../geminiService';
 import { getStudentFriendlyRules } from '../prompts/studentFriendlyRules';
 import { DOCUMENT_ANALYSIS_SYSTEM_PROMPT, buildAnalysisUserPrompt } from '../documentAnalysis/analysisPrompts';
 import { ENHANCEMENT_SYSTEM_PROMPT, buildEnhancementUserPrompt } from '../documentEnhancement/enhancementPrompts';
+import { detectPreservableContent } from '../contentPreservation/detector';
+import { PreservableContent, ConfidenceLevel } from '../contentPreservation/types';
+import { getPreservationRules, getTeleprompterPreservationRules } from '../prompts/contentPreservationRules';
 
 // Shared teleprompter rules used across all generation modes
 const TELEPROMPTER_RULES = `
@@ -356,8 +359,8 @@ const ENHANCEMENT_RESULT_JSON_SCHEMA = {
   }
 };
 
-// Model constant
-const MODEL = 'claude-sonnet-4-20250514';
+// Default model constant
+const DEFAULT_CLAUDE_MODEL = 'claude-sonnet-4-20250514';
 
 /**
  * Get the appropriate teleprompter rules based on verbosity level.
@@ -372,6 +375,32 @@ function getTeleprompterRulesForVerbosity(verbosity: VerbosityLevel = 'standard'
     default:
       return TELEPROMPTER_RULES;
   }
+}
+
+/**
+ * Get the source text for detection based on generation mode.
+ * Fresh: lesson text only
+ * Refine: presentation text only
+ * Blend: lesson text (authoritative source per CONTEXT decision)
+ */
+function getDetectionSource(input: GenerationInput): string {
+  switch (input.mode) {
+    case 'fresh':
+      return input.lessonText;
+    case 'refine':
+      return input.presentationText || '';
+    case 'blend':
+      return input.lessonText; // Lesson plan is authoritative
+  }
+}
+
+/**
+ * Get minimum confidence threshold based on mode.
+ * Refine mode: only high-confidence (clear questions ending in ?, explicit activities)
+ * Fresh/Blend: medium confidence (per CONTEXT decision)
+ */
+function getMinConfidenceForMode(mode: GenerationMode): ConfidenceLevel {
+  return mode === 'refine' ? 'high' : 'medium';
 }
 
 /**
@@ -518,7 +547,7 @@ async function callClaude(
         'anthropic-dangerous-direct-browser-access': 'true',  // REQUIRED for browser
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: this.model,
         max_tokens: maxTokens,
         system: systemPrompt,
         messages,
@@ -593,7 +622,12 @@ Questions 7-10: HARD (Evaluate/Create) - "Why does...", "What is the best..."`;
  * since Claude API does not support image generation.
  */
 export class ClaudeProvider implements AIProviderInterface {
-  constructor(private apiKey: string) {}
+  private model: string;
+
+  constructor(private apiKey: string, selectedModel?: string) {
+    this.model = selectedModel || DEFAULT_CLAUDE_MODEL;
+    console.log(`[ClaudeProvider] Using model: ${this.model}`);
+  }
 
   /**
    * Generate lesson slides from various input sources.
@@ -1266,7 +1300,7 @@ Key points: ${request.slideContext.currentSlideContent.join('; ')}`;
           'anthropic-dangerous-direct-browser-access': 'true',
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: this.model,
           max_tokens: 4096,
           system: systemPrompt,
           messages: [{ role: 'user', content: userPrompt }],
@@ -1426,7 +1460,7 @@ INSTRUCTIONS:
         'anthropic-dangerous-direct-browser-access': 'true',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: this.model,
         max_tokens: 1024,
         stream: true,
         system: systemPrompt,
@@ -1512,7 +1546,7 @@ INSTRUCTIONS:
         'anthropic-dangerous-direct-browser-access': 'true',
       },
       body: JSON.stringify({
-        model: MODEL,
+        model: this.model,
         max_tokens: 4096,
         system: DOCUMENT_ANALYSIS_SYSTEM_PROMPT,
         messages: [{
@@ -1594,7 +1628,7 @@ Generate the poster layout now.
         'anthropic-dangerous-direct-browser-access': 'true',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: this.model,
         max_tokens: 4096,
         output_format: {
           type: 'json_schema',
@@ -1642,7 +1676,7 @@ Generate the poster layout now.
         'anthropic-dangerous-direct-browser-access': 'true',
       },
       body: JSON.stringify({
-        model: MODEL,
+        model: this.model,
         max_tokens: 8192,  // Enhancement output is substantial
         system: ENHANCEMENT_SYSTEM_PROMPT,
         messages: [{ role: 'user', content: userPrompt }],
