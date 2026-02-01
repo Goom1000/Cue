@@ -2,19 +2,19 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-01)
+See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** Ready for next milestone
+**Current focus:** v4.0 Clipboard Builder
 
 ## Current Position
 
-Phase: None active
-Plan: None
-Status: Milestone v3.9 shipped
-Last activity: 2026-02-01 — v3.9 Delay Answer Reveal complete
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-02-02 — Milestone v4.0 started
 
-Progress: Ready for next milestone
+Progress: Defining requirements
 
 ## Performance Metrics
 
@@ -45,12 +45,12 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-01
-Stopped at: v3.9 milestone complete
+Last session: 2026-02-02
+Stopped at: Defining requirements for v4.0
 Resume file: None
 
-**Next step:** `/gsd:new-milestone` to start next milestone
+**Next step:** Complete requirements and roadmap
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-01 - v3.9 Delay Answer Reveal shipped*
+*Last updated: 2026-02-02 - v4.0 Clipboard Builder started*

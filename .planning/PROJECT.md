@@ -6,6 +6,17 @@ A presentation tool for teachers that transforms PDF lesson plans into interacti
 
 **v3.9 shipped:** Delay Answer Reveal — AI-generated slides now separate problems from answers, creating deliberate "thinking pauses" for students with scaffolding strategies in the teleprompter. Deployed at https://goom1000.github.io/Cue/
 
+## Current Milestone: v4.0 Clipboard Builder
+
+**Goal:** Enable slide-by-slide deck construction via copy-paste from PowerPoint, with granular control over what gets included and AI cohesion at the end.
+
+**Target features:**
+- Copy slide from PowerPoint → paste into Cue → AI analyzes and improves
+- Paste images directly into slides (teacher-created visuals)
+- "Full image, no text" layout option in tile selector
+- "Make Cohesive" button to unify deck flow after building
+- Upload lesson plan after → AI checks for gaps, suggests slides to fill
+
 ## Current State
 
 Shipped v3.9 with ~29,000 LOC TypeScript. v3.9 delivered Delay Answer Reveal: AI detects teachable moments (Q&A pairs, math problems, definitions) and splits them across progressive bullets. Teachers see scaffolding strategies (math decomposition, vocabulary context, reading evidence) in the teleprompter to guide students through productive struggle before revealing answers. 353 tests validate leakage prevention, format diversity, and provider parity.
@@ -153,7 +164,13 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Active
 
-No active milestone. Run `/gsd:new-milestone` to start next milestone.
+- [ ] Copy slide from PowerPoint and paste into Cue
+- [ ] AI analyzes pasted slide and improves it
+- [ ] Paste images directly into slides
+- [ ] "Full image, no text" layout option
+- [ ] "Make Cohesive" button for deck-wide flow review
+- [ ] Upload lesson plan after deck built → gap analysis
+- [ ] AI suggests slides to fill identified gaps
 
 ### Deferred (v4.0+)
 
@@ -319,4 +336,4 @@ v3.9 delivered Delay Answer Reveal:
 | Jest 30 with ES Module support | --experimental-vm-modules flag for type: "module" project | ✓ Good — v3.8 |
 
 ---
-*Last updated: 2026-02-01 after v3.9 milestone complete*
+*Last updated: 2026-02-02 after v4.0 milestone started*
