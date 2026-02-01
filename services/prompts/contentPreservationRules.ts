@@ -122,3 +122,63 @@ ${FEW_SHOT_EXAMPLES}
 </content_preservation>
 `;
 }
+
+/**
+ * Teleprompter-specific preservation rules.
+ * Questions and activities need delivery context in speaker notes.
+ */
+const TELEPROMPTER_PRESERVATION_RULES = `
+SPEAKER NOTES FOR PRESERVED CONTENT:
+
+When a slide contains preserved content, the teleprompter should:
+
+For QUESTIONS:
+- Introduce the question: "Now ask the class:"
+- Include the exact question text
+- Add follow-up prompts: "[Wait for responses]", "[Call on 2-3 students]"
+- Provide expected answer hints for the teacher
+
+For ACTIVITIES:
+- Set up the activity: "Time for a quick activity:"
+- Include the exact instruction
+- Add timing cues: "[Give them 2 minutes]", "[Walk around and observe]"
+- Provide wrap-up guidance
+
+Example teleprompter for a preserved question:
+"Now let's check understanding. Ask the class: 'What is 3/4 of 12?' [PAUSE - wait for hands] Look for students who might be struggling. The answer we're looking for is 9."
+`;
+
+/**
+ * Build preservation prompt from PreservableContent result.
+ * Convenience wrapper that handles the aggregated detection output.
+ *
+ * @param content PreservableContent from detectPreservableContent()
+ * @param minConfidence Minimum confidence level to include
+ * @returns Formatted prompt section or empty string
+ */
+export function getPreservationRules(
+  content: PreservableContent,
+  minConfidence: ConfidenceLevel = 'medium'
+): string {
+  return buildPreservationPrompt(content.all, minConfidence);
+}
+
+/**
+ * Build teleprompter-specific preservation guidance.
+ * Adds delivery context rules for questions and activities.
+ *
+ * @param content PreservableContent from detectPreservableContent()
+ * @returns Teleprompter guidance section or empty string
+ */
+export function getTeleprompterPreservationRules(
+  content: PreservableContent
+): string {
+  const hasQuestions = content.questions.length > 0;
+  const hasActivities = content.activities.length > 0;
+
+  if (!hasQuestions && !hasActivities) {
+    return '';
+  }
+
+  return TELEPROMPTER_PRESERVATION_RULES;
+}
