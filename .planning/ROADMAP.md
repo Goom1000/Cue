@@ -55,7 +55,11 @@ Plans:
 4. Each scaffolded moment includes 2-3 question prompts for teacher to guide student thinking
 5. Transitions between problem, scaffolding, and answer feel natural (not jarring)
 
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 52-01-PLAN.md - Teachable moment prompt rules with scaffolding templates
+- [ ] 52-02-PLAN.md - Provider integration (Gemini + Claude)
 
 ---
 
@@ -99,7 +103,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 51. Detection Foundation | v3.9 | 2/2 | Complete | 2026-02-01 |
-| 52. Prompt Engineering Core | v3.9 | 0/TBD | Not started | - |
+| 52. Prompt Engineering Core | v3.9 | 0/2 | Not started | - |
 | 53. Scaffolding Templates | v3.9 | 0/TBD | Not started | - |
 | 54. Quality Assurance | v3.9 | 0/TBD | Not started | - |
 
