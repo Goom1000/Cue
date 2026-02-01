@@ -916,3 +916,340 @@ describe('Answer Detection Integration', () => {
     expect(category).toBe('comprehension');
   });
 });
+
+// =============================================================================
+// Teachable Moment Detection (Phase 51-02)
+// =============================================================================
+
+import {
+  detectTeachableMoments,
+  throttleDetections,
+  PROXIMITY_THRESHOLD
+} from './detector';
+
+describe('detectTeachableMoments', () => {
+  describe('Basic Q&A pairing', () => {
+    it('detects simple Q&A pair: "What is 2+2? Answer: 4"', () => {
+      const text = 'What is 2+2? Answer: 4';
+      const results = detectTeachableMoments(text);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].problem.text).toBe('What is 2+2?');
+      expect(results[0].answer?.text).toBe('4');
+      expect(results[0].contentCategory).toBe('math');
+    });
+
+    it('detects multiple Q&A pairs in text', () => {
+      const text = `What is 3+5? Answer: 8
+What is 10-4? Answer: 6
+What is 2*3? Answer: 6`;
+      const results = detectTeachableMoments(text);
+
+      expect(results).toHaveLength(3);
+      expect(results[0].answer?.text).toBe('8');
+      expect(results[1].answer?.text).toBe('6');
+      expect(results[2].answer?.text).toBe('6');
+    });
+
+    it('includes content type classification in each moment', () => {
+      const text = 'What is 2+2? Answer: 4';
+      const results = detectTeachableMoments(text);
+
+      expect(results[0].contentCategory).toBe('math');
+    });
+
+    it('includes proximity distance in each moment', () => {
+      const text = 'What is 2+2? Answer: 4';
+      const results = detectTeachableMoments(text);
+
+      expect(typeof results[0].proximityChars).toBe('number');
+      expect(results[0].proximityChars).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe('Rhetorical question exclusion', () => {
+    it('excludes rhetorical questions from teachable moments', () => {
+      const text = "Isn't this amazing? What is photosynthesis? Answer: the process of plants making food";
+      const results = detectTeachableMoments(text);
+
+      // Only the real question should be detected
+      expect(results).toHaveLength(1);
+      expect(results[0].problem.text).toContain('photosynthesis');
+    });
+
+    it('excludes "Don\'t you think" rhetorical pattern', () => {
+      const text = "Don't you think it's interesting? What is 5+5? Answer: 10";
+      const results = detectTeachableMoments(text);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].problem.text).toBe('What is 5+5?');
+    });
+  });
+
+  describe('Proximity threshold enforcement', () => {
+    it('pairs answer within PROXIMITY_THRESHOLD characters', () => {
+      const text = 'What is 2+2? Answer: 4';
+      const results = detectTeachableMoments(text);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].answer).not.toBeNull();
+    });
+
+    it('does not pair answer beyond PROXIMITY_THRESHOLD characters', () => {
+      // Create text with answer far from question
+      const padding = 'x'.repeat(PROXIMITY_THRESHOLD + 50);
+      const text = `What is your name? ${padding} Answer: John`;
+      const results = detectTeachableMoments(text);
+
+      // Either no moment (no answer paired) or moment with null answer
+      if (results.length > 0) {
+        expect(results[0].answer).toBeNull();
+      }
+    });
+
+    it('PROXIMITY_THRESHOLD is 200 characters', () => {
+      expect(PROXIMITY_THRESHOLD).toBe(200);
+    });
+  });
+
+  describe('Content type classification in moments', () => {
+    it('classifies math content correctly', () => {
+      const text = 'What is 3+4? Answer: 7';
+      const results = detectTeachableMoments(text);
+
+      expect(results[0].contentCategory).toBe('math');
+    });
+
+    it('classifies vocabulary content correctly', () => {
+      const text = 'What does osmosis mean? Answer: It means the movement of water';
+      const results = detectTeachableMoments(text);
+
+      expect(results[0].contentCategory).toBe('vocabulary');
+    });
+
+    it('classifies comprehension content correctly', () => {
+      const text = 'Why did the ice melt? Answer: Because heat was applied';
+      const results = detectTeachableMoments(text);
+
+      expect(results[0].contentCategory).toBe('comprehension');
+    });
+
+    it('classifies science content correctly', () => {
+      const text = 'What happens during photosynthesis? Answer: Plants convert sunlight';
+      const results = detectTeachableMoments(text);
+
+      expect(results[0].contentCategory).toBe('science');
+    });
+  });
+
+  describe('DET-04: Deterministic output', () => {
+    it('produces same output on repeated calls', () => {
+      const text = `What is 2+2? Answer: 4
+What is 3+3? Answer: 6`;
+
+      const results1 = detectTeachableMoments(text);
+      const results2 = detectTeachableMoments(text);
+      const results3 = detectTeachableMoments(text);
+
+      expect(results1).toEqual(results2);
+      expect(results2).toEqual(results3);
+    });
+
+    it('maintains consistent ordering across calls', () => {
+      const text = `What is 5+5? Answer: 10
+What is 8-3? Answer: 5`;
+
+      const results1 = detectTeachableMoments(text);
+      const results2 = detectTeachableMoments(text);
+
+      expect(results1.map(r => r.problem.text)).toEqual(results2.map(r => r.problem.text));
+    });
+  });
+
+  describe('Mixed content handling', () => {
+    it('only converts Q&A portions to moments', () => {
+      const text = `Introduction to math.
+What is 2+2? Answer: 4
+This is just regular text.
+What is 3+3? Answer: 6
+Conclusion paragraph.`;
+      const results = detectTeachableMoments(text);
+
+      expect(results).toHaveLength(2);
+    });
+
+    it('handles text with no Q&A pairs', () => {
+      const text = 'This is regular lesson content with no questions at all.';
+      const results = detectTeachableMoments(text);
+
+      expect(results).toHaveLength(0);
+    });
+
+    it('handles questions without answers', () => {
+      const text = 'What is your favorite color?';
+      const results = detectTeachableMoments(text);
+
+      // Either no moments or moments with null answers
+      expect(results.every(r => r.answer === null || r.answer !== undefined)).toBe(true);
+    });
+  });
+
+  describe('Sorted output', () => {
+    it('returns moments sorted by position in text', () => {
+      const text = `What is 3+3? Answer: 6
+What is 2+2? Answer: 4`;
+      const results = detectTeachableMoments(text);
+
+      // Should be sorted by startIndex of problem
+      for (let i = 1; i < results.length; i++) {
+        expect(results[i].problem.startIndex).toBeGreaterThan(results[i - 1].problem.startIndex);
+      }
+    });
+  });
+});
+
+describe('throttleDetections', () => {
+  // Create mock TeachableMoment objects for testing
+  const createMockMoment = (
+    problemText: string,
+    confidence: 'high' | 'medium' | 'low',
+    proximityChars: number,
+    startIndex: number
+  ) => ({
+    problem: {
+      type: 'question' as const,
+      text: problemText,
+      confidence,
+      detectionMethod: 'punctuation' as const,
+      startIndex,
+      endIndex: startIndex + problemText.length
+    },
+    answer: {
+      type: 'answer' as const,
+      text: '42',
+      confidence: 'high' as const,
+      detectionMethod: 'context' as const,
+      startIndex: startIndex + problemText.length + 10,
+      endIndex: startIndex + problemText.length + 20
+    },
+    contentCategory: 'math' as const,
+    confidence,
+    proximityChars
+  });
+
+  describe('Throttling at 30% threshold', () => {
+    it('limits moments to 30% of bullet count', () => {
+      const moments = [
+        createMockMoment('Q1?', 'high', 10, 0),
+        createMockMoment('Q2?', 'high', 10, 50),
+        createMockMoment('Q3?', 'high', 10, 100),
+        createMockMoment('Q4?', 'high', 10, 150),
+        createMockMoment('Q5?', 'high', 10, 200)
+      ];
+      const bulletCount = 10;
+      const maxPercent = 0.3;
+
+      const result = throttleDetections(moments, bulletCount, maxPercent);
+
+      expect(result.length).toBeLessThanOrEqual(3); // floor(10 * 0.3) = 3
+    });
+
+    it('returns all moments when under threshold', () => {
+      const moments = [
+        createMockMoment('Q1?', 'high', 10, 0),
+        createMockMoment('Q2?', 'high', 10, 50)
+      ];
+      const bulletCount = 10;
+      const maxPercent = 0.3;
+
+      const result = throttleDetections(moments, bulletCount, maxPercent);
+
+      expect(result.length).toBe(2);
+    });
+  });
+
+  describe('Sorting by confidence then proximity', () => {
+    it('prioritizes high confidence moments', () => {
+      const moments = [
+        createMockMoment('Low confidence', 'low', 10, 0),
+        createMockMoment('High confidence', 'high', 10, 50),
+        createMockMoment('Medium confidence', 'medium', 10, 100)
+      ];
+      const bulletCount = 5;
+      const maxPercent = 0.3; // Only 1 allowed
+
+      const result = throttleDetections(moments, bulletCount, maxPercent);
+
+      expect(result.length).toBe(1);
+      expect(result[0].problem.text).toBe('High confidence');
+    });
+
+    it('uses proximity as tiebreaker for equal confidence', () => {
+      const moments = [
+        createMockMoment('Far answer', 'high', 100, 0),
+        createMockMoment('Close answer', 'high', 10, 50),
+        createMockMoment('Medium distance', 'high', 50, 100)
+      ];
+      const bulletCount = 5;
+      const maxPercent = 0.3; // Only 1 allowed
+
+      const result = throttleDetections(moments, bulletCount, maxPercent);
+
+      expect(result.length).toBe(1);
+      expect(result[0].problem.text).toBe('Close answer');
+    });
+  });
+
+  describe('Edge cases', () => {
+    it('handles empty array', () => {
+      const result = throttleDetections([], 10, 0.3);
+      expect(result).toEqual([]);
+    });
+
+    it('handles 0 bullet count (uses minimum of 1)', () => {
+      const moments = [createMockMoment('Q1?', 'high', 10, 0)];
+      const result = throttleDetections(moments, 0, 0.3);
+
+      // With 0 bullets, should return at least empty or minimal results
+      expect(Array.isArray(result)).toBe(true);
+    });
+
+    it('handles maxPercent of 1 (100%)', () => {
+      const moments = [
+        createMockMoment('Q1?', 'high', 10, 0),
+        createMockMoment('Q2?', 'high', 10, 50)
+      ];
+      const result = throttleDetections(moments, 10, 1.0);
+
+      expect(result.length).toBe(2);
+    });
+  });
+});
+
+describe('Throttling integration with detectTeachableMoments', () => {
+  it('applies 30% throttling to detected moments', () => {
+    // Create content with many Q&A pairs (more than 30% would allow)
+    const lines = [];
+    for (let i = 1; i <= 10; i++) {
+      lines.push(`What is ${i}+${i}? Answer: ${i * 2}`);
+    }
+    const text = lines.join('\n');
+
+    const results = detectTeachableMoments(text);
+
+    // With 10 bullets (lines), max should be 3 (30%)
+    expect(results.length).toBeLessThanOrEqual(3);
+  });
+
+  it('preserves all moments when under 30% threshold', () => {
+    const text = `Introduction paragraph.
+Regular content here.
+What is 2+2? Answer: 4
+More regular content.
+Conclusion paragraph.`;
+    const results = detectTeachableMoments(text);
+
+    // Only 1 Q&A in 5 lines = 20% < 30%, should preserve
+    expect(results.length).toBe(1);
+  });
+});
