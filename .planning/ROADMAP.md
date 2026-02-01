@@ -55,8 +55,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 49-01-PLAN.md — Claude provider integration with detection and preservation rules
-- [ ] 49-02-PLAN.md — Gemini service integration with detection and preservation rules
+- [x] 49-01-PLAN.md — Claude provider integration with detection and preservation rules
+- [x] 49-02-PLAN.md — Gemini service integration with detection and preservation rules
 
 **Requirements:**
 - PRES-01: Preserved questions appear verbatim on slides
@@ -116,11 +116,11 @@ Plans:
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
 | 48 | Detection and Rules Foundation | DET-01, DET-02, DET-03, DET-04, DET-05 | ✓ Complete |
-| 49 | Provider Integration and Preservation | PRES-01, PRES-02, PRES-03, PRES-04, PRES-05, PRES-06, PRES-07 | Pending |
+| 49 | Provider Integration and Preservation | PRES-01, PRES-02, PRES-03, PRES-04, PRES-05, PRES-06, PRES-07 | ✓ Complete |
 | 50 | Quality Assurance | QUAL-01, QUAL-02, QUAL-03, QUAL-04 | Pending |
 
 **Coverage:** 16/16 requirements mapped (100%)
 
 ---
 *Roadmap created: 2026-02-01*
-*Last updated: 2026-02-01 — Phase 48 complete*
+*Last updated: 2026-02-01 — Phase 49 complete*
