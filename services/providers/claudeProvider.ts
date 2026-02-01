@@ -665,7 +665,16 @@ export class ClaudeProvider implements AIProviderInterface {
       ? { lessonText: inputOrText, lessonImages: pageImages, mode: 'fresh' }
       : inputOrText;
 
-    const systemPrompt = getSystemPromptForMode(input.mode, input.verbosity, input.gradeLevel);
+    // Detect preservable content from source text based on mode
+    const sourceText = getDetectionSource(input);
+    const detectedContent = detectPreservableContent(sourceText);
+
+    // Debug logging for development (can be removed later)
+    if (detectedContent.all.length > 0) {
+      console.log(`[ClaudeProvider] Detected ${detectedContent.questions.length} questions, ${detectedContent.activities.length} activities`);
+    }
+
+    const systemPrompt = getSystemPromptForMode(input.mode, input.verbosity, input.gradeLevel, detectedContent);
 
     // Verbosity instruction to reinforce system prompt
     const verbosityLevel = input.verbosity || 'standard';
