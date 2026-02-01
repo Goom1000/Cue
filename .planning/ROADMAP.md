@@ -97,7 +97,12 @@ Plans:
 2. Detection and generation work correctly with math, reading, and science lesson plans of varying formats
 3. Both Gemini and Claude providers produce equivalent scaffolded output
 
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 54-01-PLAN.md - Answer leakage prevention tests (QUA-01)
+- [ ] 54-02-PLAN.md - Format diversity detection tests (QUA-02)
+- [ ] 54-03-PLAN.md - Provider parity validation tests (QUA-03)
 
 ---
 
@@ -108,8 +113,8 @@ Plans:
 | 51. Detection Foundation | v3.9 | 2/2 | Complete | 2026-02-01 |
 | 52. Prompt Engineering Core | v3.9 | 2/2 | Complete | 2026-02-01 |
 | 53. Scaffolding Templates | v3.9 | 1/1 | Complete | 2026-02-01 |
-| 54. Quality Assurance | v3.9 | 0/TBD | Not started | - |
+| 54. Quality Assurance | v3.9 | 0/3 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-01*
-*Last updated: 2026-02-01 - Phase 53 complete*
+*Last updated: 2026-02-01 - Phase 54 planned*
