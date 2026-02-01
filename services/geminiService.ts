@@ -3,9 +3,10 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Slide, LessonResource } from "../types";
 import { GenerationInput, GenerationMode, AIProviderError, USER_ERROR_MESSAGES, GameQuestionRequest, SlideContext, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, ChatContext } from './aiProvider';
 import { getStudentFriendlyRules } from './prompts/studentFriendlyRules';
-import { detectPreservableContent } from './contentPreservation/detector';
-import { PreservableContent, ConfidenceLevel } from './contentPreservation/types';
+import { detectPreservableContent, detectTeachableMoments } from './contentPreservation/detector';
+import { PreservableContent, ConfidenceLevel, TeachableMoment } from './contentPreservation/types';
 import { getPreservationRules, getTeleprompterPreservationRules } from './prompts/contentPreservationRules';
+import { getTeachableMomentRules } from './prompts/teachableMomentRules';
 
 // Shared teleprompter rules used across all generation modes
 const TELEPROMPTER_RULES = `
@@ -130,7 +131,8 @@ function getSystemInstructionForMode(
   mode: GenerationMode,
   verbosity: VerbosityLevel = 'standard',
   gradeLevel: string = 'Year 6 (10-11 years old)',
-  preservableContent?: PreservableContent
+  preservableContent?: PreservableContent,
+  teachableMoments?: TeachableMoment[]
 ): string {
   const teleprompterRules = getTeleprompterRulesForVerbosity(verbosity);
   const studentFriendlyRules = getStudentFriendlyRules(gradeLevel);
@@ -145,6 +147,11 @@ function getSystemInstructionForMode(
     ? getTeleprompterPreservationRules(preservableContent)
     : '';
 
+  // Build teachable moment rules if moments detected
+  const teachableMomentRules = teachableMoments && teachableMoments.length > 0
+    ? getTeachableMomentRules(teachableMoments)
+    : '';
+
   switch (mode) {
     case 'fresh':
       return `
@@ -154,6 +161,8 @@ Your goal is to transform a formal lesson plan into a teaching slideshow.
 ${studentFriendlyRules}
 
 ${preservationRules}
+
+${teachableMomentRules}
 
 CRITICAL: You will be provided with both text AND visual images of the document.
 - Use the images to accurately interpret TABLES, CHARTS, and DIAGRAMS that may not have parsed well as text.
@@ -177,6 +186,8 @@ Your goal is to transform an existing presentation into clean, less text-dense C
 ${studentFriendlyRules}
 
 ${preservationRules}
+
+${teachableMomentRules}
 
 CRITICAL RULE - CONTENT PRESERVATION:
 **You MUST preserve ALL content from the original presentation.**
@@ -210,6 +221,8 @@ Your goal is to create slides that combine lesson content with an existing prese
 ${studentFriendlyRules}
 
 ${preservationRules}
+
+${teachableMomentRules}
 
 BLEND MODE RULES:
 - Analyze BOTH the lesson plan AND existing presentation provided.
@@ -248,13 +261,24 @@ export const generateLessonSlides = async (
     console.log(`[GeminiService] Detected ${detectedContent.questions.length} questions, ${detectedContent.activities.length} activities`);
   }
 
+  // Detect teachable moments for delayed answer reveal
+  const teachableMoments = detectTeachableMoments(sourceText);
+
+  // Debug logging for teachable moments
+  if (teachableMoments.length > 0) {
+    console.log(`[GeminiService] Detected ${teachableMoments.length} teachable moments`);
+    teachableMoments.forEach(tm => {
+      console.log(`  - ${tm.contentCategory}: ${tm.problem.text.substring(0, 50)}...`);
+    });
+  }
+
   const ai = new GoogleGenAI({ apiKey });
   const model = "gemini-3-flash-preview";
 
   // Debug: Log verbosity being used for generation
   console.log('[GeminiService] generateLessonSlides - verbosity:', input.verbosity || 'undefined (defaulting to standard)');
 
-  const systemInstruction = getSystemInstructionForMode(input.mode, input.verbosity, input.gradeLevel, detectedContent);
+  const systemInstruction = getSystemInstructionForMode(input.mode, input.verbosity, input.gradeLevel, detectedContent, teachableMoments);
 
   // Build contents array based on mode
   const contents: any[] = [];
