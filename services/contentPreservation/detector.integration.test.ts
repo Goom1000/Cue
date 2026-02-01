@@ -394,6 +394,117 @@ describe('QUA-02: Format Diversity Detection', () => {
         expect(['high', 'medium', 'low']).toContain(m.confidence);
       });
     });
+
+    it('verifies 30% throttling scales with content size', () => {
+      // Small content: 5 lines * 0.3 = 1 moment max
+      const smallContent = Array.from({ length: 5 }, (_, i) =>
+        `What is ${i}+1? Answer: ${i + 1}`
+      ).join('\n');
+
+      // Medium content: 20 lines * 0.3 = 6 moments max
+      const mediumContent = Array.from({ length: 20 }, (_, i) =>
+        `What is ${i}+1? Answer: ${i + 1}`
+      ).join('\n');
+
+      // Large content: 50 lines * 0.3 = 15 moments max
+      const largeContent = Array.from({ length: 50 }, (_, i) =>
+        `What is ${i}+1? Answer: ${i + 1}`
+      ).join('\n');
+
+      const smallMoments = detectTeachableMoments(smallContent);
+      const mediumMoments = detectTeachableMoments(mediumContent);
+      const largeMoments = detectTeachableMoments(largeContent);
+
+      // Verify throttling scales appropriately
+      expect(smallMoments.length).toBeLessThanOrEqual(2);
+      expect(mediumMoments.length).toBeLessThanOrEqual(7);
+      expect(largeMoments.length).toBeLessThanOrEqual(16);
+
+      // Verify all have some detections
+      expect(smallMoments.length).toBeGreaterThan(0);
+      expect(mediumMoments.length).toBeGreaterThan(0);
+      expect(largeMoments.length).toBeGreaterThan(0);
+
+      // Verify larger content has more moments (throttling scales)
+      expect(largeMoments.length).toBeGreaterThan(smallMoments.length);
+    });
+
+    it('preserves all moments when under 30% threshold', () => {
+      // 10 lines with only 2 Q&A pairs = 20% < 30%
+      const text = `
+        Introduction to the lesson.
+        Today we learn about math.
+        What is 2+2? Answer: 4
+        This is regular content.
+        More regular content.
+        What is 3+3? Answer: 6
+        Conclusion paragraph.
+        Final summary.
+        End of lesson.
+        Additional padding.
+      `;
+
+      const moments = detectTeachableMoments(text);
+
+      // Both moments should be preserved (2/10 = 20% < 30%)
+      expect(moments.length).toBe(2);
+    });
+
+    it('throttles by confidence - high confidence preferred', () => {
+      // Create content where we can infer confidence ranking
+      // High confidence: clear punctuation-based questions
+      // All questions here should be high confidence (ending with ?)
+      const denseQA = Array.from({ length: 20 }, (_, i) =>
+        `What is ${i}+1? Answer: ${i + 1}`
+      ).join('\n');
+
+      const moments = detectTeachableMoments(denseQA);
+
+      // Verify throttling occurred
+      expect(moments.length).toBeLessThan(20);
+      expect(moments.length).toBeGreaterThan(0);
+
+      // All retained should be high confidence (since all source Q&A were high)
+      moments.forEach(m => {
+        expect(m.confidence).toBe('high');
+      });
+    });
+
+    it('maintains position ordering after throttling', () => {
+      // Dense content that will be throttled
+      const denseContent = Array.from({ length: 30 }, (_, i) =>
+        `What is ${i}+1? Answer: ${i + 1}`
+      ).join('\n');
+
+      const moments = detectTeachableMoments(denseContent);
+
+      // Verify throttling occurred
+      expect(moments.length).toBeLessThan(30);
+
+      // Verify ordering is maintained (sorted by position)
+      for (let i = 1; i < moments.length; i++) {
+        expect(moments[i].problem.startIndex)
+          .toBeGreaterThan(moments[i - 1].problem.startIndex);
+      }
+    });
+
+    it('throttles consistently across repeated calls (deterministic)', () => {
+      const denseContent = Array.from({ length: 25 }, (_, i) =>
+        `What is ${i}? Answer: ${i}`
+      ).join('\n');
+
+      const results1 = detectTeachableMoments(denseContent);
+      const results2 = detectTeachableMoments(denseContent);
+      const results3 = detectTeachableMoments(denseContent);
+
+      // Verify all calls return identical results
+      expect(results1).toEqual(results2);
+      expect(results2).toEqual(results3);
+
+      // Verify throttling was applied
+      expect(results1.length).toBeLessThan(25);
+      expect(results1.length).toBeGreaterThan(0);
+    });
   });
 
   // ===========================================================================
