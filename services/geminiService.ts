@@ -6,7 +6,7 @@ import { getStudentFriendlyRules } from './prompts/studentFriendlyRules';
 import { detectPreservableContent, detectTeachableMoments } from './contentPreservation/detector';
 import { PreservableContent, ConfidenceLevel, TeachableMoment } from './contentPreservation/types';
 import { getPreservationRules, getTeleprompterPreservationRules } from './prompts/contentPreservationRules';
-import { getTeachableMomentRules } from './prompts/teachableMomentRules';
+import { getTeachableMomentRules, getVisualScaffoldingRules } from './prompts/teachableMomentRules';
 
 // Shared teleprompter rules used across all generation modes
 const TELEPROMPTER_RULES = `
@@ -132,7 +132,8 @@ function getSystemInstructionForMode(
   verbosity: VerbosityLevel = 'standard',
   gradeLevel: string = 'Year 6 (10-11 years old)',
   preservableContent?: PreservableContent,
-  teachableMoments?: TeachableMoment[]
+  teachableMoments?: TeachableMoment[],
+  useVisualScaffolding: boolean = false
 ): string {
   const teleprompterRules = getTeleprompterRulesForVerbosity(verbosity);
   const studentFriendlyRules = getStudentFriendlyRules(gradeLevel);
@@ -147,9 +148,14 @@ function getSystemInstructionForMode(
     ? getTeleprompterPreservationRules(preservableContent)
     : '';
 
-  // Build teachable moment rules if moments detected
+  // Build teachable moment rules:
+  // - If text-based moments detected, use those
+  // - If visual scaffolding mode (image-based PDF with no extractable text), use visual rules
+  // - Otherwise, no scaffolding rules
   const teachableMomentRules = teachableMoments && teachableMoments.length > 0
     ? getTeachableMomentRules(teachableMoments)
+    : useVisualScaffolding
+    ? getVisualScaffoldingRules()
     : '';
 
   switch (mode) {
@@ -162,8 +168,6 @@ ${studentFriendlyRules}
 
 ${preservationRules}
 
-${teachableMomentRules}
-
 CRITICAL: You will be provided with both text AND visual images of the document.
 - Use the images to accurately interpret TABLES, CHARTS, and DIAGRAMS that may not have parsed well as text.
 - Preserve the pedagogical structure: 'Hook', 'I Do', 'We Do', 'You Do'.
@@ -174,6 +178,8 @@ CRITICAL: You will be provided with both text AND visual images of the document.
 ${teleprompterRules}
 
 ${teleprompterPreservationRules}
+
+${teachableMomentRules}
 
 LAYOUTS: Use 'split' for content with images, 'grid' or 'flowchart' for process stages, 'full-image' for hooks, and 'grid' for Success Criteria/Differentiation.
 `;
@@ -186,8 +192,6 @@ Your goal is to transform an existing presentation into clean, less text-dense C
 ${studentFriendlyRules}
 
 ${preservationRules}
-
-${teachableMomentRules}
 
 CRITICAL RULE - CONTENT PRESERVATION:
 **You MUST preserve ALL content from the original presentation.**
@@ -210,6 +214,8 @@ ${teleprompterRules}
 
 ${teleprompterPreservationRules}
 
+${teachableMomentRules}
+
 LAYOUTS: Use 'split' for content with images, 'grid' or 'flowchart' for process stages, 'full-image' for hooks.
 `;
 
@@ -221,8 +227,6 @@ Your goal is to create slides that combine lesson content with an existing prese
 ${studentFriendlyRules}
 
 ${preservationRules}
-
-${teachableMomentRules}
 
 BLEND MODE RULES:
 - Analyze BOTH the lesson plan AND existing presentation provided.
@@ -236,6 +240,8 @@ BLEND MODE RULES:
 ${teleprompterRules}
 
 ${teleprompterPreservationRules}
+
+${teachableMomentRules}
 
 LAYOUTS: Use 'split' for content with images, 'grid' or 'flowchart' for process stages, 'full-image' for hooks.
 `;
@@ -262,6 +268,10 @@ export const generateLessonSlides = async (
   }
 
   // Detect teachable moments for delayed answer reveal
+  console.log('[GeminiService] Mode:', input.mode,
+              '| lessonText:', input.lessonText?.length || 0, 'chars',
+              '| presentationText:', input.presentationText?.length || 0, 'chars');
+  console.log('[GeminiService] lessonText preview:', JSON.stringify(input.lessonText?.substring(0, 100)));
   console.log('[GeminiService] Detecting teachable moments in source text, length:', sourceText.length);
   const teachableMoments = detectTeachableMoments(sourceText);
   console.log(`[GeminiService] Detected ${teachableMoments.length} teachable moments`);
@@ -273,13 +283,24 @@ export const generateLessonSlides = async (
     });
   }
 
+  // Determine if we should use visual scaffolding (image-based PDF with no extractable text)
+  // Threshold: less than 50 chars of actual text content (excluding whitespace)
+  const hasMinimalText = sourceText.replace(/\s/g, '').length < 50;
+  const hasImages = (input.lessonImages && input.lessonImages.length > 0) ||
+                    (input.presentationImages && input.presentationImages.length > 0);
+  const useVisualScaffolding = hasMinimalText && hasImages && teachableMoments.length === 0;
+
+  if (useVisualScaffolding) {
+    console.log('[GeminiService] Using VISUAL SCAFFOLDING mode (image-based PDF detected)');
+  }
+
   const ai = new GoogleGenAI({ apiKey });
   const model = "gemini-3-flash-preview";
 
   // Debug: Log verbosity being used for generation
   console.log('[GeminiService] generateLessonSlides - verbosity:', input.verbosity || 'undefined (defaulting to standard)');
 
-  const systemInstruction = getSystemInstructionForMode(input.mode, input.verbosity, input.gradeLevel, detectedContent, teachableMoments);
+  const systemInstruction = getSystemInstructionForMode(input.mode, input.verbosity, input.gradeLevel, detectedContent, teachableMoments, useVisualScaffolding);
 
   // Build contents array based on mode
   const contents: any[] = [];

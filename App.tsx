@@ -363,6 +363,8 @@ function App() {
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
       const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
 
+      console.log('[PDF] Processing file:', file.name, '| Pages:', pdf.numPages);
+
       let fullText = "";
       const images: string[] = [];
       const pagesToProcess = Math.min(pdf.numPages, 5);
@@ -370,7 +372,9 @@ function App() {
       for (let i = 1; i <= pagesToProcess; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
-        fullText += textContent.items.map((item: any) => item.str).join(' ') + "\n\n";
+        const pageText = textContent.items.map((item: any) => item.str).join(' ');
+        console.log(`[PDF] Page ${i}: ${textContent.items.length} text items, ${pageText.length} chars`);
+        fullText += pageText + "\n\n";
 
         const viewport = page.getViewport({ scale: 1.5 });
         const canvas = document.createElement('canvas');
@@ -380,6 +384,9 @@ function App() {
         await page.render({ canvasContext: context, viewport }).promise;
         images.push(canvas.toDataURL('image/jpeg', 0.8));
       }
+
+      console.log('[PDF] Total extracted text:', fullText.length, 'chars');
+      console.log('[PDF] Text preview:', JSON.stringify(fullText.substring(0, 200)));
 
       onComplete(fullText, images);
     } catch (err) {

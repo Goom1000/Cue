@@ -281,8 +281,81 @@ This is a hook/engagement question, not a problem requiring scaffolding.
 `;
 
 // =============================================================================
-// Main Function
+// Main Functions
 // =============================================================================
+
+/**
+ * Generate visual scaffolding rules for image-based PDFs where text extraction failed.
+ *
+ * When a PDF is image-based (scanned or exported as images), we can't detect
+ * teachable moments from text. Instead, we include ALL scaffolding templates
+ * and instruct the AI to identify Q&A pairs visually from the images.
+ *
+ * @returns Formatted prompt section with visual detection instructions and all templates
+ */
+export function getVisualScaffoldingRules(): string {
+  // Include ALL scaffolding templates since we don't know the content type
+  const allTemplates = [
+    MATH_SCAFFOLDING_TEMPLATE,
+    VOCABULARY_SCAFFOLDING_TEMPLATE,
+    COMPREHENSION_SCAFFOLDING_TEMPLATE,
+    SCIENCE_SCAFFOLDING_TEMPLATE,
+    GENERAL_SCAFFOLDING_TEMPLATE
+  ];
+
+  return `
+<teachable_moment_formatting>
+
+**IMPORTANT: VISUAL Q&A DETECTION MODE**
+
+The uploaded document is image-based (text could not be extracted). You must VISUALLY identify any question-and-answer pairs in the images and apply scaffolding rules.
+
+VISUAL DETECTION INSTRUCTIONS:
+1. Look for questions in the images (sentences ending with ?, math problems, vocabulary terms with definitions)
+2. Look for answers near those questions (explicit answers, solutions, definitions)
+3. When you find a Q&A pair, apply the scaffolding rules below
+
+== BULLET STRUCTURE (MANDATORY) ==
+
+When you identify a Q&A pair in the images:
+- Problem bullet: Contains ONLY the question/problem. NO answer text whatsoever.
+- Answer bullet: The immediately following bullet. Contains the answer/solution.
+- Problem and answer are ALWAYS consecutive bullets on the SAME slide.
+- Never combine problem and answer in one bullet - this causes "answer leakage" where students see the answer before they have time to think.
+
+== TELEPROMPTER SCAFFOLDING (CRITICAL) ==
+
+The teleprompter segment AFTER the problem bullet (BEFORE answer reveal) must contain QUESTIONS that guide student thinking - NOT explanations or answers.
+
+SCAFFOLDING = Questions that help students figure it out themselves
+SCAFFOLDING ≠ Telling students the answer or explaining how to solve it
+
+Format: 2-3 SHORT questions with [PAUSE] timing cues (3-5 seconds each)
+
+CORRECT scaffolding for "A $60 bag has 10% off. What is the new price?":
+  "To find 10%, we divide by 10. [PAUSE] What's 60 divided by 10? [PAUSE] Now subtract that from the original price."
+
+WRONG scaffolding (DO NOT DO THIS):
+  "Ten percent of sixty is six dollars. So sixty minus six gives us fifty-four dollars."
+  ^^^ This EXPLAINS the answer - it defeats the purpose! Students don't think, they just listen.
+
+The goal is to make students THINK before the answer appears, not to explain the answer to them.
+
+Content-Specific Scaffolding Templates (use the appropriate one based on content type):
+${allTemplates.join('\n')}
+
+${VERBAL_DELIVERABILITY_RULES}
+
+== TELEPROMPTER CONFIRMATION ==
+
+The teleprompter segment AFTER the answer bullet celebrates and extends learning.
+Format: Acknowledgment + common misconception or extension
+
+${TEACHABLE_MOMENT_EXAMPLES}
+
+</teachable_moment_formatting>
+`;
+}
 
 /**
  * Generate teachable moment formatting rules for the AI system prompt.
@@ -324,6 +397,8 @@ export function getTeachableMomentRules(teachableMoments: TeachableMoment[]): st
 
   return `
 <teachable_moment_formatting>
+
+**IMPORTANT: These rules OVERRIDE the normal teleprompter rules above for any detected teachable moments (problems with answers).**
 
 TEACHABLE MOMENT FORMATTING RULES:
 

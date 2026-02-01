@@ -7,7 +7,7 @@ import { ENHANCEMENT_SYSTEM_PROMPT, buildEnhancementUserPrompt } from '../docume
 import { detectPreservableContent, detectTeachableMoments } from '../contentPreservation/detector';
 import { PreservableContent, ConfidenceLevel, TeachableMoment } from '../contentPreservation/types';
 import { getPreservationRules, getTeleprompterPreservationRules } from '../prompts/contentPreservationRules';
-import { getTeachableMomentRules } from '../prompts/teachableMomentRules';
+import { getTeachableMomentRules, getVisualScaffoldingRules } from '../prompts/teachableMomentRules';
 
 // Shared teleprompter rules used across all generation modes
 const TELEPROMPTER_RULES = `
@@ -412,7 +412,8 @@ function getSystemPromptForMode(
   verbosity: VerbosityLevel = 'standard',
   gradeLevel: string = 'Year 6 (10-11 years old)',
   preservableContent?: PreservableContent,
-  teachableMoments?: TeachableMoment[]
+  teachableMoments?: TeachableMoment[],
+  useVisualScaffolding: boolean = false
 ): string {
   const teleprompterRules = getTeleprompterRulesForVerbosity(verbosity);
   const studentFriendlyRules = getStudentFriendlyRules(gradeLevel);
@@ -427,9 +428,14 @@ function getSystemPromptForMode(
     ? getTeleprompterPreservationRules(preservableContent)
     : '';
 
-  // Build teachable moment rules if moments detected
+  // Build teachable moment rules:
+  // - If text-based moments detected, use those
+  // - If visual scaffolding mode (image-based PDF with no extractable text), use visual rules
+  // - Otherwise, no scaffolding rules
   const teachableMomentRules = teachableMoments && teachableMoments.length > 0
     ? getTeachableMomentRules(teachableMoments)
+    : useVisualScaffolding
+    ? getVisualScaffoldingRules()
     : '';
 
   switch (mode) {
@@ -442,8 +448,6 @@ ${studentFriendlyRules}
 
 ${preservationRules}
 
-${teachableMomentRules}
-
 CRITICAL: You will be provided with text content from the document.
 - Preserve the pedagogical structure: 'Hook', 'I Do', 'We Do', 'You Do'.
 - **MANDATORY**: You MUST include distinct slides for **'Success Criteria'** and **'Differentiation'** (Support, Extension, Intervention) found in the document.
@@ -453,6 +457,8 @@ CRITICAL: You will be provided with text content from the document.
 ${teleprompterRules}
 
 ${teleprompterPreservationRules}
+
+${teachableMomentRules}
 
 LAYOUTS: Use 'split' for content with images, 'grid' or 'flowchart' for process stages, 'full-image' for hooks, and 'grid' for Success Criteria/Differentiation.
 
@@ -467,8 +473,6 @@ Your goal is to transform an existing presentation into clean, less text-dense C
 ${studentFriendlyRules}
 
 ${preservationRules}
-
-${teachableMomentRules}
 
 CRITICAL RULE - CONTENT PRESERVATION:
 **You MUST preserve ALL content from the original presentation.**
@@ -491,6 +495,8 @@ ${teleprompterRules}
 
 ${teleprompterPreservationRules}
 
+${teachableMomentRules}
+
 LAYOUTS: Use 'split' for content with images, 'grid' or 'flowchart' for process stages, 'full-image' for hooks.
 
 ${JSON_OUTPUT_FORMAT}
@@ -505,8 +511,6 @@ ${studentFriendlyRules}
 
 ${preservationRules}
 
-${teachableMomentRules}
-
 BLEND MODE RULES:
 - Analyze BOTH the lesson plan AND existing presentation provided.
 - Determine content overlap between sources.
@@ -519,6 +523,8 @@ BLEND MODE RULES:
 ${teleprompterRules}
 
 ${teleprompterPreservationRules}
+
+${teachableMomentRules}
 
 LAYOUTS: Use 'split' for content with images, 'grid' or 'flowchart' for process stages, 'full-image' for hooks.
 
@@ -698,7 +704,17 @@ export class ClaudeProvider implements AIProviderInterface {
       });
     }
 
-    const systemPrompt = getSystemPromptForMode(input.mode, input.verbosity, input.gradeLevel, detectedContent, teachableMoments);
+    // Determine if we should use visual scaffolding (image-based PDF with no extractable text)
+    const hasMinimalText = sourceText.replace(/\s/g, '').length < 50;
+    const hasImages = (input.lessonImages && input.lessonImages.length > 0) ||
+                      (input.presentationImages && input.presentationImages.length > 0);
+    const useVisualScaffolding = hasMinimalText && hasImages && teachableMoments.length === 0;
+
+    if (useVisualScaffolding) {
+      console.log('[ClaudeProvider] Using VISUAL SCAFFOLDING mode (image-based PDF detected)');
+    }
+
+    const systemPrompt = getSystemPromptForMode(input.mode, input.verbosity, input.gradeLevel, detectedContent, teachableMoments, useVisualScaffolding);
 
     // Verbosity instruction to reinforce system prompt
     const verbosityLevel = input.verbosity || 'standard';
