@@ -2,15 +2,28 @@
  * Content detection module for identifying preservable content in lesson plans.
  * Pure functions that accept text input and return typed detection results.
  *
- * Detection patterns:
- * - DET-01: Questions by punctuation (?)
- * - DET-02: Questions by context (Ask:, Question:)
+ * Content Preservation Detection:
+ * - DET-01: Questions by punctuation (sentences ending with ?)
+ * - DET-02: Questions by context (Ask:, Question:, Q1: prefixes)
  * - DET-03: Activities by action verbs (Bloom's taxonomy)
- * - DET-04: Pure, deterministic functions
+ * - DET-04: Pure, deterministic functions (same input = same output)
  *
  * Teachable Moment Detection (Phase 51):
- * - Answer detection: Answer:, A:, Ans:, A1:, =, equals
+ * - Answer detection: Answer:, A:, Ans:, A1:, =, equals patterns
  * - Content classification: math, vocabulary, science, comprehension, general
+ * - Teachable moment aggregation: detectTeachableMoments pairs questions with answers
+ * - Throttling: Limits detection to 30% of content bullets (PROXIMITY_THRESHOLD = 200)
+ *
+ * Exports:
+ * - detectQuestions: Find questions in text
+ * - detectActivities: Find instructional activities
+ * - detectInstructions: Find explicit teacher instructions
+ * - detectPreservableContent: Aggregate all preservable content
+ * - findAnswerInRange: Find answers near a position
+ * - classifyContentCategory: Classify content type for scaffolding
+ * - detectTeachableMoments: Main teachable moment detection with throttling
+ * - throttleDetections: Limit moments to percentage of bullets
+ * - PROXIMITY_THRESHOLD: Maximum distance for answer pairing
  */
 
 import {
