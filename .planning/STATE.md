@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 ## Current Position
 
 Phase: 52 of 54 (Prompt Engineering Core)
-Plan: 1/? in phase (wave 1 complete)
+Plan: 2/? in phase (wave 2 complete)
 Status: In progress
-Last activity: 2026-02-01 - Completed 52-01-PLAN.md (teachable moment rules)
+Last activity: 2026-02-01 - Completed 52-02-PLAN.md (provider integration)
 
-Progress: [████░░░░░░] 38% (1.25/4 phases in v3.9)
+Progress: [█████░░░░░] 50% (2/4 phases in v3.9)
 Pending todos: 11 (one converted to milestone)
 
 ## v3.9 Scope
@@ -22,8 +22,8 @@ Pending todos: 11 (one converted to milestone)
 **Goal:** AI-generated slides separate problems from answers, giving students thinking time with teacher-guided scaffolding in the teleprompter.
 
 **Phases:**
-- Phase 51: Detection Foundation (DET-01 through DET-04)
-- Phase 52: Prompt Engineering Core (RST-01 through RST-04, SCF-01 through SCF-03)
+- Phase 51: Detection Foundation (DET-01 through DET-04) - COMPLETE
+- Phase 52: Prompt Engineering Core (RST-01 through RST-04, SCF-01 through SCF-03) - IN PROGRESS
 - Phase 53: Scaffolding Templates (SCF-04, SCF-05)
 - Phase 54: Quality Assurance (QUA-01 through QUA-03)
 
@@ -38,7 +38,7 @@ Pending todos: 11 (one converted to milestone)
 **Velocity:**
 - Milestones shipped: 19 (v1.0 through v3.8)
 - Total phases completed: 51
-- Total plans completed: 154
+- Total plans completed: 156
 - Total LOC: ~26,700 TypeScript
 
 **Recent Milestones:**
@@ -63,11 +63,11 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-01
-Stopped at: Completed 52-01-PLAN.md
+Stopped at: Completed 52-02-PLAN.md
 Resume file: None
 
-**Next step:** Execute 52-02-PLAN.md (schema integration)
+**Next step:** Execute 52-03-PLAN.md (if exists) or proceed to Phase 53
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-01 - 52-01 complete*
+*Last updated: 2026-02-01 - 52-02 complete*
