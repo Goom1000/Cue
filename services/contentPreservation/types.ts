@@ -35,3 +35,26 @@ export interface PreservableContent {
   instructions: DetectedContent[];
   all: DetectedContent[];  // Convenience: sorted by startIndex
 }
+
+// =============================================================================
+// Teachable Moment Detection Types (Phase 51)
+// =============================================================================
+
+// Content categories for scaffolding selection
+export type ContentCategory = 'math' | 'vocabulary' | 'comprehension' | 'science' | 'general';
+
+// Extended detection method for answer patterns
+export type AnswerDetectionMethod =
+  | 'answer-marker'     // "Answer:", "A:", "Ans:"
+  | 'numbered-answer'   // "A1:", "A2:"
+  | 'math-result'       // "= 15", "equals 42"
+  | 'definition';       // "X means Y", "defined as"
+
+// A detected problem-answer pair that should trigger delayed reveal
+export interface TeachableMoment {
+  problem: DetectedContent;           // The question/problem portion
+  answer: DetectedContent | null;     // The paired answer (null if not found within proximity)
+  contentCategory: ContentCategory;   // Classification for scaffolding
+  confidence: ConfidenceLevel;        // Combined confidence of the detection
+  proximityChars: number;             // Distance in characters between problem end and answer start
+}

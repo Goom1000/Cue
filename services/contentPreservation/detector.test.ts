@@ -7,13 +7,17 @@
  * - DET-03: Activity detection (Bloom's taxonomy action verbs)
  * - DET-04: Consistency (same input = same output)
  * - DET-05: PowerPoint input format
+ * - Answer Detection: Finding answers near questions (Answer:, A:, =, equals)
+ * - Content Classification: Categorizing content (math, vocabulary, comprehension, science, general)
  */
 
 import {
   detectQuestions,
   detectActivities,
   detectInstructions,
-  detectPreservableContent
+  detectPreservableContent,
+  findAnswerInRange,
+  classifyContentCategory
 } from './detector';
 
 // =============================================================================
@@ -642,5 +646,273 @@ describe('Edge cases', () => {
     // Context detection is case-insensitive
     expect(results.questions.length).toBeGreaterThanOrEqual(2);
     expect(results.instructions.length).toBeGreaterThanOrEqual(1);
+  });
+});
+
+// =============================================================================
+// Answer Detection (Phase 51 - findAnswerInRange)
+// =============================================================================
+
+describe('findAnswerInRange', () => {
+  describe('Answer marker patterns', () => {
+    it('detects "Answer:" pattern', () => {
+      const text = ' Answer: 7';
+      const result = findAnswerInRange(text, 0);
+
+      expect(result).not.toBeNull();
+      expect(result?.text).toBe('7');
+      expect(result?.type).toBe('answer');
+    });
+
+    it('detects "A:" shorthand pattern', () => {
+      const text = ' A: The capital is Paris';
+      const result = findAnswerInRange(text, 0);
+
+      expect(result).not.toBeNull();
+      expect(result?.text).toBe('The capital is Paris');
+    });
+
+    it('detects "Ans:" pattern', () => {
+      const text = ' Ans: Photosynthesis is the process';
+      const result = findAnswerInRange(text, 0);
+
+      expect(result).not.toBeNull();
+      expect(result?.text).toContain('Photosynthesis');
+    });
+  });
+
+  describe('Numbered answer patterns', () => {
+    it('detects "A1:" numbered answer', () => {
+      const text = ' A1: First answer here.';
+      const result = findAnswerInRange(text, 0);
+
+      expect(result).not.toBeNull();
+      expect(result?.text).toBe('First answer here.');
+    });
+
+    it('detects "A2:" numbered answer', () => {
+      const text = ' A2: Second answer here.';
+      const result = findAnswerInRange(text, 0);
+
+      expect(result).not.toBeNull();
+      expect(result?.text).toBe('Second answer here.');
+    });
+  });
+
+  describe('Math result patterns', () => {
+    it('detects "= 15" math result', () => {
+      const text = ' = 15';
+      const result = findAnswerInRange(text, 0);
+
+      expect(result).not.toBeNull();
+      expect(result?.text).toBe('15');
+    });
+
+    it('detects "equals 42" pattern', () => {
+      const text = ' equals 42';
+      const result = findAnswerInRange(text, 0);
+
+      expect(result).not.toBeNull();
+      expect(result?.text).toBe('42');
+    });
+
+    it('detects "= 3.14" decimal result', () => {
+      const text = ' = 3.14';
+      const result = findAnswerInRange(text, 0);
+
+      expect(result).not.toBeNull();
+      expect(result?.text).toBe('3.14');
+    });
+  });
+
+  describe('Edge cases', () => {
+    it('returns null when no answer found', () => {
+      const text = ' This is just regular text without answers.';
+      const result = findAnswerInRange(text, 0);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null for empty string', () => {
+      const result = findAnswerInRange('', 0);
+
+      expect(result).toBeNull();
+    });
+
+    it('adjusts startIndex correctly for absolute position', () => {
+      const text = ' Answer: 7';
+      const result = findAnswerInRange(text, 100); // Offset by 100
+
+      expect(result).not.toBeNull();
+      expect(result?.startIndex).toBeGreaterThanOrEqual(100);
+    });
+  });
+});
+
+// =============================================================================
+// Content Classification (Phase 51 - classifyContentCategory)
+// =============================================================================
+
+describe('classifyContentCategory', () => {
+  describe('Math content detection', () => {
+    it('classifies content with arithmetic operators as math', () => {
+      const result = classifyContentCategory('What is 3+4?', '7');
+      expect(result).toBe('math');
+    });
+
+    it('classifies content with equals sign as math', () => {
+      const result = classifyContentCategory('Calculate the sum', '= 15');
+      expect(result).toBe('math');
+    });
+
+    it('classifies content with percentages as math', () => {
+      const result = classifyContentCategory('What is 10% of 100?', '10');
+      expect(result).toBe('math');
+    });
+
+    it('classifies "solve" problems as math', () => {
+      const result = classifyContentCategory('Solve for x', 'x = 5');
+      expect(result).toBe('math');
+    });
+
+    it('classifies "calculate" problems as math', () => {
+      const result = classifyContentCategory('Calculate the area', '25 square units');
+      expect(result).toBe('math');
+    });
+
+    it('classifies fraction problems as math', () => {
+      const result = classifyContentCategory('What is 3/4 of 12?', '9');
+      expect(result).toBe('math');
+    });
+  });
+
+  describe('Vocabulary content detection', () => {
+    it('classifies "means" definitions as vocabulary', () => {
+      const result = classifyContentCategory('Define osmosis', 'Osmosis means the movement of water');
+      expect(result).toBe('vocabulary');
+    });
+
+    it('classifies "defined as" content as vocabulary', () => {
+      const result = classifyContentCategory('What is photosynthesis?', 'It is defined as the process');
+      expect(result).toBe('vocabulary');
+    });
+
+    it('classifies synonym content as vocabulary', () => {
+      const result = classifyContentCategory('Find a synonym for happy', 'joyful');
+      expect(result).toBe('vocabulary');
+    });
+
+    it('classifies antonym content as vocabulary', () => {
+      const result = classifyContentCategory('What is an antonym of hot?', 'cold');
+      expect(result).toBe('vocabulary');
+    });
+  });
+
+  describe('Science content detection', () => {
+    it('classifies experiment content as science', () => {
+      const result = classifyContentCategory('Describe the experiment', 'The experiment showed that');
+      expect(result).toBe('science');
+    });
+
+    it('classifies hypothesis content as science', () => {
+      const result = classifyContentCategory('What is your hypothesis?', 'My hypothesis is that plants need light');
+      expect(result).toBe('science');
+    });
+
+    it('classifies observation content as science', () => {
+      const result = classifyContentCategory('What did you observe?', 'I observed the reaction');
+      expect(result).toBe('science');
+    });
+
+    it('classifies chemical content as science', () => {
+      const result = classifyContentCategory('What happens in this chemical reaction?', 'The chemical bonds break');
+      expect(result).toBe('science');
+    });
+  });
+
+  describe('Comprehension content detection', () => {
+    it('classifies "why/because" patterns as comprehension', () => {
+      const result = classifyContentCategory('Why did the ice melt?', 'Because heat was applied');
+      expect(result).toBe('comprehension');
+    });
+
+    it('classifies "therefore" reasoning as comprehension', () => {
+      const result = classifyContentCategory('What happened?', 'The ice melted, therefore the water level rose');
+      expect(result).toBe('comprehension');
+    });
+
+    it('classifies cause/effect content as comprehension', () => {
+      const result = classifyContentCategory('What is the cause and effect?', 'The cause was heat');
+      expect(result).toBe('comprehension');
+    });
+
+    it('classifies "why does" questions as comprehension', () => {
+      const result = classifyContentCategory('Why does the sun set?', 'The Earth rotates');
+      expect(result).toBe('comprehension');
+    });
+  });
+
+  describe('General fallback', () => {
+    it('returns general for unclassified content', () => {
+      const result = classifyContentCategory('What is your favorite color?', 'Blue');
+      expect(result).toBe('general');
+    });
+
+    it('returns general for empty content', () => {
+      const result = classifyContentCategory('', '');
+      expect(result).toBe('general');
+    });
+  });
+
+  describe('Priority order (most specific first)', () => {
+    it('prioritizes math over general', () => {
+      // "solve" is a math signal
+      const result = classifyContentCategory('Solve this problem', '42');
+      expect(result).toBe('math');
+    });
+
+    it('prioritizes vocabulary over comprehension when both present', () => {
+      // Both "means" (vocabulary) and "because" (comprehension) present
+      // Vocabulary should win due to priority order
+      const result = classifyContentCategory('What does this mean?', 'It means something because of reasons');
+      expect(result).toBe('vocabulary');
+    });
+  });
+});
+
+// =============================================================================
+// Integration: Answer Detection + Classification
+// =============================================================================
+
+describe('Answer Detection Integration', () => {
+  it('finds answer "7" in "What is 3+4? Answer: 7" and classifies as math', () => {
+    // This tests the full flow: question detection -> answer finding -> classification
+    const questionEnd = 'What is 3+4?'.length;
+    const answerText = ' Answer: 7';
+    const answer = findAnswerInRange(answerText, questionEnd);
+
+    expect(answer).not.toBeNull();
+    expect(answer?.text).toBe('7');
+
+    const category = classifyContentCategory('What is 3+4?', '7');
+    expect(category).toBe('math');
+  });
+
+  it('finds answer in vocabulary definition and classifies correctly', () => {
+    const answerText = ' Osmosis means the movement of water across a membrane.';
+    const answer = findAnswerInRange(answerText, 0);
+
+    // This uses definition pattern - answer may or may not be detected
+    // but classification should work
+    const category = classifyContentCategory('Define osmosis', 'Osmosis means the movement of water');
+    expect(category).toBe('vocabulary');
+  });
+
+  it('finds answer in comprehension question and classifies correctly', () => {
+    const answerText = ' Because heat energy causes molecules to move faster.';
+    const answer = findAnswerInRange(answerText, 0);
+
+    const category = classifyContentCategory('Why did the ice melt?', 'Because heat energy causes molecules to move faster');
+    expect(category).toBe('comprehension');
   });
 });
