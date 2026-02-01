@@ -137,7 +137,15 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Active
 
-(None — awaiting next milestone)
+**Current Milestone: v3.9 Delay Answer Reveal**
+
+**Goal:** AI-generated slides separate problems from answers, giving students thinking time with teacher-guided scaffolding in the teleprompter.
+
+**Target features:**
+- Detect teachable moments (math, comprehension, vocabulary — any example with an answer)
+- Split problem/answer into separate progressive components
+- Generate scaffolding strategy + question prompts in teleprompter
+- Maintain natural lesson flow while creating deliberate thinking pauses
 
 ### Deferred (v3.9+)
 
@@ -303,4 +311,4 @@ v3.8 delivered Preserve Teacher Content:
 | Jest 30 with ES Module support | --experimental-vm-modules flag for type: "module" project | ✓ Good — v3.8 |
 
 ---
-*Last updated: 2026-02-01 after v3.8 milestone complete*
+*Last updated: 2026-02-01 after v3.9 milestone started*
