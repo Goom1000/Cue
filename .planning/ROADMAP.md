@@ -18,6 +18,13 @@ This milestone teaches the AI to distinguish between content that should be tran
 
 **Dependencies:** None (foundation phase)
 
+**Plans:** 3 plans
+
+Plans:
+- [ ] 48-01-PLAN.md — Detection module with types and regex patterns for questions/activities
+- [ ] 48-02-PLAN.md — Prompt rules module with XML tags and few-shot examples
+- [ ] 48-03-PLAN.md — Unit tests verifying all DET requirements
+
 **Requirements:**
 - DET-01: Detect questions by punctuation (sentences ending with `?`)
 - DET-02: Detect questions by context ("Ask:", "Ask students:", question-related headings)
@@ -44,6 +51,8 @@ This milestone teaches the AI to distinguish between content that should be tran
 **Goal:** Integrate preservation rules into both AI providers so preserved content appears verbatim in slides and teleprompter.
 
 **Dependencies:** Phase 48 (detection patterns and rules must exist)
+
+**Plans:** (created by /gsd:plan-phase)
 
 **Requirements:**
 - PRES-01: Preserved questions appear verbatim on slides
@@ -77,6 +86,8 @@ This milestone teaches the AI to distinguish between content that should be tran
 
 **Dependencies:** Phase 49 (preservation must be working to assess quality impact)
 
+**Plans:** (created by /gsd:plan-phase)
+
 **Requirements:**
 - QUAL-01: Non-preserved content maintains student-friendly language
 - QUAL-02: Slide flow remains coherent around preserved elements
@@ -100,7 +111,7 @@ This milestone teaches the AI to distinguish between content that should be tran
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 48 | Detection and Rules Foundation | DET-01, DET-02, DET-03, DET-04, DET-05 | Pending |
+| 48 | Detection and Rules Foundation | DET-01, DET-02, DET-03, DET-04, DET-05 | Planned |
 | 49 | Provider Integration and Preservation | PRES-01, PRES-02, PRES-03, PRES-04, PRES-05, PRES-06, PRES-07 | Pending |
 | 50 | Quality Assurance | QUAL-01, QUAL-02, QUAL-03, QUAL-04 | Pending |
 
