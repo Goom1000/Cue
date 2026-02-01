@@ -9,10 +9,10 @@ Requirements for Delay Answer Reveal milestone. AI-generated slides separate pro
 
 ### Detection
 
-- [ ] **DET-01**: Detect teachable moments by pattern (Q&A pairs, definitions, math with results, cause-effect conclusions)
-- [ ] **DET-02**: Conservative detection threshold (<30% of bullets flagged to preserve lesson flow)
-- [ ] **DET-03**: Classify content type (math, vocabulary, comprehension, science) for scaffolding selection
-- [ ] **DET-04**: Pair problems with their answers (within proximity threshold)
+- [x] **DET-01**: Detect teachable moments by pattern (Q&A pairs, definitions, math with results, cause-effect conclusions)
+- [x] **DET-02**: Conservative detection threshold (<30% of bullets flagged to preserve lesson flow)
+- [x] **DET-03**: Classify content type (math, vocabulary, comprehension, science) for scaffolding selection
+- [x] **DET-04**: Pair problems with their answers (within proximity threshold)
 
 ### Restructuring
 
@@ -68,10 +68,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DET-01 | Phase 51 | Pending |
-| DET-02 | Phase 51 | Pending |
-| DET-03 | Phase 51 | Pending |
-| DET-04 | Phase 51 | Pending |
+| DET-01 | Phase 51 | Complete |
+| DET-02 | Phase 51 | Complete |
+| DET-03 | Phase 51 | Complete |
+| DET-04 | Phase 51 | Complete |
 | RST-01 | Phase 52 | Pending |
 | RST-02 | Phase 52 | Pending |
 | RST-03 | Phase 52 | Pending |
