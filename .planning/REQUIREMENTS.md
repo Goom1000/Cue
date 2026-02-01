@@ -27,7 +27,7 @@ Requirements for Delay Answer Reveal milestone. AI-generated slides separate pro
 - [x] **SCF-02**: Include 2-3 question prompts per delayed answer
 - [x] **SCF-03**: Scaffolding matches content complexity (not generic "What do you think?")
 - [x] **SCF-04**: Subject-specific scaffolding templates (math decomposition, vocabulary context, reading evidence)
-- [ ] **SCF-05**: Scaffolding is verbally deliverable (<20 words per prompt)
+- [x] **SCF-05**: Scaffolding is verbally deliverable (<20 words per prompt)
 
 ### Quality
 
@@ -80,7 +80,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCF-02 | Phase 52 | Complete | |
 | SCF-03 | Phase 52 | Complete | |
 | SCF-04 | Phase 52 | Complete | 5 content-specific templates (math, vocabulary, comprehension, science, general) |
-| SCF-05 | Phase 53 | Pending | Phase 53 validates word count constraints |
+| SCF-05 | Phase 53 | Complete | Word count constraints (<20 words) added to all templates |
 | QUA-01 | Phase 54 | Pending | |
 | QUA-02 | Phase 54 | Pending | |
 | QUA-03 | Phase 54 | Pending | |
@@ -92,4 +92,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-01*
-*Last updated: 2026-02-01 - Phase 52 requirements marked Complete*
+*Last updated: 2026-02-01 - Phase 53 requirements marked Complete*
