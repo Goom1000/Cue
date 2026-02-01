@@ -5,7 +5,7 @@
  */
 
 // Content types that can be preserved
-export type ContentType = 'question' | 'activity' | 'instruction';
+export type ContentType = 'question' | 'activity' | 'instruction' | 'answer';
 
 // Confidence levels for detection
 export type ConfidenceLevel = 'high' | 'medium' | 'low';

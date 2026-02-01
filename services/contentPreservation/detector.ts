@@ -14,7 +14,8 @@ import {
   ConfidenceLevel,
   ContentType,
   DetectionMethod,
-  PreservableContent
+  PreservableContent,
+  ContentCategory
 } from './types';
 
 // =============================================================================
@@ -299,6 +300,159 @@ export function detectInstructions(text: string): DetectedContent[] {
   }
 
   return results;
+}
+
+// =============================================================================
+// Answer Detection (Phase 51 - DET-01)
+// =============================================================================
+
+/**
+ * Answer detection patterns.
+ * Matches various ways answers appear near questions.
+ */
+const ANSWER_PATTERNS: Array<{ pattern: RegExp; extractor: (match: RegExpExecArray) => string }> = [
+  // "Answer: X", "A: X", "Ans: X" - explicit answer markers
+  {
+    pattern: /(?:Answer|Ans|A)\s*:\s*([^.!?\n]+[.!?]?)/gi,
+    extractor: (match) => match[1].trim()
+  },
+  // "A1:", "A2:" - numbered answers
+  {
+    pattern: /A(\d+)\s*[:.]?\s*([^.!?\n]+[.!?]?)/gi,
+    extractor: (match) => match[2].trim()
+  },
+  // "= 15", "= 3.14" - math results with equals
+  {
+    pattern: /=\s*(\d+(?:\.\d+)?)/g,
+    extractor: (match) => match[1]
+  },
+  // "equals 42" - written equals
+  {
+    pattern: /equals\s+(\d+(?:\.\d+)?)/gi,
+    extractor: (match) => match[1]
+  }
+];
+
+/**
+ * Find an answer within a text range.
+ *
+ * @param text - The text to search within (typically text after a question)
+ * @param absoluteOffset - The offset to add to match indices for absolute positioning
+ * @returns DetectedContent with type 'answer' or null if no answer found
+ */
+export function findAnswerInRange(text: string, absoluteOffset: number): DetectedContent | null {
+  if (!text || text.length === 0) {
+    return null;
+  }
+
+  for (const { pattern, extractor } of ANSWER_PATTERNS) {
+    // Reset pattern for each search
+    pattern.lastIndex = 0;
+
+    const match = pattern.exec(text);
+    if (match) {
+      const answerText = extractor(match);
+      if (answerText && answerText.length > 0) {
+        return {
+          type: 'answer' as ContentType,
+          text: answerText,
+          confidence: 'high',
+          detectionMethod: 'context' as DetectionMethod,
+          startIndex: absoluteOffset + match.index,
+          endIndex: absoluteOffset + match.index + match[0].length
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
+// =============================================================================
+// Content Classification (Phase 51 - DET-03)
+// =============================================================================
+
+/**
+ * Math content signals - patterns that indicate mathematical content.
+ */
+const MATH_SIGNALS = [
+  /\d+\s*[+\-*/]\s*\d+/,              // "3 + 4", "12 / 3"
+  /=\s*\d+/,                          // "= 15"
+  /\d+%/,                             // "10%"
+  /\d+\s*\/\s*\d+/,                   // fractions like "3/4"
+  /calculate|solve|how many/i,        // action verbs
+  /fraction|percent|area|perimeter|sum|difference|square/i
+];
+
+/**
+ * Vocabulary content signals - patterns that indicate vocabulary/definition content.
+ */
+const VOCABULARY_SIGNALS = [
+  /\bmeans?\b/i,                      // "X means Y"
+  /\bis defined as\b/i,               // formal definition
+  /\bdefinition\b/i,                  // explicit definition reference
+  /\bsynonyms?\b/i,                   // synonym exercises
+  /\bantonyms?\b/i                    // antonym exercises
+];
+
+/**
+ * Science content signals - patterns that indicate science content.
+ */
+const SCIENCE_SIGNALS = [
+  /experiment/i,
+  /hypothesis/i,
+  /observe[d]?/i,
+  /predict/i,
+  /chemical/i,
+  /reaction/i,
+  /photosynthesis|evaporation|condensation/i
+];
+
+/**
+ * Comprehension content signals - patterns that indicate reading comprehension content.
+ */
+const COMPREHENSION_SIGNALS = [
+  /\bbecause\b/i,                     // cause/reason
+  /\btherefore\b/i,                   // conclusion
+  /\bwhy does\b|\bwhy did\b/i,        // why questions
+  /cause\s*(and|&)?\s*effect/i        // explicit cause-effect
+];
+
+/**
+ * Classify content into a category for scaffolding selection.
+ *
+ * Priority order (most specific first):
+ * 1. math - numbers with operators, calculate/solve
+ * 2. vocabulary - means, defined as, synonyms
+ * 3. science - experiment, hypothesis, chemical
+ * 4. comprehension - because, therefore, why
+ * 5. general - default fallback
+ *
+ * @param problemText - The question/problem text
+ * @param answerText - The answer text
+ * @returns ContentCategory classification
+ */
+export function classifyContentCategory(problemText: string, answerText: string): ContentCategory {
+  const combined = `${problemText} ${answerText}`;
+
+  // Check in priority order (most specific first)
+  if (MATH_SIGNALS.some(pattern => pattern.test(combined))) {
+    return 'math';
+  }
+
+  if (VOCABULARY_SIGNALS.some(pattern => pattern.test(combined))) {
+    return 'vocabulary';
+  }
+
+  if (SCIENCE_SIGNALS.some(pattern => pattern.test(combined))) {
+    return 'science';
+  }
+
+  if (COMPREHENSION_SIGNALS.some(pattern => pattern.test(combined))) {
+    return 'comprehension';
+  }
+
+  return 'general';
 }
 
 // =============================================================================
