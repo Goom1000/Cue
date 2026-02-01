@@ -139,6 +139,31 @@ Each [PAUSE] is 3-5 seconds of wait time.
 `;
 
 // =============================================================================
+// Verbal Deliverability Rules
+// =============================================================================
+
+/**
+ * Word count constraint section - ensures each scaffolding question
+ * is speakable naturally by teachers (under 20 words per question).
+ */
+const VERBAL_DELIVERABILITY_RULES = `
+== VERBAL DELIVERABILITY (CRITICAL) ==
+
+Each scaffolding question must be speakable in under 20 words.
+Teachers read these aloud - short questions are natural, long scripts are awkward.
+
+WORD COUNT EXAMPLES:
+- "What do we know?" (4 words) - GOOD
+- "What's the first step?" (4 words) - GOOD
+- "Can you find evidence in the text?" (7 words) - GOOD
+- "What do you think the author is trying to convey through this particular passage?" (14 words) - ACCEPTABLE but wordy
+- "Think about what specific evidence from the passage might support your answer to this comprehension question." (16 words) - TOO LONG
+
+Generate 2-3 SHORT questions, NOT one long paragraph.
+Separate each question with [PAUSE] for teacher wait time (3-5 seconds).
+`;
+
+// =============================================================================
 // Few-Shot Edge Case Examples
 // =============================================================================
 
@@ -276,6 +301,8 @@ Keep scaffolding brief and actionable - these are teacher cues, not scripts.
 
 Content-Specific Scaffolding Templates:
 ${scaffoldingTemplates.join('\n')}
+
+${VERBAL_DELIVERABILITY_RULES}
 
 == TELEPROMPTER CONFIRMATION ==
 
