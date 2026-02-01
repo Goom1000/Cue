@@ -3,6 +3,9 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Slide, LessonResource } from "../types";
 import { GenerationInput, GenerationMode, AIProviderError, USER_ERROR_MESSAGES, GameQuestionRequest, SlideContext, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, ChatContext } from './aiProvider';
 import { getStudentFriendlyRules } from './prompts/studentFriendlyRules';
+import { detectPreservableContent } from './contentPreservation/detector';
+import { PreservableContent, ConfidenceLevel } from './contentPreservation/types';
+import { getPreservationRules, getTeleprompterPreservationRules } from './prompts/contentPreservationRules';
 
 // Shared teleprompter rules used across all generation modes
 const TELEPROMPTER_RULES = `
@@ -92,6 +95,32 @@ function getTeleprompterRulesForVerbosity(verbosity: VerbosityLevel = 'standard'
     default:
       return TELEPROMPTER_RULES;
   }
+}
+
+/**
+ * Get the source text for detection based on generation mode.
+ * Fresh: lesson text only
+ * Refine: presentation text only
+ * Blend: lesson text (authoritative source per CONTEXT decision)
+ */
+function getDetectionSource(input: GenerationInput): string {
+  switch (input.mode) {
+    case 'fresh':
+      return input.lessonText;
+    case 'refine':
+      return input.presentationText || '';
+    case 'blend':
+      return input.lessonText; // Lesson plan is authoritative
+  }
+}
+
+/**
+ * Get minimum confidence threshold based on mode.
+ * Refine mode: only high-confidence (clear questions ending in ?, explicit activities)
+ * Fresh/Blend: medium confidence (per CONTEXT decision)
+ */
+function getMinConfidenceForMode(mode: GenerationMode): ConfidenceLevel {
+  return mode === 'refine' ? 'high' : 'medium';
 }
 
 /**
