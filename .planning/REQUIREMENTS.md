@@ -46,7 +46,7 @@ Deferred to later milestones.
 
 ### Hint Progression
 
-- **HNT-01**: Gentle → medium → strong hint sequence option
+- **HNT-01**: Gentle -> medium -> strong hint sequence option
 - **HNT-02**: Teacher controls hint reveal timing
 
 ## Out of Scope
@@ -68,28 +68,28 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DET-01 | TBD | Pending |
-| DET-02 | TBD | Pending |
-| DET-03 | TBD | Pending |
-| DET-04 | TBD | Pending |
-| RST-01 | TBD | Pending |
-| RST-02 | TBD | Pending |
-| RST-03 | TBD | Pending |
-| RST-04 | TBD | Pending |
-| SCF-01 | TBD | Pending |
-| SCF-02 | TBD | Pending |
-| SCF-03 | TBD | Pending |
-| SCF-04 | TBD | Pending |
-| SCF-05 | TBD | Pending |
-| QUA-01 | TBD | Pending |
-| QUA-02 | TBD | Pending |
-| QUA-03 | TBD | Pending |
+| DET-01 | Phase 51 | Pending |
+| DET-02 | Phase 51 | Pending |
+| DET-03 | Phase 51 | Pending |
+| DET-04 | Phase 51 | Pending |
+| RST-01 | Phase 52 | Pending |
+| RST-02 | Phase 52 | Pending |
+| RST-03 | Phase 52 | Pending |
+| RST-04 | Phase 52 | Pending |
+| SCF-01 | Phase 52 | Pending |
+| SCF-02 | Phase 52 | Pending |
+| SCF-03 | Phase 52 | Pending |
+| SCF-04 | Phase 53 | Pending |
+| SCF-05 | Phase 53 | Pending |
+| QUA-01 | Phase 54 | Pending |
+| QUA-02 | Phase 54 | Pending |
+| QUA-03 | Phase 54 | Pending |
 
 **Coverage:**
 - v3.9 requirements: 16 total
-- Mapped to phases: 0
-- Unmapped: 16 (pending roadmap)
+- Mapped to phases: 16
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-01*
-*Last updated: 2026-02-01 after initial definition*
+*Last updated: 2026-02-01 - Traceability updated with phase mappings*

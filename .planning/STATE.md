@@ -5,21 +5,27 @@
 See: .planning/PROJECT.md (updated 2026-02-01)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** v3.9 Delay Answer Reveal — Researching
+**Current focus:** v3.9 Delay Answer Reveal - Phase 51 Detection Foundation
 
 ## Current Position
 
-Phase: Not started (researching)
-Plan: —
-Status: Researching pedagogical scaffolding patterns
-Last activity: 2026-02-01 — Milestone v3.9 started
+Phase: 51 of 54 (Detection Foundation)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-02-01 - Roadmap created for v3.9
 
-Progress: [░░░░░░░░░░] 0% (researching)
+Progress: [░░░░░░░░░░] 0%
 Pending todos: 11 (one converted to milestone)
 
 ## v3.9 Scope
 
 **Goal:** AI-generated slides separate problems from answers, giving students thinking time with teacher-guided scaffolding in the teleprompter.
+
+**Phases:**
+- Phase 51: Detection Foundation (DET-01 through DET-04)
+- Phase 52: Prompt Engineering Core (RST-01 through RST-04, SCF-01 through SCF-03)
+- Phase 53: Scaffolding Templates (SCF-04, SCF-05)
+- Phase 54: Quality Assurance (QUA-01 through QUA-03)
 
 **Key decisions from questioning:**
 - Applies to ALL examples with answers (math, comprehension, vocabulary, any concept)
@@ -48,7 +54,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 
 ### Pending Todos
 
-See `.planning/todos/pending/` — run `/gsd:check-todos` to review
+See `.planning/todos/pending/` - run `/gsd:check-todos` to review
 
 ### Blockers/Concerns
 
@@ -57,11 +63,11 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-01
-Stopped at: Milestone v3.9 research phase
+Stopped at: Roadmap created for v3.9 milestone
 Resume file: None
 
-**Next step:** Complete research, then `/gsd:plan-phase 51`
+**Next step:** `/gsd:plan-phase 51`
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-01 — Milestone v3.9 started*
+*Last updated: 2026-02-01 - Roadmap created for v3.9*
