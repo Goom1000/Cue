@@ -21,9 +21,9 @@ This milestone teaches the AI to distinguish between content that should be tran
 **Plans:** 3 plans
 
 Plans:
-- [ ] 48-01-PLAN.md — Detection module with types and regex patterns for questions/activities
-- [ ] 48-02-PLAN.md — Prompt rules module with XML tags and few-shot examples
-- [ ] 48-03-PLAN.md — Unit tests verifying all DET requirements
+- [x] 48-01-PLAN.md — Detection module with types and regex patterns for questions/activities
+- [x] 48-02-PLAN.md — Prompt rules module with XML tags and few-shot examples
+- [x] 48-03-PLAN.md — Unit tests verifying all DET requirements
 
 **Requirements:**
 - DET-01: Detect questions by punctuation (sentences ending with `?`)
@@ -111,7 +111,7 @@ Plans:
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 48 | Detection and Rules Foundation | DET-01, DET-02, DET-03, DET-04, DET-05 | Planned |
+| 48 | Detection and Rules Foundation | DET-01, DET-02, DET-03, DET-04, DET-05 | ✓ Complete |
 | 49 | Provider Integration and Preservation | PRES-01, PRES-02, PRES-03, PRES-04, PRES-05, PRES-06, PRES-07 | Pending |
 | 50 | Quality Assurance | QUAL-01, QUAL-02, QUAL-03, QUAL-04 | Pending |
 
@@ -119,4 +119,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-02-01*
-*Last updated: 2026-02-01*
+*Last updated: 2026-02-01 — Phase 48 complete*
