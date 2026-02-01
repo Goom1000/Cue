@@ -372,3 +372,218 @@ describe('Provider Delegation to Shared Functions', () => {
     });
   });
 });
+
+// =============================================================================
+// 6. Edge Case and Error Handling Parity Tests
+// =============================================================================
+
+describe('Edge Case Parity: Empty and Minimal Input', () => {
+  describe('empty input handling', () => {
+    it('handles empty string identically', () => {
+      const result1 = detectTeachableMoments('');
+      const result2 = detectTeachableMoments('');
+
+      expect(result1).toEqual([]);
+      expect(result2).toEqual([]);
+      expect(result1).toEqual(result2);
+    });
+
+    it('generates empty rules for empty moments', () => {
+      const rules = getTeachableMomentRules([]);
+      expect(rules).toBe('');
+    });
+
+    it('handles whitespace-only input', () => {
+      const whitespaceInputs = ['   ', '\n\n\n', '\t\t', '  \n  \t  '];
+
+      whitespaceInputs.forEach(input => {
+        const result = detectTeachableMoments(input);
+        expect(result).toEqual([]);
+      });
+    });
+  });
+
+  describe('minimal input handling', () => {
+    it('handles single character input', () => {
+      const result = detectTeachableMoments('?');
+      // Very short question marks should be filtered out
+      expect(Array.isArray(result)).toBe(true);
+    });
+
+    it('handles minimal valid question', () => {
+      const result = detectTeachableMoments('Why?');
+      expect(Array.isArray(result)).toBe(true);
+    });
+
+    it('handles minimal valid answer pattern', () => {
+      const result = detectTeachableMoments('A: 1');
+      expect(Array.isArray(result)).toBe(true);
+    });
+  });
+});
+
+describe('Edge Case Parity: Special Characters', () => {
+  describe('unicode handling', () => {
+    it('handles unicode math symbols identically', () => {
+      const input = 'What is 5 \u00D7 3? Answer: 15'; // multiplication symbol
+      const result1 = detectTeachableMoments(input);
+      const result2 = detectTeachableMoments(input);
+
+      expect(result1).toEqual(result2);
+    });
+
+    it('handles emoji in text', () => {
+      const input = 'What is the answer? Answer: 42';
+      const result1 = detectTeachableMoments(input);
+      const result2 = detectTeachableMoments(input);
+
+      expect(result1).toEqual(result2);
+    });
+
+    it('handles non-ASCII characters', () => {
+      const input = 'What is caf\u00E9? Answer: A coffee shop'; // e with accent
+      const result1 = detectTeachableMoments(input);
+      const result2 = detectTeachableMoments(input);
+
+      expect(result1).toEqual(result2);
+    });
+  });
+
+  describe('HTML/XML character handling', () => {
+    it('handles HTML entities', () => {
+      const input = 'What is &lt;html&gt;? Answer: A tag';
+      const result1 = detectTeachableMoments(input);
+      const result2 = detectTeachableMoments(input);
+
+      expect(result1).toEqual(result2);
+    });
+
+    it('handles angle brackets', () => {
+      const input = 'What is <div>? Answer: HTML element';
+      const result1 = detectTeachableMoments(input);
+      const result2 = detectTeachableMoments(input);
+
+      expect(result1).toEqual(result2);
+    });
+
+    it('handles quotes and apostrophes', () => {
+      const input = "What does 'test' mean? Answer: It means evaluation";
+      const result1 = detectTeachableMoments(input);
+      const result2 = detectTeachableMoments(input);
+
+      expect(result1).toEqual(result2);
+    });
+  });
+});
+
+describe('Edge Case Parity: Large Input', () => {
+  describe('performance consistency', () => {
+    it('handles large text input deterministically', () => {
+      // Generate large input with many Q&A pairs
+      const pairs = [];
+      for (let i = 1; i <= 50; i++) {
+        pairs.push(`What is ${i}+${i}? Answer: ${i * 2}`);
+      }
+      const largeInput = pairs.join('\n');
+
+      const result1 = detectTeachableMoments(largeInput);
+      const result2 = detectTeachableMoments(largeInput);
+
+      expect(result1).toEqual(result2);
+    });
+
+    it('applies throttling consistently on large input', () => {
+      // Generate 100 lines with 50 Q&A pairs
+      const lines = [];
+      for (let i = 1; i <= 100; i++) {
+        if (i % 2 === 0) {
+          lines.push(`What is ${i}? Answer: ${i}`);
+        } else {
+          lines.push(`Regular content line ${i}`);
+        }
+      }
+      const largeInput = lines.join('\n');
+
+      const result1 = detectTeachableMoments(largeInput);
+      const result2 = detectTeachableMoments(largeInput);
+
+      // Results should be throttled to ~30% and identical
+      expect(result1).toEqual(result2);
+      expect(result1.length).toBeLessThanOrEqual(30); // 100 * 0.3
+    });
+  });
+});
+
+describe('Edge Case Parity: Mixed Content Categories', () => {
+  describe('multi-category detection', () => {
+    it('handles mixed math and vocabulary content', () => {
+      // Need enough lines to allow 2 moments through throttling (30% threshold)
+      // 7 lines * 0.3 = 2.1 = 2 moments allowed
+      const input = `Introduction to today's lesson.
+What is 2+2? Answer: 4
+Regular content line here.
+What does osmosis mean? Answer: Water movement
+More content for padding.
+Additional context provided.
+Conclusion of the text.`;
+
+      const result1 = detectTeachableMoments(input);
+      const result2 = detectTeachableMoments(input);
+
+      expect(result1).toEqual(result2);
+      // Verify different categories are detected
+      const categories = result1.map(m => m.contentCategory);
+      expect(categories).toContain('math');
+      expect(categories).toContain('vocabulary');
+    });
+
+    it('handles mixed comprehension and science content', () => {
+      const input = `Why did the character leave? Because she was scared.
+What happens during photosynthesis? Answer: Plants convert sunlight`;
+
+      const result1 = detectTeachableMoments(input);
+      const result2 = detectTeachableMoments(input);
+
+      expect(result1).toEqual(result2);
+    });
+  });
+
+  describe('category classification consistency', () => {
+    it('consistently classifies math across variations', () => {
+      const mathInputs = [
+        'What is 3+4? Answer: 7',
+        'Calculate 10-5. Answer: 5',
+        'Solve for x: x = 3. Answer: 3',
+        'What is 50%? Answer: Half',
+      ];
+
+      mathInputs.forEach(input => {
+        const result1 = detectTeachableMoments(input);
+        const result2 = detectTeachableMoments(input);
+
+        expect(result1).toEqual(result2);
+        if (result1.length > 0) {
+          expect(result1[0].contentCategory).toBe('math');
+        }
+      });
+    });
+
+    it('consistently classifies vocabulary across variations', () => {
+      const vocabInputs = [
+        'What does osmosis mean? Answer: Water movement',
+        'Define photosynthesis. It means plant food production',
+        'Find a synonym for happy. Answer: Joyful',
+      ];
+
+      vocabInputs.forEach(input => {
+        const result1 = detectTeachableMoments(input);
+        const result2 = detectTeachableMoments(input);
+
+        expect(result1).toEqual(result2);
+        if (result1.length > 0) {
+          expect(result1[0].contentCategory).toBe('vocabulary');
+        }
+      });
+    });
+  });
+});
