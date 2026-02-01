@@ -72,33 +72,33 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CLIP-01 | TBD | Pending |
-| CLIP-02 | TBD | Pending |
-| CLIP-03 | TBD | Pending |
-| CLIP-04 | TBD | Pending |
-| CLIP-05 | TBD | Pending |
-| CLIP-06 | TBD | Pending |
-| IMG-01 | TBD | Pending |
-| IMG-02 | TBD | Pending |
-| IMG-03 | TBD | Pending |
-| IMG-04 | TBD | Pending |
-| IMG-05 | TBD | Pending |
-| COHE-01 | TBD | Pending |
-| COHE-02 | TBD | Pending |
-| COHE-03 | TBD | Pending |
-| COHE-04 | TBD | Pending |
-| GAP-01 | TBD | Pending |
-| GAP-02 | TBD | Pending |
-| GAP-03 | TBD | Pending |
-| GAP-04 | TBD | Pending |
-| GAP-05 | TBD | Pending |
-| GAP-06 | TBD | Pending |
+| CLIP-01 | 55 | Pending |
+| CLIP-02 | 56 | Pending |
+| CLIP-03 | 55 | Pending |
+| CLIP-04 | 55 | Pending |
+| CLIP-05 | 55 | Pending |
+| CLIP-06 | 56 | Pending |
+| IMG-01 | 57 | Pending |
+| IMG-02 | 57 | Pending |
+| IMG-03 | 57 | Pending |
+| IMG-04 | 57 | Pending |
+| IMG-05 | 57 | Pending |
+| COHE-01 | 58 | Pending |
+| COHE-02 | 58 | Pending |
+| COHE-03 | 58 | Pending |
+| COHE-04 | 58 | Pending |
+| GAP-01 | 59 | Pending |
+| GAP-02 | 59 | Pending |
+| GAP-03 | 59 | Pending |
+| GAP-04 | 59 | Pending |
+| GAP-05 | 59 | Pending |
+| GAP-06 | 59 | Pending |
 
 **Coverage:**
 - v4.0 requirements: 21 total
-- Mapped to phases: 0
-- Unmapped: 21
+- Mapped to phases: 21
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-02*
-*Last updated: 2026-02-02 after initial definition*
+*Last updated: 2026-02-02 after roadmap creation*
