@@ -16,17 +16,17 @@ Requirements for Delay Answer Reveal milestone. AI-generated slides separate pro
 
 ### Restructuring
 
-- [ ] **RST-01**: Split problem/answer into separate progressive bullets during generation
-- [ ] **RST-02**: Problem bullet appears first with no answer leakage
-- [ ] **RST-03**: Answer bullet appears as next progressive reveal
-- [ ] **RST-04**: Maintain natural lesson flow (no awkward transitions)
+- [x] **RST-01**: Split problem/answer into separate progressive bullets during generation
+- [x] **RST-02**: Problem bullet appears first with no answer leakage
+- [x] **RST-03**: Answer bullet appears as next progressive reveal
+- [x] **RST-04**: Maintain natural lesson flow (no awkward transitions)
 
 ### Scaffolding
 
-- [ ] **SCF-01**: Generate strategy steps in teleprompter between problem and answer
-- [ ] **SCF-02**: Include 2-3 question prompts per delayed answer
-- [ ] **SCF-03**: Scaffolding matches content complexity (not generic "What do you think?")
-- [ ] **SCF-04**: Subject-specific scaffolding templates (math decomposition, vocabulary context, reading evidence)
+- [x] **SCF-01**: Generate strategy steps in teleprompter between problem and answer
+- [x] **SCF-02**: Include 2-3 question prompts per delayed answer
+- [x] **SCF-03**: Scaffolding matches content complexity (not generic "What do you think?")
+- [x] **SCF-04**: Subject-specific scaffolding templates (math decomposition, vocabulary context, reading evidence)
 - [ ] **SCF-05**: Scaffolding is verbally deliverable (<20 words per prompt)
 
 ### Quality
@@ -72,14 +72,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DET-02 | Phase 51 | Complete | |
 | DET-03 | Phase 51 | Complete | |
 | DET-04 | Phase 51 | Complete | |
-| RST-01 | Phase 52 | Pending | |
-| RST-02 | Phase 52 | Pending | |
-| RST-03 | Phase 52 | Pending | |
-| RST-04 | Phase 52 | Pending | |
-| SCF-01 | Phase 52 | Pending | |
-| SCF-02 | Phase 52 | Pending | |
-| SCF-03 | Phase 52 | Pending | |
-| SCF-04 | Phase 52 | Pending | Plan 52-01 creates 5 content-specific templates (math, vocabulary, comprehension, science, general) |
+| RST-01 | Phase 52 | Complete | |
+| RST-02 | Phase 52 | Complete | |
+| RST-03 | Phase 52 | Complete | |
+| RST-04 | Phase 52 | Complete | |
+| SCF-01 | Phase 52 | Complete | |
+| SCF-02 | Phase 52 | Complete | |
+| SCF-03 | Phase 52 | Complete | |
+| SCF-04 | Phase 52 | Complete | 5 content-specific templates (math, vocabulary, comprehension, science, general) |
 | SCF-05 | Phase 53 | Pending | Phase 53 validates word count constraints |
 | QUA-01 | Phase 54 | Pending | |
 | QUA-02 | Phase 54 | Pending | |
@@ -92,4 +92,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-01*
-*Last updated: 2026-02-01 - SCF-04 traceability corrected (Phase 52 creates templates, Phase 53 validates)*
+*Last updated: 2026-02-01 - Phase 52 requirements marked Complete*

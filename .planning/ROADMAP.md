@@ -12,7 +12,7 @@ This milestone transforms Cue's AI slide generation to create deliberate "thinki
 ## Phases
 
 - [x] **Phase 51: Detection Foundation** - Identify teachable moments in lesson content
-- [ ] **Phase 52: Prompt Engineering Core** - AI generates split bullets with scaffolding
+- [x] **Phase 52: Prompt Engineering Core** - AI generates split bullets with scaffolding
 - [ ] **Phase 53: Scaffolding Templates** - Subject-specific scaffolding strategies
 - [ ] **Phase 54: Quality Assurance** - Validate generation across content types
 
@@ -58,8 +58,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 52-01-PLAN.md - Teachable moment prompt rules with scaffolding templates
-- [ ] 52-02-PLAN.md - Provider integration (Gemini + Claude)
+- [x] 52-01-PLAN.md - Teachable moment prompt rules with scaffolding templates
+- [x] 52-02-PLAN.md - Provider integration (Gemini + Claude)
 
 ---
 
@@ -103,10 +103,10 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 51. Detection Foundation | v3.9 | 2/2 | Complete | 2026-02-01 |
-| 52. Prompt Engineering Core | v3.9 | 0/2 | Not started | - |
+| 52. Prompt Engineering Core | v3.9 | 2/2 | Complete | 2026-02-01 |
 | 53. Scaffolding Templates | v3.9 | 0/TBD | Not started | - |
 | 54. Quality Assurance | v3.9 | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-02-01*
-*Last updated: 2026-02-01*
+*Last updated: 2026-02-01 - Phase 52 complete*
