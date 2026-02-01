@@ -7,6 +7,10 @@
  * - DET-02: Questions by context (Ask:, Question:)
  * - DET-03: Activities by action verbs (Bloom's taxonomy)
  * - DET-04: Pure, deterministic functions
+ *
+ * Teachable Moment Detection (Phase 51):
+ * - Answer detection: Answer:, A:, Ans:, A1:, =, equals
+ * - Content classification: math, vocabulary, science, comprehension, general
  */
 
 import {
