@@ -13,123 +13,167 @@ import { TeachableMoment, ContentCategory } from '../contentPreservation/types';
 // =============================================================================
 
 /**
- * Math scaffolding: Break into known vs unknown, step-by-step thinking,
- * visual/manipulative suggestions. Each question under 20 words.
+ * Math scaffolding: Provide actual technique/procedure for the teacher to guide students through.
+ * Must include the METHOD, not just questions. Teachers need to know HOW to explain the skill.
  */
 const MATH_SCAFFOLDING_TEMPLATE = `
-MATH PROBLEM SCAFFOLDING (each question under 20 words):
-Generate 2-3 SHORT questions to guide math thinking:
+MATH PROBLEM SCAFFOLDING:
 
-Question types:
-- Known/unknown: "What do we know?" (4 words) or "What are we finding?" (4 words)
-- Process: "What's the first step?" (4 words) or "Which operation?" (2 words)
-- Visual: "Can we draw this?" (4 words) or "Can we use objects?" (4 words)
+CRITICAL: Include the ACTUAL TECHNIQUE/METHOD for the teacher to guide students through.
+Don't just ask "How do we find 10%?" - explain the procedure step by step.
 
-CORRECT - each question under 20 words:
-"What do we know? [PAUSE] What are we finding? [PAUSE] Can we draw it?"
-(4 words + 4 words + 4 words = three separate short questions)
+Structure:
+1. State the technique briefly (teacher explains the method)
+2. Guide through each step with questions
+3. Each step under 20 words
 
-WRONG - combined script (too long to speak naturally):
-"What do we know from this problem and what are we trying to find and can we draw a picture to help?"
-(22 words in one run-on sentence - awkward to say aloud)
+PERCENTAGE PROBLEMS:
+"To find 10%, we divide by 10. [PAUSE] What's 60 divided by 10? [PAUSE] Now we subtract that from the original price."
 
-Each [PAUSE] is 3-5 seconds of wait time.
+ADDITION/SUBTRACTION:
+"Let's count on from the bigger number. [PAUSE] Start at 7, count up 4 more. [PAUSE] What do we get?"
+
+MULTIPLICATION:
+"We can use groups or repeated addition. [PAUSE] 4 groups of 3 - how many altogether? [PAUSE]"
+
+FRACTIONS:
+"To find a fraction of a number, divide by the bottom, multiply by the top. [PAUSE] What's 12 divided by 4? [PAUSE] Now times 3?"
+
+WRONG - too vague (doesn't teach the technique):
+"What do we know? [PAUSE] What's the first step? [PAUSE] Can we draw it?"
+^^^ Students who don't know the method won't benefit from these generic questions.
+
+The scaffolding must TEACH the procedure, not just prompt thinking.
 `;
 
 /**
- * Vocabulary scaffolding: Context clues, word breakdown (prefix/root/suffix),
- * real-world examples. Each question under 20 words.
- *
- * NOTE: Definition must NOT repeat the vocabulary word - definition only.
- * The word is already visible on the previous bullet, so the definition bullet
- * should provide the meaning without redundantly repeating the term.
+ * Vocabulary scaffolding: Provide actual technique for understanding new words.
+ * Include word analysis strategies, not just generic questions.
  */
 const VOCABULARY_SCAFFOLDING_TEMPLATE = `
-VOCABULARY SCAFFOLDING (each question under 20 words):
-Generate 2-3 SHORT questions about the vocabulary word:
+VOCABULARY SCAFFOLDING:
 
-Question types:
-- Context: "Have you heard this word before?" (6 words) or "Where might you see this?" (5 words)
-- Word parts: "Do you see parts you recognize?" (6 words) or "What prefix or suffix?" (4 words)
-- Real-world: "Where might you use this word?" (6 words)
+CRITICAL: Include the ACTUAL TECHNIQUE for working out word meanings.
+Don't just ask "What does this word mean?" - teach the strategy.
 
-CORRECT - each question under 20 words:
-"Do you recognize this word? [PAUSE] What parts do you see? [PAUSE] Where might you use it?"
-(5 words + 5 words + 5 words = three separate short questions)
+Structure:
+1. Word attack strategy (how to figure out unknown words)
+2. Guide through applying the strategy
+3. Each step under 20 words
 
-WRONG - too wordy:
-"Think about whether you have ever encountered this word before and what context you might have seen it in."
-(19 words in one run-on sentence - awkward to say aloud)
+WORD PARTS TECHNIQUE:
+"Let's break this word into parts. [PAUSE] 'Photo' means light, 'synthesis' means making. [PAUSE] What might it mean together?"
 
-Each [PAUSE] is 3-5 seconds of wait time.
+CONTEXT CLUES TECHNIQUE:
+"Look at the sentence around the word. [PAUSE] What clues help us? [PAUSE] The text says plants use it for food..."
+
+PREFIX/SUFFIX TECHNIQUE:
+"'Un-' at the start means 'not'. [PAUSE] So 'unhappy' means... [PAUSE] What about 'uncertain'?"
+
+ROOT WORD TECHNIQUE:
+"The root 'port' means carry. [PAUSE] 'Transport' carries across, 'export' carries out. [PAUSE] What might 'import' mean?"
+
+WRONG - too vague:
+"Have you heard this word before? [PAUSE] What parts do you see?"
+^^^ Doesn't teach HOW to figure out the meaning.
 
 CRITICAL: Answer bullet shows definition ONLY - do NOT repeat the vocabulary word.
 `;
 
 /**
- * Comprehension scaffolding: Text evidence prompts, reasoning/inference,
- * connection to prior knowledge. Each question under 20 words.
+ * Comprehension scaffolding: Provide actual reading strategies for finding answers in text.
+ * Include specific techniques like re-reading, finding key words, inference chains.
  */
 const COMPREHENSION_SCAFFOLDING_TEMPLATE = `
-COMPREHENSION SCAFFOLDING (each question under 20 words):
-Generate 2-3 SHORT questions about the text:
+COMPREHENSION SCAFFOLDING:
 
-Question types:
-- Evidence: "What clues from the text help?" (6 words) or "What did it say?" (4 words)
-- Inference: "What can we figure out?" (5 words) or "What does this tell us?" (5 words)
-- Connection: "What do we already know?" (5 words) or "Have we seen this before?" (5 words)
+CRITICAL: Include the ACTUAL READING STRATEGY for finding answers.
+Don't just ask "What did it say?" - teach the technique for finding evidence.
 
-CORRECT - each question under 20 words:
-"What did the text say? [PAUSE] What can we figure out? [PAUSE] What do we already know?"
-(5 words + 5 words + 5 words = three separate short questions)
+Structure:
+1. Name the reading strategy
+2. Guide through applying it to the text
+3. Each step under 20 words
 
-WRONG - too wordy:
-"Think about what specific evidence from the passage might support your answer to this comprehension question."
-(16 words in one run-on sentence - awkward to say aloud)
+FINDING EVIDENCE TECHNIQUE:
+"Let's go back to paragraph 2. [PAUSE] The text says she 'packed her bags'. [PAUSE] What does that tell us about her plans?"
 
-Each [PAUSE] is 3-5 seconds of wait time.
+INFERENCE TECHNIQUE:
+"The text doesn't say it directly. [PAUSE] But we know she was unhappy at home and dreamed of travel. [PAUSE] So why might she leave?"
+
+CAUSE AND EFFECT TECHNIQUE:
+"What happened first? [PAUSE] Then what happened because of that? [PAUSE] So the cause was... and the effect was..."
+
+CHARACTER MOTIVE TECHNIQUE:
+"How was the character feeling? [PAUSE] What did they want? [PAUSE] So why would they do that?"
+
+WRONG - too vague:
+"What did the text say? [PAUSE] What can we figure out?"
+^^^ Doesn't guide students to WHERE in the text or HOW to find the answer.
 `;
 
 /**
- * Science scaffolding: Observation prompts, prediction/hypothesis,
- * real-world connection. Each question under 20 words.
+ * Science scaffolding: Provide actual scientific reasoning techniques.
+ * Include observation-hypothesis-evidence patterns and process explanations.
  */
 const SCIENCE_SCAFFOLDING_TEMPLATE = `
-SCIENCE SCAFFOLDING (each question under 20 words):
-Generate 2-3 SHORT questions about the science concept:
+SCIENCE SCAFFOLDING:
 
-Question types:
-- Observation: "What do you notice?" (4 words) or "What do you observe?" (4 words)
-- Prediction: "What will happen?" (3 words) or "What's your prediction?" (3 words)
-- Connection: "Where do we see this?" (5 words) or "Why does this matter?" (4 words)
+CRITICAL: Include the ACTUAL SCIENTIFIC PROCESS or explanation.
+Don't just ask "What will happen?" - explain the underlying science.
 
-CORRECT - each question under 20 words:
-"What do you notice? [PAUSE] What will happen? [PAUSE] Where do we see this?"
-(4 words + 3 words + 5 words = three separate short questions)
+Structure:
+1. Name the scientific concept or process
+2. Break down the steps/stages
+3. Each step under 20 words
 
-WRONG - too wordy:
-"What do you observe here and what do you think will happen and where might we see this in the real world?"
-(22 words in one run-on sentence - awkward to say aloud)
+PROCESS EXPLANATION:
+"Water evaporates when heated. [PAUSE] The molecules gain energy and escape as gas. [PAUSE] Where does the water go?"
 
-Each [PAUSE] is 3-5 seconds of wait time.
+CAUSE AND EFFECT:
+"Iron reacts with oxygen and water. [PAUSE] This chemical reaction creates rust. [PAUSE] What conditions speed this up?"
+
+SCIENTIFIC METHOD:
+"First we observe carefully. [PAUSE] Then we make a prediction. [PAUSE] Now we test - what do you think will happen?"
+
+CLASSIFICATION:
+"Living things share certain features. [PAUSE] They grow, reproduce, and need energy. [PAUSE] Does this fit those criteria?"
+
+WRONG - too vague:
+"What do you notice? [PAUSE] What will happen?"
+^^^ Doesn't explain the science behind why it happens.
 `;
 
 /**
  * General scaffolding: Fallback for unclassified content.
- * Uses think-pair-share structure. Each question under 20 words.
+ * Still provides structured guidance, not just vague questions.
  */
 const GENERAL_SCAFFOLDING_TEMPLATE = `
-GENERAL SCAFFOLDING (each question under 20 words):
+GENERAL SCAFFOLDING:
+
 For content not specifically math, vocabulary, comprehension, or science:
+Still provide STRUCTURED GUIDANCE, not just open questions.
 
-Question types:
-- Think: "What comes to mind?" (4 words) or "What do you think?" (4 words)
-- Share: "Talk to a partner." (4 words) or "Share your thinking." (3 words)
-- Discuss: "What ideas do we have?" (5 words) or "Let's hear some thoughts." (4 words)
+Structure:
+1. Break the problem into smaller parts
+2. Guide through each part
+3. Each step under 20 words
 
-CORRECT - each question under 20 words:
-"What do you think? [PAUSE] Talk to a partner. [PAUSE] What ideas do we have?"
-(4 words + 4 words + 5 words = three separate short prompts)
+STEP-BY-STEP BREAKDOWN:
+"Let's break this into parts. [PAUSE] First, what do we need to figure out? [PAUSE] What information do we have?"
+
+WORKED EXAMPLE APPROACH:
+"Let me show you one first. [PAUSE] Watch the steps I follow. [PAUSE] Now you try with this example."
+
+THINK-ALOUD TECHNIQUE:
+"I'm going to think out loud. [PAUSE] First I notice... then I think about... [PAUSE] What do you notice?"
+
+COMPARE AND CONTRAST:
+"How are these similar? [PAUSE] How are they different? [PAUSE] What pattern do you see?"
+
+WRONG - too vague:
+"What do you think? [PAUSE] Talk to a partner."
+^^^ Gives no guidance on HOW to think about the problem.
 
 WRONG - too wordy:
 "Take a moment to think about this on your own and then turn to a partner and share your thoughts."
@@ -179,14 +223,18 @@ Input: "A $60 bag has 10% off. What is the new price? (Expected: $54)"
 Correct output:
   Bullet 1: "A $60 bag has 10% off. What is the new price?"
   Bullet 2: "$54"
-Teleprompter for Bullet 1 (SCAFFOLDING - questions only):
-  "What information do we have? [PAUSE] How do we find 10% of something? [PAUSE] Once we know 10%, what do we do with it?"
+Teleprompter for Bullet 1 (SCAFFOLDING with technique):
+  "To find 10%, we divide by 10. [PAUSE] What's 60 divided by 10? [PAUSE] That's our discount - now what do we subtract it from?"
 Teleprompter for Bullet 2 (CONFIRMATION):
-  "That's right! 10% of $60 is $6, and $60 minus $6 gives us $54."
+  "Excellent! $6 off $60 gives us $54. The technique: divide by 10 for 10%, then subtract."
 
-WRONG teleprompter for Bullet 1:
+WRONG teleprompter for Bullet 1 (just explaining):
   "Ten percent of sixty is six dollars, so sixty minus six is fifty-four."
-  ^^^ This explains the answer instead of prompting thinking!
+  ^^^ This tells them the answer instead of teaching the technique!
+
+WRONG teleprompter for Bullet 1 (too vague):
+  "What do we know? [PAUSE] What's the first step?"
+  ^^^ This doesn't teach HOW to find a percentage!
 </example>
 
 <example scenario="math-addition">

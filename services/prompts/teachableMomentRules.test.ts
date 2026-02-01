@@ -314,18 +314,18 @@ describe('Category-Specific Templates', () => {
   });
 
   describe('Vocabulary template', () => {
-    it('includes context question type', () => {
+    it('includes word parts technique', () => {
       const moments = [createMockMoment('vocabulary')];
       const rules = getTeachableMomentRules(moments);
 
-      expect(rules).toContain('Have you heard');
+      expect(rules).toContain('break this word into parts');
     });
 
-    it('includes word parts question type', () => {
+    it('includes root word technique', () => {
       const moments = [createMockMoment('vocabulary')];
       const rules = getTeachableMomentRules(moments);
 
-      expect(rules).toContain('parts you recognize');
+      expect(rules).toContain('root');
     });
 
     it('includes critical note about not repeating word', () => {
@@ -338,11 +338,11 @@ describe('Category-Specific Templates', () => {
   });
 
   describe('Comprehension template', () => {
-    it('includes evidence question type', () => {
+    it('includes finding evidence technique', () => {
       const moments = [createMockMoment('comprehension')];
       const rules = getTeachableMomentRules(moments);
 
-      expect(rules).toContain('clues from the text');
+      expect(rules).toContain('go back to paragraph');
     });
 
     it('includes inference question type', () => {
@@ -352,20 +352,20 @@ describe('Category-Specific Templates', () => {
       expect(rules).toContain('figure out');
     });
 
-    it('includes connection question type', () => {
+    it('includes inference technique', () => {
       const moments = [createMockMoment('comprehension')];
       const rules = getTeachableMomentRules(moments);
 
-      expect(rules).toContain('already know');
+      expect(rules).toContain('INFERENCE TECHNIQUE');
     });
   });
 
   describe('Science template', () => {
-    it('includes observation question type', () => {
+    it('includes process explanation technique', () => {
       const moments = [createMockMoment('science')];
       const rules = getTeachableMomentRules(moments);
 
-      expect(rules).toContain('What do you notice');
+      expect(rules).toContain('Water evaporates');
     });
 
     it('includes prediction question type', () => {
@@ -375,11 +375,11 @@ describe('Category-Specific Templates', () => {
       expect(rules).toContain('What will happen');
     });
 
-    it('includes real-world connection question type', () => {
+    it('includes cause and effect technique', () => {
       const moments = [createMockMoment('science')];
       const rules = getTeachableMomentRules(moments);
 
-      expect(rules).toContain('Where do we see this');
+      expect(rules).toContain('CAUSE AND EFFECT');
     });
   });
 
@@ -398,11 +398,11 @@ describe('Category-Specific Templates', () => {
       expect(rules).toContain('Talk to a partner');
     });
 
-    it('includes discuss question type', () => {
+    it('includes step-by-step breakdown technique', () => {
       const moments = [createMockMoment('general')];
       const rules = getTeachableMomentRules(moments);
 
-      expect(rules).toContain('What ideas do we have');
+      expect(rules).toContain('break this into parts');
     });
   });
 });
@@ -421,11 +421,11 @@ describe('Multi-Category Content Handling', () => {
     const rules = getTeachableMomentRules(moments);
 
     // Should include math-specific content
-    expect(rules).toContain('What do we know');
+    expect(rules).toContain('divide by 10');
     // Should include vocabulary-specific content
-    expect(rules).toContain('Have you heard');
+    expect(rules).toContain('break this word into parts');
     // Should include comprehension-specific content
-    expect(rules).toContain('clues from the text');
+    expect(rules).toContain('go back to paragraph');
   });
 
   it('does not duplicate common elements', () => {
