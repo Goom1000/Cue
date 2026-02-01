@@ -19,7 +19,8 @@ import {
   ContentType,
   DetectionMethod,
   PreservableContent,
-  ContentCategory
+  ContentCategory,
+  TeachableMoment
 } from './types';
 
 // =============================================================================
@@ -481,4 +482,147 @@ export function detectPreservableContent(text: string): PreservableContent {
     .sort((a, b) => a.startIndex - b.startIndex);
 
   return { questions, activities, instructions, all };
+}
+
+// =============================================================================
+// Teachable Moment Detection (Phase 51-02)
+// =============================================================================
+
+/**
+ * Maximum character distance between question end and answer start for pairing.
+ * Answers beyond this distance are not associated with the question.
+ * Configurable for future tuning based on real-world content analysis.
+ */
+export const PROXIMITY_THRESHOLD = 200;
+
+/**
+ * Default throttle percentage for teachable moment detection.
+ * Limits detected moments to at most 30% of content bullets to preserve lesson flow.
+ */
+const DEFAULT_MAX_PERCENT = 0.3;
+
+/**
+ * Estimate bullet count from text content.
+ * Uses newlines as bullet boundaries, with a minimum of 1.
+ *
+ * @param text - The text to analyze
+ * @returns Estimated number of bullets/content items
+ */
+function estimateBulletCount(text: string): number {
+  // Split by newlines and filter out empty lines
+  const lines = text.split('\n').filter(line => line.trim().length > 0);
+  return Math.max(1, lines.length);
+}
+
+/**
+ * Throttle teachable moment detections to maintain lesson flow.
+ *
+ * Limits the number of moments to at most maxPercent of bulletCount.
+ * Sorts by confidence (high first), then by proximity (closer first)
+ * to prioritize the most reliable detections.
+ *
+ * @param moments - Array of detected teachable moments
+ * @param bulletCount - Estimated number of bullets/content items in text
+ * @param maxPercent - Maximum percentage of bullets that can be moments (0.0-1.0)
+ * @returns Throttled array of teachable moments
+ */
+export function throttleDetections(
+  moments: TeachableMoment[],
+  bulletCount: number,
+  maxPercent: number
+): TeachableMoment[] {
+  if (moments.length === 0) {
+    return [];
+  }
+
+  // Ensure bulletCount is at least 1 to avoid division issues
+  const safeBulletCount = Math.max(1, bulletCount);
+
+  // Calculate maximum allowed moments
+  const maxAllowed = Math.floor(safeBulletCount * maxPercent);
+
+  // If already under limit, return original (preserving original order)
+  if (moments.length <= maxAllowed) {
+    return moments;
+  }
+
+  // Sort by: confidence (high > medium > low), then by proximityChars (closer first)
+  const confidenceOrder: Record<ConfidenceLevel, number> = { high: 0, medium: 1, low: 2 };
+
+  const sorted = [...moments].sort((a, b) => {
+    // First: confidence (high first)
+    const confDiff = confidenceOrder[a.confidence] - confidenceOrder[b.confidence];
+    if (confDiff !== 0) return confDiff;
+
+    // Second: proximity (closer first)
+    return a.proximityChars - b.proximityChars;
+  });
+
+  // Take top N moments up to max allowed
+  const selected = sorted.slice(0, Math.max(1, maxAllowed));
+
+  // Re-sort by position for consistent output ordering
+  return selected.sort((a, b) => a.problem.startIndex - b.problem.startIndex);
+}
+
+/**
+ * Detect teachable moments in text - problem-answer pairs suitable for delayed reveal.
+ *
+ * This function:
+ * 1. Detects questions using existing detectQuestions function
+ * 2. Filters out rhetorical questions (low confidence)
+ * 3. For each question, searches for an answer within PROXIMITY_THRESHOLD characters
+ * 4. Classifies each moment by content type (math, vocabulary, etc.)
+ * 5. Applies throttling to limit to 30% of content bullets
+ *
+ * This is a pure function (DET-04): same input always produces same output.
+ *
+ * @param text - Raw lesson text (PDF content, slide text, speaker notes)
+ * @returns Array of TeachableMoment objects, throttled and sorted by position
+ */
+export function detectTeachableMoments(text: string): TeachableMoment[] {
+  // Step 1: Detect questions
+  const questions = detectQuestions(text);
+
+  // Step 2: Filter out rhetorical questions (confidence === 'low')
+  const realQuestions = questions.filter(q => q.confidence !== 'low');
+
+  // Step 3: Build teachable moments by finding paired answers
+  const moments: TeachableMoment[] = [];
+
+  for (const question of realQuestions) {
+    // Search for answer after the question, within proximity threshold
+    const searchStart = question.endIndex;
+    const searchEnd = Math.min(text.length, searchStart + PROXIMITY_THRESHOLD);
+    const searchText = text.slice(searchStart, searchEnd);
+
+    const answer = findAnswerInRange(searchText, searchStart);
+
+    // Calculate proximity (distance between question end and answer start)
+    const proximityChars = answer ? answer.startIndex - question.endIndex : PROXIMITY_THRESHOLD;
+
+    // Classify content category
+    const answerText = answer?.text || '';
+    const contentCategory = classifyContentCategory(question.text, answerText);
+
+    // Determine confidence (inherit from answer if found, otherwise medium)
+    const confidence: ConfidenceLevel = answer ? answer.confidence : 'medium';
+
+    moments.push({
+      problem: question,
+      answer: answer,
+      contentCategory,
+      confidence,
+      proximityChars
+    });
+  }
+
+  // Step 4: Estimate bullet count for throttling
+  const bulletCount = estimateBulletCount(text);
+
+  // Step 5: Apply throttling to limit to 30% of bullets
+  const throttled = throttleDetections(moments, bulletCount, DEFAULT_MAX_PERCENT);
+
+  // Return sorted by position (throttleDetections already does this)
+  return throttled;
 }
