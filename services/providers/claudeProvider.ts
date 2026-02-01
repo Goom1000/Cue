@@ -4,9 +4,10 @@ import { QuizQuestion, QuestionWithAnswer } from '../geminiService';
 import { getStudentFriendlyRules } from '../prompts/studentFriendlyRules';
 import { DOCUMENT_ANALYSIS_SYSTEM_PROMPT, buildAnalysisUserPrompt } from '../documentAnalysis/analysisPrompts';
 import { ENHANCEMENT_SYSTEM_PROMPT, buildEnhancementUserPrompt } from '../documentEnhancement/enhancementPrompts';
-import { detectPreservableContent } from '../contentPreservation/detector';
-import { PreservableContent, ConfidenceLevel } from '../contentPreservation/types';
+import { detectPreservableContent, detectTeachableMoments } from '../contentPreservation/detector';
+import { PreservableContent, ConfidenceLevel, TeachableMoment } from '../contentPreservation/types';
 import { getPreservationRules, getTeleprompterPreservationRules } from '../prompts/contentPreservationRules';
+import { getTeachableMomentRules } from '../prompts/teachableMomentRules';
 
 // Shared teleprompter rules used across all generation modes
 const TELEPROMPTER_RULES = `
@@ -410,7 +411,8 @@ function getSystemPromptForMode(
   mode: GenerationMode,
   verbosity: VerbosityLevel = 'standard',
   gradeLevel: string = 'Year 6 (10-11 years old)',
-  preservableContent?: PreservableContent
+  preservableContent?: PreservableContent,
+  teachableMoments?: TeachableMoment[]
 ): string {
   const teleprompterRules = getTeleprompterRulesForVerbosity(verbosity);
   const studentFriendlyRules = getStudentFriendlyRules(gradeLevel);
@@ -425,6 +427,11 @@ function getSystemPromptForMode(
     ? getTeleprompterPreservationRules(preservableContent)
     : '';
 
+  // Build teachable moment rules if moments detected
+  const teachableMomentRules = teachableMoments && teachableMoments.length > 0
+    ? getTeachableMomentRules(teachableMoments)
+    : '';
+
   switch (mode) {
     case 'fresh':
       return `
@@ -434,6 +441,8 @@ Your goal is to transform a formal lesson plan into a teaching slideshow.
 ${studentFriendlyRules}
 
 ${preservationRules}
+
+${teachableMomentRules}
 
 CRITICAL: You will be provided with text content from the document.
 - Preserve the pedagogical structure: 'Hook', 'I Do', 'We Do', 'You Do'.
@@ -458,6 +467,8 @@ Your goal is to transform an existing presentation into clean, less text-dense C
 ${studentFriendlyRules}
 
 ${preservationRules}
+
+${teachableMomentRules}
 
 CRITICAL RULE - CONTENT PRESERVATION:
 **You MUST preserve ALL content from the original presentation.**
@@ -493,6 +504,8 @@ Your goal is to create slides that combine lesson content with an existing prese
 ${studentFriendlyRules}
 
 ${preservationRules}
+
+${teachableMomentRules}
 
 BLEND MODE RULES:
 - Analyze BOTH the lesson plan AND existing presentation provided.
@@ -674,7 +687,18 @@ export class ClaudeProvider implements AIProviderInterface {
       console.log(`[ClaudeProvider] Detected ${detectedContent.questions.length} questions, ${detectedContent.activities.length} activities`);
     }
 
-    const systemPrompt = getSystemPromptForMode(input.mode, input.verbosity, input.gradeLevel, detectedContent);
+    // Detect teachable moments for delayed answer reveal
+    const teachableMoments = detectTeachableMoments(sourceText);
+
+    // Debug logging for teachable moments
+    if (teachableMoments.length > 0) {
+      console.log(`[ClaudeProvider] Detected ${teachableMoments.length} teachable moments`);
+      teachableMoments.forEach(tm => {
+        console.log(`  - ${tm.contentCategory}: ${tm.problem.text.substring(0, 50)}...`);
+      });
+    }
+
+    const systemPrompt = getSystemPromptForMode(input.mode, input.verbosity, input.gradeLevel, detectedContent, teachableMoments);
 
     // Verbosity instruction to reinforce system prompt
     const verbosityLevel = input.verbosity || 'standard';
