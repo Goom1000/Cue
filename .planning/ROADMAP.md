@@ -90,7 +90,11 @@ Plans:
 
 **Dependencies:** Phase 49 (preservation must be working to assess quality impact)
 
-**Plans:** (created by /gsd:plan-phase)
+**Plans:** 2 plans
+
+Plans:
+- [ ] 50-01-PLAN.md — Test infrastructure and fixtures for quality validation
+- [ ] 50-02-PLAN.md — Validation execution with human quality review and refinement
 
 **Requirements:**
 - QUAL-01: Non-preserved content maintains student-friendly language
@@ -123,4 +127,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-02-01*
-*Last updated: 2026-02-01 — Phase 49 complete*
+*Last updated: 2026-02-01 — Phase 50 planned*
