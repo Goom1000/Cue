@@ -239,13 +239,22 @@ export const generateLessonSlides = async (
     ? { lessonText: inputOrText, lessonImages: pageImages, mode: 'fresh' }
     : inputOrText;
 
+  // Detect preservable content from source text based on mode
+  const sourceText = getDetectionSource(input);
+  const detectedContent = detectPreservableContent(sourceText);
+
+  // Debug logging for development
+  if (detectedContent.all.length > 0) {
+    console.log(`[GeminiService] Detected ${detectedContent.questions.length} questions, ${detectedContent.activities.length} activities`);
+  }
+
   const ai = new GoogleGenAI({ apiKey });
   const model = "gemini-3-flash-preview";
 
   // Debug: Log verbosity being used for generation
   console.log('[GeminiService] generateLessonSlides - verbosity:', input.verbosity || 'undefined (defaulting to standard)');
 
-  const systemInstruction = getSystemInstructionForMode(input.mode, input.verbosity, input.gradeLevel);
+  const systemInstruction = getSystemInstructionForMode(input.mode, input.verbosity, input.gradeLevel, detectedContent);
 
   // Build contents array based on mode
   const contents: any[] = [];
