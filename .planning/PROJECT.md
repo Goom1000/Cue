@@ -4,11 +4,11 @@
 
 A presentation tool for teachers that transforms PDF lesson plans into interactive slideshows with AI-generated content, a teleprompter script for the teacher, and progressive bullet reveal. Teachers upload their existing lesson plans, select student age/grade level, and the AI creates an engaging presentation with speaker notes that guide the teacher through natural, conversational delivery.
 
-**v3.7 shipped:** AI Resource Enhancement — Teachers can upload existing worksheets (PDF, images, Word), enhance with AI using lesson context and 3 differentiation levels, preview with visual diff and inline editing, and export as print-ready PDFs. Deployed at https://goom1000.github.io/Cue/
+**v3.8 shipped:** Preserve Teacher Content — AI-generated slides now preserve specific questions, activities, and instructions from lesson plans verbatim. Teachers' exact wording appears on slides and in teleprompter scripts. Deployed at https://goom1000.github.io/Cue/
 
 ## Current State
 
-Shipped v3.7 with ~24,747 LOC TypeScript. v3.7 delivered AI Resource Enhancement: teachers can upload existing worksheets (PDF, images, Word), enhance with AI using lesson context and 3 differentiation levels, preview with visual diff and inline editing, and export as print-ready PDFs.
+Shipped v3.8 with ~26,500 LOC TypeScript. v3.8 delivered Preserve Teacher Content: AI-generated slides now preserve specific questions, activities, and instructions from lesson plans verbatim. Detection uses regex patterns for questions (punctuation + "Ask:" context) and Bloom's taxonomy action verbs for activities. Both Claude and Gemini providers support mode-specific preservation (Fresh, Refine, Blend).
 
 ## Core Value
 
@@ -128,20 +128,18 @@ Students see only the presentation; teachers see the presentation plus a telepro
 - ✓ Per-element AI regeneration for targeted improvements — v3.7
 - ✓ Export enhanced resources as print-ready PDF with zip bundling — v3.7
 - ✓ Persist enhanced resources in .cue save file (v4 format) — v3.7
+- ✓ Detect questions by punctuation (?) and context ("Ask:", headings) — v3.8
+- ✓ Detect activities by Bloom's taxonomy action verbs — v3.8
+- ✓ Preserve questions and activities verbatim on slides — v3.8
+- ✓ Preserve questions and activities in teleprompter with delivery context — v3.8
+- ✓ Preservation works in Fresh, Refine, and Blend modes — v3.8
+- ✓ Non-preserved content maintains student-friendly language — v3.8
 
 ### Active
 
-## Current Milestone: v3.8 Preserve Teacher Content
+(None — awaiting next milestone)
 
-**Goal:** Ensure AI-generated slides preserve specific questions, activities, and instructions from lesson plans verbatim rather than generalizing them.
-
-**Target features:**
-- Detect specific questions (?, "Ask:" prefix, question headings) in source materials
-- Detect specific activities and instructions in source materials
-- Preserve these verbatim on slides AND in teleprompter
-- Work across all input types (lesson plan PDF, PowerPoints, resources)
-
-### Deferred (v3.8+)
+### Deferred (v3.9+)
 
 - [ ] Tooltips and onboarding walkthrough (v3.6 deferred — Phase 41 infrastructure complete)
 - [ ] Elapsed time display showing presentation duration
@@ -168,18 +166,17 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Current State
 
-Shipped v3.7 with ~24,747 LOC TypeScript.
-Tech stack: React 19, Vite, Gemini/Claude API, Tailwind CSS, react-rnd, jsPDF, html2canvas, mammoth.js, react-diff-viewer-continued, JSZip.
+Shipped v3.8 with ~26,500 LOC TypeScript.
+Tech stack: React 19, Vite, Gemini/Claude API, Tailwind CSS, react-rnd, jsPDF, html2canvas, mammoth.js, react-diff-viewer-continued, JSZip, Jest 30.
 Client-side only (no backend).
 Deployed at: https://goom1000.github.io/Cue/
 
-v3.7 delivered AI Resource Enhancement:
-- Resource upload supporting PDF, images (PNG/JPG), and Word documents with drag-drop UI
-- AI document analysis using multimodal vision for structure detection
-- AI enhancement pipeline with lesson context awareness and 3 differentiation levels
-- Trust UI with visual diff highlighting, inline editing, and per-element regeneration
-- Export to print-ready PDF with zip bundling
-- Full .cue file persistence (v4 format) with enhanced resource state
+v3.8 delivered Preserve Teacher Content:
+- Content detection module with regex patterns for questions and Bloom's taxonomy verb matching for activities
+- XML-tagged prompt rules with few-shot examples for AI preservation instructions
+- 102 unit tests with Jest infrastructure for detection and prompt modules
+- Claude and Gemini provider integration with mode-specific detection and confidence filtering
+- Quality validation with test fixtures covering sparse, dense, and edge-case scenarios
 
 ### Technical Environment
 
@@ -297,6 +294,13 @@ v3.7 delivered AI Resource Enhancement:
 | JSZip for multi-PDF bundling | Single download for teacher convenience | ✓ Good — v3.7 |
 | CueFile v4 with enhancedResources | Full resource state persistence including edits | ✓ Good — v3.7 |
 | v3→v4 migration defaults empty array | Backward compatible, no breaking changes | ✓ Good — v3.7 |
+| Native RegExp for content detection | Built-in TypeScript RegExp sufficient for educational text patterns | ✓ Good — v3.8 |
+| Rhetorical questions flagged low confidence | Detected but filtered by default; allows future UI to show if needed | ✓ Good — v3.8 |
+| Bloom's taxonomy verb categorization | 60+ action verbs across 6 cognitive levels for activity detection | ✓ Good — v3.8 |
+| XML tags with type/method attributes | Structured preservation instructions with detection metadata for AI reasoning | ✓ Good — v3.8 |
+| Medium confidence default filter | Skip low-confidence detections to reduce false positives | ✓ Good — v3.8 |
+| Mode-specific confidence thresholds | Fresh/Blend use medium, Refine requires high confidence | ✓ Good — v3.8 |
+| Jest 30 with ES Module support | --experimental-vm-modules flag for type: "module" project | ✓ Good — v3.8 |
 
 ---
-*Last updated: 2026-02-01 after v3.8 milestone started*
+*Last updated: 2026-02-01 after v3.8 milestone complete*

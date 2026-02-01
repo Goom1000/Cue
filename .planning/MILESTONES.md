@@ -1,5 +1,32 @@
 # Project Milestones: Cue
 
+## v3.8 Preserve Teacher Content (Shipped: 2026-02-01)
+
+**Delivered:** AI-generated slides now preserve specific questions, activities, and instructions from lesson plans verbatim rather than generalizing them. Teachers' exact wording ("What is 3/4 of 12?") appears on slides and in teleprompter scripts with delivery context.
+
+**Phases completed:** 48-50 (7 plans total)
+
+**Key accomplishments:**
+
+- Detection module with regex-based pattern matching for questions (punctuation + context) and activities (60+ Bloom's taxonomy verbs)
+- XML-tagged prompt rules with few-shot examples and confidence-based filtering
+- 102 unit tests with Jest infrastructure (ES Module support for project)
+- Claude and Gemini provider integration with mode-specific detection (Fresh, Refine, Blend)
+- Quality assurance with 3 test fixtures all passing human review without prompt refinements
+
+**Stats:**
+
+- 40 commits
+- ~26,500 lines of TypeScript (project total)
+- 3 phases, 7 plans, 16 requirements
+- 14 days (2026-01-18 → 2026-02-01)
+
+**Git range:** `docs(48)` → `docs(50)`
+
+**What's next:** TBD with /gsd:new-milestone
+
+---
+
 ## v3.7 AI Resource Enhancement (Shipped: 2026-01-31)
 
 **Delivered:** Teachers can upload existing worksheets and handouts (PDF, images, Word), have AI enhance them with lesson context awareness and 3 differentiation levels, preview changes with visual diff, edit inline, and export as print-ready PDFs—all persisting in .cue files.
