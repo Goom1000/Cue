@@ -1,209 +1,253 @@
-# Technology Stack: Delay Answer Reveal
+# Technology Stack: Clipboard Paste & Deck Cohesion
 
-**Feature:** Delay Answer Reveal with Scaffolding Strategies
-**Researched:** 2026-02-01
-**Confidence:** HIGH
+**Project:** Cue v4.0 - Clipboard Paste & Deck Cohesion Features
+**Researched:** 2026-02-02
+**Confidence:** HIGH (Clipboard API), HIGH (Deck Cohesion)
 
 ## Executive Summary
 
-**No new dependencies required.** Delay Answer Reveal is a prompt engineering and data structure task, not a library task. The existing Cue stack provides everything needed.
+The new features require **zero new dependencies**. The existing stack already contains everything needed:
+- Browser Clipboard API (native) for paste handling
+- `@google/genai` ^1.30.0 (already installed) includes embedding support for semantic similarity
+- Existing `imageProcessor.ts` pattern for processing pasted images
 
-## Current Stack (Unchanged)
+The only stack change is **leveraging underutilized capabilities** already present.
 
-| Technology | Version | Purpose | Status |
-|------------|---------|---------|--------|
-| React | 19.2.0 | UI framework | Keep |
-| Vite | 6.2.0 | Build tool | Keep |
-| TypeScript | 5.8.2 | Type safety | Keep |
-| @google/genai | 1.30.0 | Gemini API client | Keep |
-| @floating-ui/react | 0.27.17 | Tooltips | Keep |
-| driver.js | 1.4.0 | Onboarding tours | Keep |
-| Tailwind CSS | (implicit) | Styling | Keep |
+---
 
-## Stack Additions: NONE
+## Feature 1: Clipboard Paste Handling
 
-This feature requires **zero npm additions** because:
+### Recommended Approach: Native Clipboard API
 
-### 1. Content Detection Already Exists
+**No library needed.** Use the browser's native Clipboard API.
 
-The codebase has a mature content detection system:
+| Capability | API | Browser Support | Notes |
+|------------|-----|-----------------|-------|
+| Paste event listener | `paste` event + `clipboardData` | 96%+ all browsers | Synchronous, well-supported |
+| Read images | `clipboardData.files` / `clipboardData.items` | Chrome 66+, Firefox 63+, Safari 13.1+ | Works in paste event context |
+| Async clipboard read | `navigator.clipboard.read()` | Chrome 76+, Firefox 127+, Safari 13.1+ | Requires user gesture |
+| Read text | `clipboardData.getData('text/plain')` | Universal | Already used in codebase |
+| Read HTML | `clipboardData.getData('text/html')` | Universal | PowerPoint copies as HTML |
 
-```
-services/contentPreservation/
-  detector.ts     - Pattern detection (questions, activities)
-  types.ts        - DetectedContent, ConfidenceLevel types
-```
+### Why No Library
 
-Delay Answer Reveal extends this pattern:
-- Add a new `ContentType: 'teachable-moment'`
-- Extend detection patterns for problem/answer pairs
-- Same confidence levels (high/medium/low)
+1. **Native API is sufficient** - Paste event + clipboardData handles all use cases
+2. **Already used in codebase** - `EnhancementPanel.tsx` already uses `e.clipboardData.getData('text/plain')`
+3. **No polyfill needed** - Target browsers (modern Chrome, Safari, Firefox) all support required features
+4. **No CORS/permissions issues** - Paste event doesn't require `clipboard-read` permission
 
-### 2. Prompt Engineering Framework Exists
-
-The codebase has established prompt injection patterns:
-
-```
-services/prompts/
-  contentPreservationRules.ts  - XML-tagged content preservation
-  studentFriendlyRules.ts      - Grade-level language rules
-```
-
-Delay Answer Reveal adds new prompt sections:
-- `TEACHABLE_MOMENT_RULES` - How to detect and structure
-- `SCAFFOLDING_STRATEGY_RULES` - What to include in teleprompter
-
-### 3. Slide Data Structure Supports Progressive Disclosure
-
-Current `Slide` interface (from `types.ts`):
+### Implementation Pattern
 
 ```typescript
-interface Slide {
-  id: string;
-  title: string;
-  content: string[];        // Progressive bullets - ALREADY SUPPORTS reveal
-  speakerNotes: string;     // Uses pointing emoji delimiter for segments
-  // ... other fields
+// Already in codebase pattern (EnhancementPanel.tsx:401-405)
+onPaste={(e) => {
+  e.preventDefault();
+  const text = e.clipboardData.getData('text/plain');
+  // handle text
+}}
+
+// For images (new):
+onPaste={(e) => {
+  e.preventDefault();
+  const items = e.clipboardData.items;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      // Use existing processImage() from imageProcessor.ts
+    }
+  }
+}}
+
+// For HTML (PowerPoint paste):
+onPaste={(e) => {
+  e.preventDefault();
+  const html = e.clipboardData.getData('text/html');
+  const text = e.clipboardData.getData('text/plain');
+  // Parse HTML for structured content, fall back to text
+}}
+```
+
+### PowerPoint Clipboard Format
+
+When copying slides from PowerPoint (desktop or web):
+
+| Data Type | Content | Use Case |
+|-----------|---------|----------|
+| `text/html` | HTML fragment with formatting | Structured content extraction |
+| `text/plain` | Plain text fallback | Simple text extraction |
+| `image/png` | Screenshot of selection | Visual capture (if available) |
+
+**Key insight:** PowerPoint copies as [CF_HTML format](https://learn.microsoft.com/en-us/windows/win32/dataxchg/html-clipboard-format) which includes `<!--StartFragment-->` markers. Parse the HTML to extract slide content structure.
+
+### Browser Compatibility Notes
+
+| Browser | Paste Event | Image Paste | HTML Paste |
+|---------|-------------|-------------|------------|
+| Chrome 66+ | Full | Full | Full |
+| Firefox 63+ | Full | Full | Full |
+| Safari 13.1+ | Full | Full | Full |
+| Edge 79+ | Full | Full | Full |
+
+**Security:** Paste events work on any page. No HTTPS requirement. No permission prompts (unlike `navigator.clipboard.read()`).
+
+---
+
+## Feature 2: Deck Cohesion Analysis
+
+### Recommended Approach: Gemini Embeddings
+
+**No new dependency.** Use `@google/genai` (already at ^1.30.0) with `embedContent` API.
+
+| Component | Technology | Status | Notes |
+|-----------|------------|--------|-------|
+| Embedding Model | `gemini-embedding-001` | Available via existing SDK | 3072 dimensions, MRL-trained |
+| Similarity Metric | Cosine similarity | Implement in-app (trivial) | Standard formula |
+| SDK Method | `ai.models.embedContent()` | Available in ^1.30.0+ | Supports batch embedding |
+
+### Why Embeddings Over Prompt Engineering
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| **Embeddings + Cosine** | Deterministic, fast, cacheable, cheap | Requires understanding threshold tuning |
+| Prompt-based comparison | Flexible, natural language output | Expensive, slower, non-deterministic |
+
+**Recommendation:** Use embeddings for gap detection (fast, cheap), then use generative AI only to explain detected gaps in natural language.
+
+### Gemini Embedding API Syntax
+
+```typescript
+import { GoogleGenAI } from "@google/genai";
+
+const ai = new GoogleGenAI({ apiKey: "..." });
+
+// Embed lesson plan sections
+const lessonEmbeddings = await ai.models.embedContent({
+  model: 'gemini-embedding-001',
+  contents: lessonPlanSections, // string[]
+  config: { taskType: 'SEMANTIC_SIMILARITY' }
+});
+
+// Embed slide content
+const slideEmbeddings = await ai.models.embedContent({
+  model: 'gemini-embedding-001',
+  contents: slideContents, // string[]
+  config: { taskType: 'SEMANTIC_SIMILARITY' }
+});
+
+// Compare using cosine similarity
+function cosineSimilarity(a: number[], b: number[]): number {
+  const dot = a.reduce((sum, ai, i) => sum + ai * b[i], 0);
+  const normA = Math.sqrt(a.reduce((sum, ai) => sum + ai * ai, 0));
+  const normB = Math.sqrt(b.reduce((sum, bi) => sum + bi * bi, 0));
+  return dot / (normA * normB);
 }
 ```
 
-The existing progressive disclosure already works:
-- `visibleBullets` state in `PresentationView.tsx`
-- Broadcast sync to student view
-- Teleprompter segments aligned to bullet reveals
+### Embedding Model Details
 
-### 4. AI Provider Abstraction Ready
+| Property | Value |
+|----------|-------|
+| Model | `gemini-embedding-001` |
+| Default Dimensions | 3072 |
+| Reduced Dimensions | 768, 1536 (via `outputDimensionality`) |
+| Token Limit | 8K tokens per text |
+| Task Types | `SEMANTIC_SIMILARITY`, `RETRIEVAL_DOCUMENT`, `RETRIEVAL_QUERY`, `CLASSIFICATION`, `CLUSTERING` |
 
-The `AIProviderInterface` pattern (from `services/aiProvider.ts`) abstracts all AI calls:
+**For deck cohesion:** Use `SEMANTIC_SIMILARITY` task type for both lesson plan and slides.
 
-```typescript
-interface AIProviderInterface {
-  generateLessonSlides(...): Promise<Slide[]>;
-  regenerateTeleprompter(...): Promise<string>;
-  // ... all AI operations
-}
-```
+### Cost Considerations
 
-No interface changes needed - existing methods handle generation.
+Gemini embeddings are significantly cheaper than generative API calls:
+- Embedding: ~1000x cheaper per token than generation
+- Batch support: Send multiple texts in one API call
+- Cacheable: Embed slides once, re-embed only on changes
 
-## Data Structure Recommendations
-
-### Option A: Separate Field (Recommended)
-
-Add optional field to `Slide` interface:
-
-```typescript
-interface Slide {
-  // ... existing fields
-  delayedContent?: {
-    type: 'problem-answer' | 'question-answer' | 'reveal-sequence';
-    answer: string;              // The content to delay
-    scaffoldingHint?: string;    // Hint for teleprompter
-  };
-}
-```
-
-**Pros:**
-- Explicit, type-safe
-- Easy to check in UI: `if (slide.delayedContent)`
-- Clear semantics for progressive reveal
-
-**Cons:**
-- Requires schema migration for existing files
-- Small type system addition
-
-### Option B: Convention in Content Array (Alternative)
-
-Use content array position as semantic marker:
-- Last bullet is always the "answer" to reveal
-- Detection heuristics mark it automatically
-
-**Pros:**
-- No type changes
-- Works with existing system
-
-**Cons:**
-- Implicit, harder to reason about
-- Detection may have false positives/negatives
-
-**Recommendation:** Option A - explicit is better for this semantic.
-
-## Integration Points
-
-### 1. Slide Generation
-
-Modify `geminiService.ts`:
-
-```
-generateLessonSlides()
-  |-- System prompt += TEACHABLE_MOMENT_RULES
-  |-- Response schema += delayedContent field (optional)
-```
-
-### 2. Teleprompter Generation
-
-Modify teleprompter rules:
-
-```
-TELEPROMPTER_RULES += SCAFFOLDING_STRATEGY_RULES
-  - When slide has delayedContent:
-    - Add scaffolding prompts before reveal
-    - Include wait cues: "[Let students think]"
-    - Provide answer hints for teacher
-```
-
-### 3. Presentation View
-
-Modify `PresentationView.tsx`:
-
-```
-- Track delayedContent reveal state separately from bullet reveals
-- Add "Reveal Answer" button/trigger
-- Sync reveal state to student view via broadcast
-```
-
-### 4. Content Detection
-
-Extend `detector.ts`:
-
-```
-detectTeachableMoments(text: string): DetectedContent[]
-  - Pattern: "What is X?" followed by answer
-  - Pattern: "Calculate..." followed by numeric answer
-  - Pattern: Problem statement with solution
-```
+---
 
 ## What NOT to Add
 
-| Considered | Why Not |
-|------------|---------|
-| Animation library | CSS animations sufficient for reveal effects |
-| State management (Redux, Zustand) | React useState + context sufficient |
-| Timer library | setTimeout/setInterval sufficient for delays |
-| NLP library | AI handles semantic understanding; regex patterns for detection |
-| Rich text editor | Plain markdown + arrays sufficient |
+### Libraries Considered and Rejected
 
-## Implementation Order
+| Library | Why Considered | Why Rejected |
+|---------|----------------|--------------|
+| `clipboard-polyfill` | Async clipboard polyfill | Not needed - paste event sufficient |
+| `sentence-transformers` (Python) | High-quality embeddings | Python-only, Gemini embeddings are sufficient |
+| `@xenova/transformers` | Client-side embeddings | 100MB+ model download, Gemini API is simpler |
+| `compromise` / `natural` | NLP text parsing | Overkill - AI handles semantic analysis |
+| `diff` / `diff-match-patch` | Text diffing | Wrong tool - need semantic, not textual similarity |
 
-1. **Types first** - Add `delayedContent` to `Slide` interface
-2. **Detection second** - Extend content detector for teachable moments
-3. **Prompts third** - Add scaffolding rules to system prompts
-4. **UI fourth** - Add reveal controls to PresentationView
+### Why Client-Side Embeddings Were Rejected
 
-## Migration Considerations
+1. **Model size:** Transformer.js requires downloading 100MB+ models
+2. **Latency:** First load would be very slow
+3. **Existing infrastructure:** Already have Gemini API key and SDK
+4. **Quality:** Gemini embeddings outperform many client-side alternatives (MTEB benchmark leader)
 
-- **File format:** Current version is 4 (`CURRENT_FILE_VERSION`)
-- **Backward compatible:** `delayedContent` is optional, so existing files load fine
-- **No breaking changes:** All changes are additive
+---
+
+## Integration Points
+
+### With Existing Codebase
+
+| New Feature | Integrates With | How |
+|-------------|-----------------|-----|
+| Image paste | `services/documentProcessors/imageProcessor.ts` | Reuse `processImage()` for pasted images |
+| Text/HTML paste | `App.tsx` paste handler pattern | Extend existing textarea paste handling |
+| Embeddings | `services/geminiService.ts` | Add `embedContent` calls alongside `generateContent` |
+| Cohesion UI | `components/Dashboard.tsx` | Add cohesion panel to editing view |
+
+### File Structure Recommendation
+
+```
+services/
+  clipboardService.ts          # NEW: Paste event handling, format detection
+  cohesionService.ts           # NEW: Embedding generation, similarity calculation
+  geminiService.ts             # EXTEND: Add embedContent wrapper
+```
+
+---
+
+## Version Requirements
+
+| Package | Current | Required | Change Needed |
+|---------|---------|----------|---------------|
+| `@google/genai` | ^1.30.0 | ^1.30.0 | None (embedContent available) |
+| React | ^19.2.0 | ^19.2.0 | None |
+| TypeScript | ~5.8.2 | ~5.8.2 | None |
+| Vite | ^6.2.0 | ^6.2.0 | None |
+
+**No package.json changes required.**
+
+---
+
+## Browser Requirements
+
+| Feature | Minimum Browser | Notes |
+|---------|-----------------|-------|
+| Paste images | Chrome 66, Firefox 63, Safari 13.1 | `clipboardData.items` |
+| Paste HTML | Chrome 1, Firefox 1, Safari 4 | `clipboardData.getData()` |
+| Async clipboard (optional) | Chrome 76, Firefox 127, Safari 13.1 | Only if implementing paste button |
+
+**Target browsers already meet requirements** - Cue targets modern browsers only.
+
+---
 
 ## Sources
 
-All findings based on codebase analysis:
-- `/types.ts` - Slide interface definition
-- `/services/aiProvider.ts` - AI abstraction layer
-- `/services/geminiService.ts` - Prompt templates
-- `/services/contentPreservation/` - Detection patterns
-- `/services/prompts/` - Prompt injection framework
-- `/components/PresentationView.tsx` - Progressive disclosure implementation
+**Clipboard API:**
+- [MDN Clipboard API](https://developer.mozilla.org/en-US/docs/Web/API/Clipboard_API) - Official documentation
+- [MDN Paste Event](https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event) - Event handling
+- [web.dev Async Clipboard](https://web.dev/articles/async-clipboard) - Modern clipboard patterns
+- [web.dev Paste Images](https://web.dev/patterns/clipboard/paste-images) - Image paste patterns
+- [Can I Use Clipboard](https://caniuse.com/clipboard) - Browser compatibility (96.84% global support)
+- [Microsoft CF_HTML Format](https://learn.microsoft.com/en-us/windows/win32/dataxchg/html-clipboard-format) - PowerPoint clipboard format
 
-No external research needed - this is an internal architecture extension.
+**Gemini Embeddings:**
+- [Gemini Embeddings API](https://ai.google.dev/gemini-api/docs/embeddings) - Official documentation
+- [@google/genai npm](https://www.npmjs.com/package/@google/genai) - SDK documentation (v1.39.0 latest)
+- [Google Developers Blog - Gemini Embedding](https://developers.googleblog.com/en/gemini-embedding-text-model-now-available-gemini-api/) - Model announcement
+
+**Semantic Similarity:**
+- [Hugging Face Sentence Similarity](https://huggingface.co/tasks/sentence-similarity) - Task overview
+- [IBM Cosine Similarity](https://www.ibm.com/think/topics/cosine-similarity) - Metric explanation
+- [Sentence Transformers STS](https://www.sbert.net/docs/sentence_transformer/usage/semantic_textual_similarity.html) - Implementation patterns
