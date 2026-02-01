@@ -9,28 +9,28 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Detection
 
-- [ ] **DET-01**: Detect questions by punctuation (sentences ending with `?`)
-- [ ] **DET-02**: Detect questions by context ("Ask:", "Ask students:", question-related headings)
-- [ ] **DET-03**: Detect activities by instructional language (action verbs like "list", "discuss", "complete")
-- [ ] **DET-04**: Detection works on lesson plan PDF input
-- [ ] **DET-05**: Detection works on PowerPoint input (Refine/Blend modes)
+- [x] **DET-01**: Detect questions by punctuation (sentences ending with `?`)
+- [x] **DET-02**: Detect questions by context ("Ask:", "Ask students:", question-related headings)
+- [x] **DET-03**: Detect activities by instructional language (action verbs like "list", "discuss", "complete")
+- [x] **DET-04**: Detection works on lesson plan PDF input
+- [x] **DET-05**: Detection works on PowerPoint input (Refine/Blend modes)
 
 ### Preservation
 
-- [ ] **PRES-01**: Preserved questions appear verbatim on slides
-- [ ] **PRES-02**: Preserved questions appear in teleprompter with delivery context
-- [ ] **PRES-03**: Preserved activities appear verbatim on slides
-- [ ] **PRES-04**: Preserved activities appear in teleprompter with delivery context
-- [ ] **PRES-05**: Preservation works in Fresh mode (lesson plan only)
-- [ ] **PRES-06**: Preservation works in Refine mode (existing presentation)
-- [ ] **PRES-07**: Preservation works in Blend mode (lesson + presentation)
+- [x] **PRES-01**: Preserved questions appear verbatim on slides
+- [x] **PRES-02**: Preserved questions appear in teleprompter with delivery context
+- [x] **PRES-03**: Preserved activities appear verbatim on slides
+- [x] **PRES-04**: Preserved activities appear in teleprompter with delivery context
+- [x] **PRES-05**: Preservation works in Fresh mode (lesson plan only)
+- [x] **PRES-06**: Preservation works in Refine mode (existing presentation)
+- [x] **PRES-07**: Preservation works in Blend mode (lesson + presentation)
 
 ### Quality
 
-- [ ] **QUAL-01**: Non-preserved content maintains student-friendly language
-- [ ] **QUAL-02**: Slide flow remains coherent around preserved elements
-- [ ] **QUAL-03**: Teleprompter quality does not degrade
-- [ ] **QUAL-04**: Existing slide layouts continue to work correctly
+- [x] **QUAL-01**: Non-preserved content maintains student-friendly language
+- [x] **QUAL-02**: Slide flow remains coherent around preserved elements
+- [x] **QUAL-03**: Teleprompter quality does not degrade
+- [x] **QUAL-04**: Existing slide layouts continue to work correctly
 
 ## Future Requirements
 
@@ -59,22 +59,22 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DET-01 | Phase 48 | Pending |
-| DET-02 | Phase 48 | Pending |
-| DET-03 | Phase 48 | Pending |
-| DET-04 | Phase 48 | Pending |
-| DET-05 | Phase 48 | Pending |
-| PRES-01 | Phase 49 | Pending |
-| PRES-02 | Phase 49 | Pending |
-| PRES-03 | Phase 49 | Pending |
-| PRES-04 | Phase 49 | Pending |
-| PRES-05 | Phase 49 | Pending |
-| PRES-06 | Phase 49 | Pending |
-| PRES-07 | Phase 49 | Pending |
-| QUAL-01 | Phase 50 | Pending |
-| QUAL-02 | Phase 50 | Pending |
-| QUAL-03 | Phase 50 | Pending |
-| QUAL-04 | Phase 50 | Pending |
+| DET-01 | Phase 48 | Complete |
+| DET-02 | Phase 48 | Complete |
+| DET-03 | Phase 48 | Complete |
+| DET-04 | Phase 48 | Complete |
+| DET-05 | Phase 48 | Complete |
+| PRES-01 | Phase 49 | Complete |
+| PRES-02 | Phase 49 | Complete |
+| PRES-03 | Phase 49 | Complete |
+| PRES-04 | Phase 49 | Complete |
+| PRES-05 | Phase 49 | Complete |
+| PRES-06 | Phase 49 | Complete |
+| PRES-07 | Phase 49 | Complete |
+| QUAL-01 | Phase 50 | Complete |
+| QUAL-02 | Phase 50 | Complete |
+| QUAL-03 | Phase 50 | Complete |
+| QUAL-04 | Phase 50 | Complete |
 
 **Coverage:**
 - v3.8 requirements: 16 total
@@ -83,4 +83,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-01*
-*Last updated: 2026-02-01 — Traceability updated after roadmap creation*
+*Last updated: 2026-02-01 — All requirements complete, v3.8 milestone complete*
