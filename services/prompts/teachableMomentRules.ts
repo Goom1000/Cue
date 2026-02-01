@@ -14,93 +14,128 @@ import { TeachableMoment, ContentCategory } from '../contentPreservation/types';
 
 /**
  * Math scaffolding: Break into known vs unknown, step-by-step thinking,
- * visual/manipulative suggestions.
+ * visual/manipulative suggestions. Each question under 20 words.
  */
 const MATH_SCAFFOLDING_TEMPLATE = `
-MATH PROBLEM SCAFFOLDING:
-When the problem bullet contains a math question, guide student thinking with:
-- Break into known vs. unknown: "What information do we have? What are we trying to find?"
-- Step-by-step thinking prompts: "What operation makes sense here? Let's work through it."
-- Visual/manipulative suggestions: "Can we draw this? Can we use objects to represent it?"
+MATH PROBLEM SCAFFOLDING (each question under 20 words):
+Generate 2-3 SHORT questions to guide math thinking:
 
-Example scaffolding segment:
-"What do we know from this problem? [PAUSE] What are we trying to find? [PAUSE] Can we draw a picture or use objects to help us solve this?"
+Question types:
+- Known/unknown: "What do we know?" (4 words) or "What are we finding?" (4 words)
+- Process: "What's the first step?" (4 words) or "Which operation?" (2 words)
+- Visual: "Can we draw this?" (4 words) or "Can we use objects?" (4 words)
 
-Format: 2-3 brief, actionable question prompts with [PAUSE] timing cues.
+CORRECT - each question under 20 words:
+"What do we know? [PAUSE] What are we finding? [PAUSE] Can we draw it?"
+(4 words + 4 words + 4 words = three separate short questions)
+
+WRONG - combined script (too long to speak naturally):
+"What do we know from this problem and what are we trying to find and can we draw a picture to help?"
+(22 words in one run-on sentence - awkward to say aloud)
+
+Each [PAUSE] is 3-5 seconds of wait time.
 `;
 
 /**
  * Vocabulary scaffolding: Context clues, word breakdown (prefix/root/suffix),
- * real-world examples.
+ * real-world examples. Each question under 20 words.
  *
  * NOTE: Definition must NOT repeat the vocabulary word - definition only.
  * The word is already visible on the previous bullet, so the definition bullet
  * should provide the meaning without redundantly repeating the term.
  */
 const VOCABULARY_SCAFFOLDING_TEMPLATE = `
-VOCABULARY SCAFFOLDING:
-When the problem bullet contains a vocabulary word, guide student thinking with:
-- Context clues: "Have you seen this word before? Where might you encounter it?"
-- Word breakdown (prefix/root/suffix): "Look at the parts of the word. What do you recognize?"
-- Real-world examples: "Where might you use or hear this word in everyday life?"
+VOCABULARY SCAFFOLDING (each question under 20 words):
+Generate 2-3 SHORT questions about the vocabulary word:
 
-Example scaffolding segment:
-"Look at this word carefully. [PAUSE] Do you see any parts you recognize? [PAUSE] Where might you encounter this word in the real world?"
+Question types:
+- Context: "Have you heard this word before?" (6 words) or "Where might you see this?" (5 words)
+- Word parts: "Do you see parts you recognize?" (6 words) or "What prefix or suffix?" (4 words)
+- Real-world: "Where might you use this word?" (6 words)
 
-Format: 2-3 brief, actionable question prompts with [PAUSE] timing cues.
+CORRECT - each question under 20 words:
+"Do you recognize this word? [PAUSE] What parts do you see? [PAUSE] Where might you use it?"
+(5 words + 5 words + 5 words = three separate short questions)
 
-CRITICAL: The answer bullet shows the definition ONLY. Do NOT repeat the vocabulary word in the definition bullet - the word is already visible above.
+WRONG - too wordy:
+"Think about whether you have ever encountered this word before and what context you might have seen it in."
+(19 words in one run-on sentence - awkward to say aloud)
+
+Each [PAUSE] is 3-5 seconds of wait time.
+
+CRITICAL: Answer bullet shows definition ONLY - do NOT repeat the vocabulary word.
 `;
 
 /**
  * Comprehension scaffolding: Text evidence prompts, reasoning/inference,
- * connection to prior knowledge.
+ * connection to prior knowledge. Each question under 20 words.
  */
 const COMPREHENSION_SCAFFOLDING_TEMPLATE = `
-COMPREHENSION SCAFFOLDING:
-When the problem bullet contains a comprehension question, guide student thinking with:
-- Text evidence prompts: "What clues from the passage support your answer?"
-- Reasoning/inference: "What can we figure out based on what we've read?"
-- Connection to prior knowledge: "Where have we seen this before? What do we already know?"
+COMPREHENSION SCAFFOLDING (each question under 20 words):
+Generate 2-3 SHORT questions about the text:
 
-Example scaffolding segment:
-"Think about what we just read. [PAUSE] What clues from the passage might help us answer this? [PAUSE] How does this connect to what we already know?"
+Question types:
+- Evidence: "What clues from the text help?" (6 words) or "What did it say?" (4 words)
+- Inference: "What can we figure out?" (5 words) or "What does this tell us?" (5 words)
+- Connection: "What do we already know?" (5 words) or "Have we seen this before?" (5 words)
 
-Format: 2-3 brief, actionable question prompts with [PAUSE] timing cues.
+CORRECT - each question under 20 words:
+"What did the text say? [PAUSE] What can we figure out? [PAUSE] What do we already know?"
+(5 words + 5 words + 5 words = three separate short questions)
+
+WRONG - too wordy:
+"Think about what specific evidence from the passage might support your answer to this comprehension question."
+(16 words in one run-on sentence - awkward to say aloud)
+
+Each [PAUSE] is 3-5 seconds of wait time.
 `;
 
 /**
  * Science scaffolding: Observation prompts, prediction/hypothesis,
- * real-world connection.
+ * real-world connection. Each question under 20 words.
  */
 const SCIENCE_SCAFFOLDING_TEMPLATE = `
-SCIENCE SCAFFOLDING:
-When the problem bullet contains a science question, guide student thinking with:
-- Observation prompts: "What do you observe? What do you notice about this?"
-- Prediction/hypothesis: "What do you think will happen? What's your prediction?"
-- Real-world connection: "Where do we see this in everyday life? Why does this matter?"
+SCIENCE SCAFFOLDING (each question under 20 words):
+Generate 2-3 SHORT questions about the science concept:
 
-Example scaffolding segment:
-"What do you observe here? [PAUSE] What do you think will happen and why? [PAUSE] Where might we see this in the real world?"
+Question types:
+- Observation: "What do you notice?" (4 words) or "What do you observe?" (4 words)
+- Prediction: "What will happen?" (3 words) or "What's your prediction?" (3 words)
+- Connection: "Where do we see this?" (5 words) or "Why does this matter?" (4 words)
 
-Format: 2-3 brief, actionable question prompts with [PAUSE] timing cues.
+CORRECT - each question under 20 words:
+"What do you notice? [PAUSE] What will happen? [PAUSE] Where do we see this?"
+(4 words + 3 words + 5 words = three separate short questions)
+
+WRONG - too wordy:
+"What do you observe here and what do you think will happen and where might we see this in the real world?"
+(22 words in one run-on sentence - awkward to say aloud)
+
+Each [PAUSE] is 3-5 seconds of wait time.
 `;
 
 /**
  * General scaffolding: Fallback for unclassified content.
- * Uses think-pair-share structure.
+ * Uses think-pair-share structure. Each question under 20 words.
  */
 const GENERAL_SCAFFOLDING_TEMPLATE = `
-GENERAL SCAFFOLDING (Fallback):
-When the content category is not specifically math, vocabulary, comprehension, or science:
-- Think: "Take a moment to think about this on your own."
-- Pair: "Turn to a partner and share your thoughts."
-- Share: "Let's hear some ideas from the class."
+GENERAL SCAFFOLDING (each question under 20 words):
+For content not specifically math, vocabulary, comprehension, or science:
 
-Example scaffolding segment:
-"Take a moment to think about this. [PAUSE] What ideas come to mind? [PAUSE] Share your thinking with a partner."
+Question types:
+- Think: "What comes to mind?" (4 words) or "What do you think?" (4 words)
+- Share: "Talk to a partner." (4 words) or "Share your thinking." (3 words)
+- Discuss: "What ideas do we have?" (5 words) or "Let's hear some thoughts." (4 words)
 
-Format: 2-3 brief, actionable question prompts with [PAUSE] timing cues.
+CORRECT - each question under 20 words:
+"What do you think? [PAUSE] Talk to a partner. [PAUSE] What ideas do we have?"
+(4 words + 4 words + 5 words = three separate short prompts)
+
+WRONG - too wordy:
+"Take a moment to think about this on your own and then turn to a partner and share your thoughts."
+(20 words in one run-on sentence - awkward to say aloud)
+
+Each [PAUSE] is 3-5 seconds of wait time.
 `;
 
 // =============================================================================
