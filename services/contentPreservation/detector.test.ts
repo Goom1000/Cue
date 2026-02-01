@@ -725,6 +725,88 @@ describe('findAnswerInRange', () => {
     });
   });
 
+  describe('Natural prose patterns', () => {
+    it('detects "The answer is X" pattern', () => {
+      const text = ' The answer is 42.';
+      const result = findAnswerInRange(text, 0);
+
+      expect(result).not.toBeNull();
+      expect(result?.text).toBe('42.');
+    });
+
+    it('detects "the answer is X" lowercase', () => {
+      const text = ' the answer is seven';
+      const result = findAnswerInRange(text, 0);
+
+      expect(result).not.toBeNull();
+      expect(result?.text).toBe('seven');
+    });
+
+    it('detects "Solution: X" pattern', () => {
+      const text = ' Solution: x = 5';
+      const result = findAnswerInRange(text, 0);
+
+      expect(result).not.toBeNull();
+      expect(result?.text).toBe('x = 5');
+    });
+
+    it('detects "Result: X" pattern', () => {
+      const text = ' Result: The mixture turned blue';
+      const result = findAnswerInRange(text, 0);
+
+      expect(result).not.toBeNull();
+      expect(result?.text).toContain('blue');
+    });
+
+    it('detects parenthetical answer "(X)"', () => {
+      const text = ' (Paris)';
+      const result = findAnswerInRange(text, 0);
+
+      expect(result).not.toBeNull();
+      expect(result?.text).toBe('Paris');
+    });
+
+    it('detects parenthetical with Answer prefix "(Answer: X)"', () => {
+      const text = ' (Answer: 7)';
+      const result = findAnswerInRange(text, 0);
+
+      expect(result).not.toBeNull();
+      expect(result?.text).toBe('7');
+    });
+
+    it('detects "It\'s X" pattern', () => {
+      const text = " It's 42";
+      const result = findAnswerInRange(text, 0);
+
+      expect(result).not.toBeNull();
+      expect(result?.text).toBe('42');
+    });
+
+    it('detects "It is X" pattern', () => {
+      const text = ' It is the capital of France';
+      const result = findAnswerInRange(text, 0);
+
+      expect(result).not.toBeNull();
+      expect(result?.text).toContain('capital');
+    });
+
+    it('detects "means X" vocabulary pattern', () => {
+      const text = ' means the process of water turning to gas';
+      const result = findAnswerInRange(text, 0);
+
+      expect(result).not.toBeNull();
+      expect(result?.text).toContain('water turning to gas');
+    });
+
+    it('detects "is defined as X" pattern', () => {
+      const text = ' is defined as the transfer of heat energy';
+      const result = findAnswerInRange(text, 0);
+
+      expect(result).not.toBeNull();
+      expect(result?.text).toContain('transfer of heat');
+    });
+  });
+
   describe('Edge cases', () => {
     it('returns null when no answer found', () => {
       const text = ' This is just regular text without answers.';

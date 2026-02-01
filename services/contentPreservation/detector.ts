@@ -327,17 +327,43 @@ export function detectInstructions(text: string): DetectedContent[] {
 /**
  * Answer detection patterns.
  * Matches various ways answers appear near questions.
+ * Ordered from most specific to least specific to prefer explicit markers.
  */
 const ANSWER_PATTERNS: Array<{ pattern: RegExp; extractor: (match: RegExpExecArray) => string }> = [
-  // "Answer: X", "A: X", "Ans: X" - explicit answer markers
+  // "(Answer: X)" - parenthetical with explicit marker (check first to avoid partial match)
   {
-    pattern: /(?:Answer|Ans|A)\s*:\s*([^.!?\n]+[.!?]?)/gi,
+    pattern: /\(\s*Answer\s*:\s*([^)]+)\s*\)/gi,
+    extractor: (match) => match[1].trim()
+  },
+  // "(X)" - simple parenthetical answers (short content only to avoid false matches)
+  {
+    pattern: /\(\s*([^)]{1,50})\s*\)/g,
+    extractor: (match) => match[1].trim()
+  },
+  // "Answer: X", "A: X", "Ans: X" - explicit answer markers (exclude parens)
+  {
+    pattern: /(?:Answer|Ans|A)\s*:\s*([^.!?\n)]+[.!?]?)/gi,
     extractor: (match) => match[1].trim()
   },
   // "A1:", "A2:" - numbered answers
   {
-    pattern: /A(\d+)\s*[:.]?\s*([^.!?\n]+[.!?]?)/gi,
+    pattern: /A(\d+)\s*[:.]?\s*([^.!?\n)]+[.!?]?)/gi,
     extractor: (match) => match[2].trim()
+  },
+  // "Solution: X", "Result: X" - common in math/science
+  {
+    pattern: /(?:Solution|Result)\s*:\s*([^.!?\n)]+[.!?]?)/gi,
+    extractor: (match) => match[1].trim()
+  },
+  // "The answer is X" - natural prose (very common)
+  {
+    pattern: /[Tt]he\s+answer\s+is\s+([^.!?\n)]+[.!?]?)/g,
+    extractor: (match) => match[1].trim()
+  },
+  // "It's X" or "It is X" - common follow-up to questions
+  {
+    pattern: /[Ii]t(?:'s|'s|\s+is)\s+([^.!?\n]+[.!?]?)/g,
+    extractor: (match) => match[1].trim()
   },
   // "= 15", "= 3.14" - math results with equals
   {
@@ -348,6 +374,11 @@ const ANSWER_PATTERNS: Array<{ pattern: RegExp; extractor: (match: RegExpExecArr
   {
     pattern: /equals\s+(\d+(?:\.\d+)?)/gi,
     extractor: (match) => match[1]
+  },
+  // "means X" or "is defined as X" - vocabulary definitions
+  {
+    pattern: /(?:means|is\s+defined\s+as)\s+([^.!?\n]+[.!?]?)/gi,
+    extractor: (match) => match[1].trim()
   }
 ];
 
