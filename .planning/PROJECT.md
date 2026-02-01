@@ -4,11 +4,11 @@
 
 A presentation tool for teachers that transforms PDF lesson plans into interactive slideshows with AI-generated content, a teleprompter script for the teacher, and progressive bullet reveal. Teachers upload their existing lesson plans, select student age/grade level, and the AI creates an engaging presentation with speaker notes that guide the teacher through natural, conversational delivery.
 
-**v3.8 shipped:** Preserve Teacher Content — AI-generated slides now preserve specific questions, activities, and instructions from lesson plans verbatim. Teachers' exact wording appears on slides and in teleprompter scripts. Deployed at https://goom1000.github.io/Cue/
+**v3.9 shipped:** Delay Answer Reveal — AI-generated slides now separate problems from answers, creating deliberate "thinking pauses" for students with scaffolding strategies in the teleprompter. Deployed at https://goom1000.github.io/Cue/
 
 ## Current State
 
-Shipped v3.8 with ~26,500 LOC TypeScript. v3.8 delivered Preserve Teacher Content: AI-generated slides now preserve specific questions, activities, and instructions from lesson plans verbatim. Detection uses regex patterns for questions (punctuation + "Ask:" context) and Bloom's taxonomy action verbs for activities. Both Claude and Gemini providers support mode-specific preservation (Fresh, Refine, Blend).
+Shipped v3.9 with ~29,000 LOC TypeScript. v3.9 delivered Delay Answer Reveal: AI detects teachable moments (Q&A pairs, math problems, definitions) and splits them across progressive bullets. Teachers see scaffolding strategies (math decomposition, vocabulary context, reading evidence) in the teleprompter to guide students through productive struggle before revealing answers. 353 tests validate leakage prevention, format diversity, and provider parity.
 
 ## Core Value
 
@@ -134,20 +134,28 @@ Students see only the presentation; teachers see the presentation plus a telepro
 - ✓ Preserve questions and activities in teleprompter with delivery context — v3.8
 - ✓ Preservation works in Fresh, Refine, and Blend modes — v3.8
 - ✓ Non-preserved content maintains student-friendly language — v3.8
+- ✓ Detect teachable moments by pattern (Q&A pairs, definitions, math with results) — v3.9
+- ✓ Conservative detection threshold (<30% of bullets flagged) — v3.9
+- ✓ Classify content type (math, vocabulary, comprehension, science) — v3.9
+- ✓ Pair problems with their answers (within proximity threshold) — v3.9
+- ✓ Split problem/answer into separate progressive bullets — v3.9
+- ✓ Problem bullet first with no answer leakage — v3.9
+- ✓ Answer bullet as next progressive reveal — v3.9
+- ✓ Maintain natural lesson flow (no awkward transitions) — v3.9
+- ✓ Generate strategy steps in teleprompter between problem and answer — v3.9
+- ✓ Include 2-3 question prompts per delayed answer — v3.9
+- ✓ Scaffolding matches content complexity — v3.9
+- ✓ Subject-specific scaffolding templates (math, vocabulary, comprehension, science, general) — v3.9
+- ✓ Scaffolding verbally deliverable (<20 words per prompt) — v3.9
+- ✓ No answer leakage in problem statement or scaffolding — v3.9
+- ✓ Detection works across lesson plan formats — v3.9
+- ✓ Works with both Gemini and Claude providers — v3.9
 
 ### Active
 
-**Current Milestone: v3.9 Delay Answer Reveal**
+No active milestone. Run `/gsd:new-milestone` to start next milestone.
 
-**Goal:** AI-generated slides separate problems from answers, giving students thinking time with teacher-guided scaffolding in the teleprompter.
-
-**Target features:**
-- Detect teachable moments (math, comprehension, vocabulary — any example with an answer)
-- Split problem/answer into separate progressive components
-- Generate scaffolding strategy + question prompts in teleprompter
-- Maintain natural lesson flow while creating deliberate thinking pauses
-
-### Deferred (v3.9+)
+### Deferred (v4.0+)
 
 - [ ] Tooltips and onboarding walkthrough (v3.6 deferred — Phase 41 infrastructure complete)
 - [ ] Elapsed time display showing presentation duration
@@ -174,17 +182,17 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Current State
 
-Shipped v3.8 with ~26,500 LOC TypeScript.
+Shipped v3.9 with ~29,000 LOC TypeScript.
 Tech stack: React 19, Vite, Gemini/Claude API, Tailwind CSS, react-rnd, jsPDF, html2canvas, mammoth.js, react-diff-viewer-continued, JSZip, Jest 30.
 Client-side only (no backend).
 Deployed at: https://goom1000.github.io/Cue/
 
-v3.8 delivered Preserve Teacher Content:
-- Content detection module with regex patterns for questions and Bloom's taxonomy verb matching for activities
-- XML-tagged prompt rules with few-shot examples for AI preservation instructions
-- 102 unit tests with Jest infrastructure for detection and prompt modules
-- Claude and Gemini provider integration with mode-specific detection and confidence filtering
-- Quality validation with test fixtures covering sparse, dense, and edge-case scenarios
+v3.9 delivered Delay Answer Reveal:
+- Teachable moment detection with proximity-based Q&A pairing (200 char threshold)
+- 30% throttling to preserve lesson flow
+- 5 content-specific scaffolding templates (math, vocabulary, comprehension, science, general)
+- Word count constraints (<20 words per prompt) for verbal deliverability
+- 353 tests covering leakage prevention, format diversity (8 teacher styles), and provider parity
 
 ### Technical Environment
 
@@ -311,4 +319,4 @@ v3.8 delivered Preserve Teacher Content:
 | Jest 30 with ES Module support | --experimental-vm-modules flag for type: "module" project | ✓ Good — v3.8 |
 
 ---
-*Last updated: 2026-02-01 after v3.9 milestone started*
+*Last updated: 2026-02-01 after v3.9 milestone complete*

@@ -1,5 +1,32 @@
 # Project Milestones: Cue
 
+## v3.9 Delay Answer Reveal (Shipped: 2026-02-01)
+
+**Delivered:** AI-generated slides now separate problems from answers, creating deliberate "thinking pauses" for students. Teachers see scaffolding strategies in the teleprompter to guide students through productive struggle before revealing answers.
+
+**Phases completed:** 51-54 (8 plans total)
+
+**Key accomplishments:**
+
+- Teachable moment detection system with proximity-based Q&A pairing and 30% throttling to preserve lesson flow
+- 5 content-specific scaffolding templates (math, vocabulary, comprehension, science, general) with word count constraints (<20 words)
+- Bullet structure rules preventing answer leakage (problem first, answer as next progressive reveal)
+- Integrated detection into both Gemini and Claude providers for consistent behavior
+- 353 tests validating leakage prevention, format diversity across 8 teacher styles, and provider parity
+
+**Stats:**
+
+- 45 files modified
+- ~29,000 lines of TypeScript (project total)
+- 4 phases, 8 plans, 16 requirements
+- 14 days (2026-01-18 → 2026-02-01)
+
+**Git range:** `feat(51-01)` → `feat(scaffolding)`
+
+**What's next:** TBD with /gsd:new-milestone
+
+---
+
 ## v3.8 Preserve Teacher Content (Shipped: 2026-02-01)
 
 **Delivered:** AI-generated slides now preserve specific questions, activities, and instructions from lesson plans verbatim rather than generalizing them. Teachers' exact wording ("What is 3/4 of 12?") appears on slides and in teleprompter scripts with delivery context.
