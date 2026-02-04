@@ -31,6 +31,13 @@ v4.0 enables teachers to build slide decks via copy-paste from PowerPoint, paste
 4. "Paste Slide" button in toolbar provides discoverable alternative to keyboard shortcut
 5. Paste works in Chrome, Safari, and Firefox browsers
 
+**Plans:** 3 plans
+
+Plans:
+- [ ] 55-01-PLAN.md — Types and usePaste hook foundation
+- [ ] 55-02-PLAN.md — handlePasteSlide handler and UI integration
+- [ ] 55-03-PLAN.md — Cross-browser verification checkpoint
+
 ---
 
 ### Phase 56: AI Slide Analysis
@@ -123,7 +130,7 @@ v4.0 enables teachers to build slide decks via copy-paste from PowerPoint, paste
 
 | Phase | Name | Status | Plans |
 |-------|------|--------|-------|
-| 55 | Paste Infrastructure | Pending | — |
+| 55 | Paste Infrastructure | Planned | 3 plans |
 | 56 | AI Slide Analysis | Pending | — |
 | 57 | Image Paste | Pending | — |
 | 58 | Deck Cohesion | Pending | — |
@@ -163,4 +170,4 @@ All 21 v4.0 requirements mapped:
 
 ---
 *Roadmap created: 2026-02-02*
-*Last updated: 2026-02-02*
+*Last updated: 2026-02-04*
