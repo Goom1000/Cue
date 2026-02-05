@@ -34,7 +34,7 @@ v4.0 enables teachers to build slide decks via copy-paste from PowerPoint, paste
 **Plans:** 3 plans
 
 Plans:
-- [ ] 55-01-PLAN.md — Types and usePaste hook foundation
+- [x] 55-01-PLAN.md — Types and usePaste hook foundation
 - [ ] 55-02-PLAN.md — handlePasteSlide handler and UI integration
 - [ ] 55-03-PLAN.md — Cross-browser verification checkpoint
 
@@ -136,7 +136,7 @@ Plans:
 | 58 | Deck Cohesion | Pending | — |
 | 59 | Gap Analysis | Pending | — |
 
-**Total:** 0/5 phases complete | 0/21 requirements delivered
+**Total:** 0/5 phases complete (1 plan complete) | 0/21 requirements delivered
 
 ## Coverage Validation
 
@@ -170,4 +170,4 @@ All 21 v4.0 requirements mapped:
 
 ---
 *Roadmap created: 2026-02-02*
-*Last updated: 2026-02-04*
+*Last updated: 2026-02-05 - Completed 55-01*
