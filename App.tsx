@@ -127,13 +127,15 @@ const InsertPoint = ({
   onClickExemplar,
   onClickElaborate,
   onClickWorkTogether,
-  onClickClassChallenge
+  onClickClassChallenge,
+  onClickPaste
 }: {
   onClickBlank: () => void,
   onClickExemplar: () => void,
   onClickElaborate: () => void,
   onClickWorkTogether: () => void,
-  onClickClassChallenge: () => void
+  onClickClassChallenge: () => void,
+  onClickPaste: () => void
 }) => {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -183,6 +185,15 @@ const InsertPoint = ({
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors shadow-sm"
                     >
                         <span className="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">Class Challenge</span>
+                    </button>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onClickPaste(); setIsOpen(false); }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors shadow-sm"
+                    >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        <span className="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">Paste Slide</span>
                     </button>
                 </div>
             )}
@@ -948,6 +959,13 @@ function App() {
       addToast('Pasted with limited formatting', 3000, 'info');
     }
   }, [activeSlideIndex, slides, addToast]);
+
+  // Trigger paste via button click (shows keyboard shortcut hint)
+  // Note: Clipboard read API requires secure context and permission
+  // Instead of complex permission flow, guide user to keyboard shortcut
+  const handlePasteFromButton = useCallback(() => {
+    addToast('Use Cmd+V (Mac) or Ctrl+V (Windows) to paste slide content', 4000, 'info');
+  }, [addToast]);
 
   const handleShufflePairs = (slideId: string) => {
     if (studentNames.length < 2) return;
@@ -1784,6 +1802,7 @@ function App() {
                             onClickElaborate={() => handleInsertElaborateSlide(-1)}
                             onClickWorkTogether={() => handleInsertWorkTogetherSlide(-1)}
                             onClickClassChallenge={() => handleInsertClassChallengeSlide(-1)}
+                            onClickPaste={handlePasteFromButton}
                         />
                         
                         {slides.map((slide, idx) => (
@@ -1842,6 +1861,7 @@ function App() {
                                  onClickElaborate={() => handleInsertElaborateSlide(idx)}
                                  onClickWorkTogether={() => handleInsertWorkTogetherSlide(idx)}
                                  onClickClassChallenge={() => handleInsertClassChallengeSlide(idx)}
+                                 onClickPaste={handlePasteFromButton}
                                />
                            </React.Fragment>
                         ))}
