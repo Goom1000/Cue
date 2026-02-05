@@ -1,6 +1,12 @@
 import { QuizQuestion } from './services/geminiService';
 import { VerbosityLevel } from './services/aiProvider';
 
+// Slide content provenance for cohesion tracking (Phase 55+)
+export type SlideSource =
+  | { type: 'ai-generated' }           // Created by initial generation
+  | { type: 'pasted'; pastedAt: string } // Pasted from clipboard (ISO 8601)
+  | { type: 'manual' };                // User-created or manually edited
+
 export interface Slide {
   id: string;
   title: string;
@@ -26,6 +32,7 @@ export interface Slide {
   // For Class Challenge slides: live student contributions
   contributions?: string[];
   challengePrompt?: string;
+  source?: SlideSource;
 }
 
 // AI Poster types for Working Wall export
