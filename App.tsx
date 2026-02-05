@@ -11,6 +11,7 @@ import { createCueFile, downloadPresentation, checkFileSize } from './services/s
 import { readCueFile } from './services/loadService';
 import { useAutoSave, getAutoSave, getAutoSaveTimestamp, clearAutoSave, hasAutoSave, AutoSaveData } from './hooks/useAutoSave';
 import { useDragDrop } from './hooks/useDragDrop';
+import { usePaste, PasteResult } from './hooks/usePaste';
 import Button from './components/Button';
 import SlideCard from './components/SlideCard';
 import PresentationView from './components/PresentationView';
@@ -62,6 +63,62 @@ function generatePairs(studentNames: string[]): StudentPair[] {
   }
 
   return pairs;
+}
+
+// Helper to parse clipboard HTML/text into slide structure
+// Extracts title and bullets from pasted content (PowerPoint, web, etc.)
+function parseClipboardContent(result: PasteResult): { title: string; bullets: string[]; notes?: string } {
+  // If we have HTML, try to extract structure
+  if (result.html) {
+    // Create a temporary DOM element to parse HTML safely
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(result.html, 'text/html');
+
+    // Security: DOMParser doesn't execute scripts by default, safe to use
+
+    // Try to find a title (h1, h2, or first strong/b element)
+    const titleEl = doc.querySelector('h1, h2, h3, [class*="title"], strong, b');
+    let title = titleEl?.textContent?.trim() || '';
+
+    // Get all text content, split into lines
+    const bodyText = doc.body?.textContent || result.text || '';
+    const lines = bodyText.split(/\n+/).map(l => l.trim()).filter(l => l.length > 0);
+
+    // If no title found, use first line
+    if (!title && lines.length > 0) {
+      title = lines[0].substring(0, 80);
+      lines.shift();
+    }
+
+    // Use remaining lines as bullets (max 6)
+    const bullets = lines.slice(0, 6).map(line => {
+      // Clean up bullet prefixes
+      return line.replace(/^[\u2022\u2023\u25E6\u2043\u2219•\-\*]\s*/, '').trim();
+    }).filter(b => b.length > 0);
+
+    // Ensure we have at least one bullet
+    if (bullets.length === 0) {
+      bullets.push("Add your content here...");
+    }
+
+    return { title: title || "Pasted Slide", bullets };
+  }
+
+  // Plain text fallback
+  if (result.text) {
+    const lines = result.text.split(/\n+/).map(l => l.trim()).filter(l => l.length > 0);
+    const title = lines[0]?.substring(0, 80) || "Pasted Slide";
+    const bullets = lines.slice(1, 7).filter(l => l.length > 0);
+
+    if (bullets.length === 0) {
+      bullets.push(lines[0] || "Add your content here...");
+    }
+
+    return { title, bullets };
+  }
+
+  // No content (shouldn't happen)
+  return { title: "Pasted Slide", bullets: ["Add your content here..."] };
 }
 
 // Sub-component for the insertion point with menu options
@@ -823,6 +880,75 @@ function App() {
     }
   };
 
+  // Paste slide from clipboard (Cmd+V with rich content)
+  // Per CONTEXT.md: Immediate creation, no confirmation step
+  const handlePasteSlide = useCallback(async (result: PasteResult) => {
+    // Only process if we have content
+    if (!result.html && !result.text && !result.imageBlob) {
+      return;
+    }
+
+    // Create temp slide with loading state
+    const tempId = `paste-${Date.now()}`;
+    const tempSlide: Slide = {
+      id: tempId,
+      title: "Pasting...",
+      content: ["Processing clipboard content..."],
+      speakerNotes: "",
+      imagePrompt: "",
+      isGeneratingImage: true, // Shows loading indicator
+      layout: 'split',
+      source: { type: 'pasted', pastedAt: new Date().toISOString() },
+    };
+
+    // Insert after currently selected slide, or at end if none selected
+    // Per CONTEXT.md: "Insert after currently selected slide, if no slide selected append to end"
+    const insertIndex = activeSlideIndex >= 0 ? activeSlideIndex : slides.length - 1;
+
+    const newSlides = [...slides];
+    newSlides.splice(insertIndex + 1, 0, tempSlide);
+    setSlides(newSlides);
+    setActiveSlideIndex(insertIndex + 1);
+
+    // Extract content from paste
+    try {
+      // For Phase 55, we do raw paste without AI enhancement (that's Phase 56)
+      // Parse HTML to extract title and bullets
+      const parsedContent = parseClipboardContent(result);
+
+      // Update slide with parsed content
+      setSlides(curr => curr.map(s => {
+        if (s.id !== tempId) return s;
+        return {
+          ...s,
+          title: parsedContent.title,
+          content: parsedContent.bullets,
+          speakerNotes: parsedContent.notes || "Pasted from clipboard. Edit speaker notes as needed.",
+          imagePrompt: `Educational illustration for: ${parsedContent.title}`,
+          isGeneratingImage: false,
+        };
+      }));
+
+      // Show success toast
+      addToast('Slide pasted successfully', 3000, 'success');
+    } catch (err) {
+      console.error("Paste error:", err);
+      // Fallback to blank slide with raw content
+      setSlides(curr => curr.map(s => {
+        if (s.id !== tempId) return s;
+        return {
+          ...s,
+          title: "Pasted Slide",
+          content: result.text ? [result.text.substring(0, 200)] : ["Paste content could not be processed"],
+          speakerNotes: "Pasted from clipboard - please edit as needed.",
+          imagePrompt: "Educational illustration",
+          isGeneratingImage: false,
+        };
+      }));
+      addToast('Pasted with limited formatting', 3000, 'info');
+    }
+  }, [activeSlideIndex, slides, addToast]);
+
   const handleShufflePairs = (slideId: string) => {
     if (studentNames.length < 2) return;
 
@@ -1090,6 +1216,12 @@ function App() {
     !showSettings && !showResourceHub && appState !== AppState.PRESENTING && !showFilenamePrompt && !showRecoveryModal,
     (file) => addToast(`"${file.name}" is not a .cue or .pipi file. Only .cue and .pipi files can be loaded.`, 5000, 'error')
   );
+
+  // Paste slide handler - only active in editing mode
+  usePaste({
+    onPaste: handlePasteSlide,
+    enabled: appState === AppState.EDITING,
+  });
 
   // ============================================================================
   // Unsaved changes tracking
