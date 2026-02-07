@@ -9,32 +9,37 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 
 ## Current Position
 
-Phase: 57 - Image Paste (In Progress)
-Plan: 3 of 4 complete (57-01, 57-02, 57-03)
-Status: In progress
-Last activity: 2026-02-07 — Completed 57-03-PLAN.md
+Phase: 57 - Image Paste (COMPLETE)
+Plan: All 4 plans complete
+Status: Phase verified and complete
+Last activity: 2026-02-07 — Phase 57 complete
 
-Progress: [███▓-] 2/5 phases | 11/21 requirements
+Progress: [███--] 3/5 phases | 11/21 requirements
 
-## Phase 57 Progress
+## Phase 57 Summary
 
-**Goal:** Users can paste images directly and have them display as full-slide visuals
+**Goal achieved:** Users can paste images directly and have them display as full-slide visuals
 
-**Completed plans:**
-- 57-01: Image paste routing and compression (IMG-01, IMG-03)
-- 57-02: AI image caption infrastructure (analyzeImage on both providers)
-- 57-03: Drag-drop, Full Image layout, and AI caption UI (IMG-02, IMG-04, IMG-05)
+**What was built:**
+- Image-vs-HTML routing in usePaste with PowerPoint signature detection
+- compressImage utility (1920px max, JPEG 0.8, GIF passthrough)
+- Full-image slide creation from clipboard paste with "Replace current instead" toast
+- analyzeImage() on both Gemini and Claude for image captioning
+- Drag-drop image support via useDragDrop hook
+- Full Image layout empty state with dashed placeholder and file picker
+- "Generate AI Notes" button producing teleprompter segments with progressive disclosure
 
-**Remaining plans:**
-- 57-04: Visual verification checkpoint
+**Bugs fixed during verification:**
+- PowerPoint pastes misrouted to image-only path (HTML signature detection added)
+- AI caption was one block instead of teleprompter segments (talkingPoints[] array with content/speakerNotes formatting)
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 21 (v1.0 through v3.9)
-- Total phases completed: 56
-- Total plans completed: 178
-- Total LOC: ~30,000 TypeScript
+- Total phases completed: 57
+- Total plans completed: 179
+- Total LOC: ~30,200 TypeScript
 
 **Recent Milestones:**
 - v3.9: 4 phases, 8 plans, 14 days (2026-02-01) - Delay Answer Reveal
@@ -50,24 +55,10 @@ Recent decisions from Phase 57:
 | Phase | Decision | Rationale |
 |-------|----------|-----------|
 | 57 | Default action creates new slide; toast offers Replace instead | Matches paste-first UX with non-blocking alternative |
-| 57 | HTML wrapper detection via DOMParser text extraction | Reliably distinguishes image wrappers from rich content |
+| 57 | PowerPoint detected via style/meta Generator tags | Text-based heuristic falsely matched PPT; signature detection is reliable |
 | 57 | GIF images bypass compression | Canvas toDataURL destroys GIF animation |
-| 57 | No originalPastedImage for Phase 57 image pastes | That field is Phase 56 PowerPoint-specific |
-| 57 | 8-second toast timeout for Replace action | Replace is time-sensitive; standard 3s too short |
-| 57 | 3-field output for image caption (title, caption, teachingNotes) | Lighter-weight than full Slide analysis |
-| 57 | Second-person teleprompter style in caption prompt | Matches Cue's existing pattern |
-| 57 | Reuse slideAnalysisPrompts.ts for image caption constants | Keeps all vision-related prompts/schemas co-located |
+| 57 | AI caption returns talkingPoints[] not single string | Drives teleprompter segments with content[] + speakerNotes 👉 delimiters |
 | 57 | Drag-drop replaces active slide; paste creates new slide | Drag-drop has spatial intent; paste is ambient |
-| 57 | AI caption populates title + speakerNotes | speakerNotes drives teleprompter; title replaces placeholder |
-
-Carried from Phase 56:
-
-| Phase | Decision | Rationale |
-|-------|----------|-----------|
-| 56 | Separate slideAnalysis prompts file | Follows documentAnalysis pattern for organizational consistency |
-| 56 | Pasted slides use full-image with teleprompter-only AI | Original visuals are functional teaching content that must be preserved |
-| 56 | Content array populated but hidden for pasted slides | Drives teleprompter segments without visual text overlay |
-| 56 | originalPastedImage field distinguishes pasted slides | Renderer checks this to skip title/bullet overlay |
 
 Full decision history logged in PROJECT.md Key Decisions table.
 
@@ -83,11 +74,11 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-07
-Stopped at: Completed 57-03-PLAN.md
-Resume file: None
+Stopped at: Phase 57 complete
+Resume file: .planning/ROADMAP.md
 
-**Next step:** Execute 57-04-PLAN.md (visual verification checkpoint)
+**Next step:** `/gsd:plan-phase 58` to plan Deck Cohesion
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-07 - Completed 57-03-PLAN.md*
+*Last updated: 2026-02-07 - Phase 57 complete*

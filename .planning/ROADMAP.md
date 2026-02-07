@@ -96,8 +96,11 @@ Plans:
 Plans:
 - [x] 57-01-PLAN.md — Image paste routing and compression (IMG-01, IMG-03)
 - [x] 57-02-PLAN.md — AI image caption infrastructure (IMG-05 backend)
-- [ ] 57-03-PLAN.md — Drag-drop, Full Image layout, and AI caption UI (IMG-02, IMG-04, IMG-05 UI)
-- [ ] 57-04-PLAN.md — Visual verification checkpoint
+- [x] 57-03-PLAN.md — Drag-drop, Full Image layout, and AI caption UI (IMG-02, IMG-04, IMG-05 UI)
+- [x] 57-04-PLAN.md — Visual verification checkpoint
+
+**Status:** Complete (2026-02-07)
+**Note:** Two bugs fixed during verification — PowerPoint paste was misrouted to image-only path (fixed via HTML signature detection), and AI caption was one big block instead of teleprompter segments (fixed by returning talkingPoints[] array).
 
 ---
 
@@ -152,11 +155,11 @@ Plans:
 |-------|------|--------|-------|
 | 55 | Paste Infrastructure | ✓ Complete | 3/3 |
 | 56 | AI Slide Analysis | ✓ Complete | 2/2 |
-| 57 | Image Paste | In Progress | 2/4 |
+| 57 | Image Paste | ✓ Complete | 4/4 |
 | 58 | Deck Cohesion | Pending | — |
 | 59 | Gap Analysis | Pending | — |
 
-**Total:** 2/5 phases complete | 6/21 requirements delivered (CLIP-01, CLIP-02, CLIP-03, CLIP-04, CLIP-05, CLIP-06)
+**Total:** 3/5 phases complete | 11/21 requirements delivered (CLIP-01 through CLIP-06, IMG-01 through IMG-05)
 
 ## Coverage Validation
 
@@ -190,4 +193,4 @@ All 21 v4.0 requirements mapped:
 
 ---
 *Roadmap created: 2026-02-02*
-*Last updated: 2026-02-07 - 57-02 complete*
+*Last updated: 2026-02-07 - Phase 57 complete*

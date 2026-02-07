@@ -18,11 +18,11 @@ Requirements for Clipboard Builder milestone. Each maps to roadmap phases.
 
 ### Image Handling
 
-- [ ] **IMG-01**: User can paste images from clipboard (screenshots, copied images)
-- [ ] **IMG-02**: "Full Image" layout option in tile selector (image only, no text)
-- [ ] **IMG-03**: Pasted image displays as slide background/full bleed
-- [ ] **IMG-04**: User can drag-drop images onto existing slides
-- [ ] **IMG-05**: AI can generate caption for pasted/dropped images
+- [x] **IMG-01**: User can paste images from clipboard (screenshots, copied images)
+- [x] **IMG-02**: "Full Image" layout option in tile selector (image only, no text)
+- [x] **IMG-03**: Pasted image displays as slide background/full bleed
+- [x] **IMG-04**: User can drag-drop images onto existing slides
+- [x] **IMG-05**: AI can generate caption for pasted/dropped images
 
 ### Deck Cohesion
 
@@ -73,16 +73,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | CLIP-01 | 55 | Complete |
-| CLIP-02 | 56 | Pending |
+| CLIP-02 | 56 | Complete |
 | CLIP-03 | 55 | Complete |
 | CLIP-04 | 55 | Complete |
 | CLIP-05 | 55 | Complete |
-| CLIP-06 | 56 | Pending |
-| IMG-01 | 57 | Pending |
-| IMG-02 | 57 | Pending |
-| IMG-03 | 57 | Pending |
-| IMG-04 | 57 | Pending |
-| IMG-05 | 57 | Pending |
+| CLIP-06 | 56 | Complete |
+| IMG-01 | 57 | Complete |
+| IMG-02 | 57 | Complete |
+| IMG-03 | 57 | Complete |
+| IMG-04 | 57 | Complete |
+| IMG-05 | 57 | Complete |
 | COHE-01 | 58 | Pending |
 | COHE-02 | 58 | Pending |
 | COHE-03 | 58 | Pending |
@@ -101,4 +101,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-02*
-*Last updated: 2026-02-07 - Phase 55 complete (CLIP-01, CLIP-03, CLIP-04, CLIP-05)*
+*Last updated: 2026-02-07 - Phase 57 complete (IMG-01 through IMG-05)*
