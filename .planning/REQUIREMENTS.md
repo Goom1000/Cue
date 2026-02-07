@@ -10,11 +10,11 @@ Requirements for Clipboard Builder milestone. Each maps to roadmap phases.
 ### Clipboard Paste
 
 - [x] **CLIP-01**: User can paste slide content from PowerPoint via Ctrl+V/Cmd+V
-- [ ] **CLIP-02**: AI analyzes pasted content and generates improved Cue-style slide
+- [x] **CLIP-02**: AI analyzes pasted content and generates improved Cue-style slide
 - [x] **CLIP-03**: User can paste into specific position in deck (not just append)
 - [x] **CLIP-04**: Visual loading indicator shows during paste processing
 - [x] **CLIP-05**: "Paste Slide" button available for discoverability
-- [ ] **CLIP-06**: Before/after comparison shows what AI changed from pasted content
+- [x] **CLIP-06**: Before/after comparison shows what AI changed from pasted content
 
 ### Image Handling
 
