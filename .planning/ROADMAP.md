@@ -123,6 +123,13 @@ Plans:
 4. User can review changes and click "Apply All" or "Cancel"
 5. Manual edits (user-created content) are preserved unless user explicitly opts to include them
 
+**Plans:** 3 plans
+
+Plans:
+- [ ] 58-01-PLAN.md — Cohesion prompts, types, interface, and Gemini provider implementation
+- [ ] 58-02-PLAN.md — Claude provider implementation
+- [ ] 58-03-PLAN.md — CohesionPreview modal and App.tsx integration
+
 ---
 
 ### Phase 59: Gap Analysis
@@ -156,7 +163,7 @@ Plans:
 | 55 | Paste Infrastructure | ✓ Complete | 3/3 |
 | 56 | AI Slide Analysis | ✓ Complete | 2/2 |
 | 57 | Image Paste | ✓ Complete | 4/4 |
-| 58 | Deck Cohesion | Pending | — |
+| 58 | Deck Cohesion | Planned | 0/3 |
 | 59 | Gap Analysis | Pending | — |
 
 **Total:** 3/5 phases complete | 11/21 requirements delivered (CLIP-01 through CLIP-06, IMG-01 through IMG-05)
