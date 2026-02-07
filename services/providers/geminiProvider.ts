@@ -1,10 +1,16 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES, GenerationInput, GameQuestionRequest, VerbosityLevel, ChatContext, CohesionResult, GapAnalysisResult, IdentifiedGap } from '../aiProvider';
+import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES, GenerationInput, GameQuestionRequest, VerbosityLevel, ChatContext, CondensationResult, GapAnalysisResult, IdentifiedGap } from '../aiProvider';
 import { Slide, LessonResource, DocumentAnalysis, EnhancementResult, EnhancementOptions } from '../../types';
 import { DOCUMENT_ANALYSIS_SYSTEM_PROMPT, buildAnalysisUserPrompt } from '../documentAnalysis/analysisPrompts';
 import { ENHANCEMENT_SYSTEM_PROMPT, buildEnhancementUserPrompt } from '../documentEnhancement/enhancementPrompts';
 import { SLIDE_ANALYSIS_SYSTEM_PROMPT, buildSlideAnalysisPrompt, SLIDE_RESPONSE_SCHEMA, IMAGE_CAPTION_PROMPT, IMAGE_CAPTION_SCHEMA, ImageCaptionResult } from '../slideAnalysis/slideAnalysisPrompts';
-import { COHESION_SYSTEM_PROMPT, buildCohesionUserPrompt, buildDeckContextForCohesion, COHESION_RESPONSE_SCHEMA } from '../prompts/cohesionPrompts';
+import { buildDeckContextForCohesion } from '../prompts/cohesionPrompts';
+import {
+  CONDENSATION_SYSTEM_PROMPT,
+  buildCondensationUserPrompt,
+  buildCondensationContext,
+  CONDENSATION_RESPONSE_SCHEMA
+} from '../prompts/condensationPrompts';
 import {
   GAP_ANALYSIS_SYSTEM_PROMPT,
   buildGapAnalysisUserPrompt,
@@ -470,54 +476,96 @@ export class GeminiProvider implements AIProviderInterface {
     }
   }
 
-  async makeDeckCohesive(
+  async condenseDeck(
     slides: Slide[],
-    gradeLevel: string,
-    verbosity: VerbosityLevel
-  ): Promise<CohesionResult> {
+    lessonPlanText: string,
+    lessonPlanImages: string[],
+    gradeLevel: string
+  ): Promise<CondensationResult> {
     try {
       const ai = new GoogleGenAI({ apiKey: this.apiKey });
-      const deckContext = buildDeckContextForCohesion(slides);
-      const userPrompt = buildCohesionUserPrompt(verbosity, gradeLevel);
+      const context = buildCondensationContext(slides, lessonPlanText);
+      const userPrompt = buildCondensationUserPrompt(gradeLevel);
+      const fullPrompt = `${userPrompt}\n\n${context}`;
+
+      // Build contents: multimodal if page images available
+      let contents: any;
+      if (lessonPlanImages.length > 0) {
+        const parts: any[] = [{ text: fullPrompt }];
+        const limitedImages = lessonPlanImages.slice(0, 5);
+        for (const img of limitedImages) {
+          parts.push({
+            inlineData: { mimeType: 'image/jpeg', data: img }
+          });
+        }
+        contents = parts;
+      } else {
+        contents = fullPrompt;
+      }
 
       const response = await ai.models.generateContent({
         model: this.model,
-        contents: `${userPrompt}\n\nDECK TO ANALYZE:\n\n${deckContext}`,
+        contents,
         config: {
-          systemInstruction: COHESION_SYSTEM_PROMPT,
+          systemInstruction: CONDENSATION_SYSTEM_PROMPT,
           responseMimeType: 'application/json',
-          responseSchema: COHESION_RESPONSE_SCHEMA,
-          temperature: 0.7
+          responseSchema: CONDENSATION_RESPONSE_SCHEMA,
+          temperature: 0.5,
+          maxOutputTokens: 8192
         }
       });
 
-      const text = response.text || '{}';
-      const parsed = JSON.parse(text);
+      const rawText = response.text || '{}';
+      // Sanitize control characters only inside JSON string values (Gemini sometimes emits raw newlines/tabs)
+      let sanitized = '';
+      let inStr = false;
+      let esc = false;
+      for (let i = 0; i < rawText.length; i++) {
+        const ch = rawText[i];
+        if (esc) { sanitized += ch; esc = false; continue; }
+        if (ch === '\\' && inStr) { sanitized += ch; esc = true; continue; }
+        if (ch === '"') { inStr = !inStr; sanitized += ch; continue; }
+        if (inStr && ch.charCodeAt(0) < 32) {
+          if (ch === '\n') sanitized += '\\n';
+          else if (ch === '\r') sanitized += '\\r';
+          else if (ch === '\t') sanitized += '\\t';
+          continue;
+        }
+        sanitized += ch;
+      }
+      const parsed = JSON.parse(sanitized);
 
-      // Enrich AI response with original slide data for diff display
-      const changes = (parsed.changes || []).map((change: any) => {
-        const slide = slides[change.slideIndex];
-        if (!slide) return null;
+      // Build change map from AI response (only contains edit/remove/merge)
+      const changeMap = new Map<number, any>();
+      for (const action of (parsed.actions || [])) {
+        if (slides[action.slideIndex]) {
+          changeMap.set(action.slideIndex, action);
+        }
+      }
+
+      // Build full actions array: implicit "keep" for slides not mentioned
+      const actions = slides.map((_, i) => {
+        const action = changeMap.get(i);
+        if (!action) {
+          return { slideIndex: i, action: 'keep' as const, reason: '' };
+        }
         return {
-          slideIndex: change.slideIndex,
-          slideId: slide.id,
-          originalTitle: slide.title,
-          proposedTitle: change.proposedTitle || undefined,
-          originalContent: [...slide.content],
-          proposedContent: change.proposedContent || undefined,
-          originalSpeakerNotes: slide.speakerNotes,
-          proposedSpeakerNotes: change.proposedSpeakerNotes || undefined,
-          reason: change.reason || 'Tone consistency'
+          slideIndex: action.slideIndex,
+          action: action.action || 'keep',
+          reason: action.reason || '',
+          mergeWithSlideIndices: action.mergeWithSlideIndices || undefined,
         };
-      }).filter(Boolean);
+      });
 
       return {
-        changes,
-        summary: parsed.summary || 'Deck cohesion analysis complete',
-        toneDescription: parsed.toneDescription || ''
+        actions,
+        summary: parsed.summary || 'Condensation analysis complete',
+        originalSlideCount: slides.length,
+        proposedSlideCount: parsed.proposedSlideCount ?? slides.length,
+        essentialTopicsPreserved: parsed.essentialTopicsPreserved || []
       };
     } catch (error) {
-      console.error('[GeminiProvider] makeDeckCohesive error:', error);
+      console.error('[GeminiProvider] condenseDeck error:', error);
       throw this.wrapError(error);
     }
   }

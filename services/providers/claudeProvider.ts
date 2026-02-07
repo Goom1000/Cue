@@ -1,4 +1,4 @@
-import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, VerbosityLevel, ChatContext, CohesionResult, GapAnalysisResult, IdentifiedGap } from '../aiProvider';
+import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, VerbosityLevel, ChatContext, CondensationResult, GapAnalysisResult, IdentifiedGap } from '../aiProvider';
 import { Slide, LessonResource, PosterLayout, DocumentAnalysis, EnhancementResult, EnhancementOptions } from '../../types';
 import { QuizQuestion, QuestionWithAnswer } from '../geminiService';
 import { getStudentFriendlyRules } from '../prompts/studentFriendlyRules';
@@ -9,7 +9,8 @@ import { detectPreservableContent, detectTeachableMoments } from '../contentPres
 import { PreservableContent, ConfidenceLevel, TeachableMoment } from '../contentPreservation/types';
 import { getPreservationRules, getTeleprompterPreservationRules } from '../prompts/contentPreservationRules';
 import { getTeachableMomentRules, getVisualScaffoldingRules } from '../prompts/teachableMomentRules';
-import { COHESION_SYSTEM_PROMPT, COHESION_TOOL, buildCohesionUserPrompt, buildDeckContextForCohesion } from '../prompts/cohesionPrompts';
+import { buildDeckContextForCohesion } from '../prompts/cohesionPrompts';
+import { CONDENSATION_SYSTEM_PROMPT, buildCondensationUserPrompt, buildCondensationContext, CONDENSATION_TOOL } from '../prompts/condensationPrompts';
 import { GAP_ANALYSIS_SYSTEM_PROMPT, buildGapAnalysisUserPrompt, buildGapAnalysisContext, GAP_ANALYSIS_TOOL, buildGapSlideGenerationPrompt, GAP_SLIDE_TOOL } from '../prompts/gapAnalysisPrompts';
 
 // Shared teleprompter rules used across all generation modes
@@ -1802,14 +1803,31 @@ INSTRUCTIONS:
     }
   }
 
-  async makeDeckCohesive(
+  async condenseDeck(
     slides: Slide[],
-    gradeLevel: string,
-    verbosity: VerbosityLevel
-  ): Promise<CohesionResult> {
+    lessonPlanText: string,
+    lessonPlanImages: string[],
+    gradeLevel: string
+  ): Promise<CondensationResult> {
     try {
-      const deckContext = buildDeckContextForCohesion(slides);
-      const userPrompt = buildCohesionUserPrompt(verbosity, gradeLevel);
+      const context = buildCondensationContext(slides, lessonPlanText);
+      const userPrompt = buildCondensationUserPrompt(gradeLevel);
+
+      // Build multimodal content array: text + optional page images
+      const contentArray: any[] = [
+        { type: 'text', text: userPrompt + '\n\n' + context }
+      ];
+
+      // Append up to 5 lesson plan page images for multimodal analysis
+      if (lessonPlanImages.length > 0) {
+        const limitedImages = lessonPlanImages.slice(0, 5);
+        for (const img of limitedImages) {
+          contentArray.push({
+            type: 'image',
+            source: { type: 'base64', media_type: 'image/jpeg', data: img }
+          });
+        }
+      }
 
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -1822,13 +1840,10 @@ INSTRUCTIONS:
         body: JSON.stringify({
           model: this.model,
           max_tokens: 8192,
-          system: COHESION_SYSTEM_PROMPT,
-          tools: [COHESION_TOOL],
-          tool_choice: { type: 'tool', name: 'propose_cohesion_changes' },
-          messages: [{
-            role: 'user',
-            content: `${userPrompt}\n\nDECK TO ANALYZE:\n\n${deckContext}`
-          }]
+          system: CONDENSATION_SYSTEM_PROMPT,
+          tools: [CONDENSATION_TOOL],
+          tool_choice: { type: 'tool', name: 'propose_condensation' },
+          messages: [{ role: 'user', content: contentArray }]
         })
       });
 
@@ -1843,45 +1858,51 @@ INSTRUCTIONS:
 
       const data = await response.json();
 
-      // Extract tool use result
+      // Extract tool_use result
       const toolUse = data.content?.find((c: any) => c.type === 'tool_use');
-      if (!toolUse?.input) {
+      const result = toolUse?.input;
+      if (!result) {
         throw new AIProviderError(
           USER_ERROR_MESSAGES.PARSE_ERROR,
           'PARSE_ERROR',
-          'No tool result in cohesion response'
+          'No tool result in condensation response'
         );
       }
 
-      const result = toolUse.input;
+      // Build change map from AI response (only contains edit/remove/merge)
+      const changeMap = new Map<number, any>();
+      for (const action of (result.actions || [])) {
+        if (slides[action.slideIndex]) {
+          changeMap.set(action.slideIndex, action);
+        }
+      }
 
-      // Enrich AI response with original slide data for diff display
-      const changes = (result.changes || []).map((change: any) => {
-        const slide = slides[change.slideIndex];
-        if (!slide) return null;
+      // Build full actions array: implicit "keep" for slides not mentioned
+      const actions = slides.map((_, i) => {
+        const action = changeMap.get(i);
+        if (!action) {
+          return { slideIndex: i, action: 'keep' as const, reason: '' };
+        }
         return {
-          slideIndex: change.slideIndex,
-          slideId: slide.id,
-          originalTitle: slide.title,
-          proposedTitle: change.proposedTitle || undefined,
-          originalContent: [...slide.content],
-          proposedContent: change.proposedContent || undefined,
-          originalSpeakerNotes: slide.speakerNotes,
-          proposedSpeakerNotes: change.proposedSpeakerNotes || undefined,
-          reason: change.reason || 'Tone consistency'
+          slideIndex: action.slideIndex,
+          action: action.action || 'keep',
+          reason: action.reason || '',
+          mergeWithSlideIndices: action.mergeWithSlideIndices || undefined,
         };
-      }).filter(Boolean);
+      });
 
       return {
-        changes,
-        summary: result.summary || 'Deck cohesion analysis complete',
-        toneDescription: result.toneDescription || ''
+        actions,
+        summary: result.summary || 'Condensation analysis complete',
+        originalSlideCount: slides.length,
+        proposedSlideCount: result.proposedSlideCount ?? slides.length,
+        essentialTopicsPreserved: result.essentialTopicsPreserved || []
       };
     } catch (error) {
       if (error instanceof AIProviderError) {
         throw error;
       }
-      console.error('[ClaudeProvider] makeDeckCohesive error:', error);
+      console.error('[ClaudeProvider] condenseDeck error:', error);
       throw new AIProviderError(
         USER_ERROR_MESSAGES.UNKNOWN_ERROR,
         'UNKNOWN_ERROR',

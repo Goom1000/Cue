@@ -10,23 +10,23 @@ import { ClaudeProvider } from './providers/claudeProvider';
 // Re-export VerbosityLevel for consumers
 export type { VerbosityLevel } from './geminiService';
 
-// Cohesion types for deck-wide harmonization (Phase 58)
-export interface CohesionChange {
-  slideIndex: number;           // 0-indexed position in deck
-  slideId: string;              // For applying via handleUpdateSlide
-  originalTitle: string;        // For diff display
-  proposedTitle?: string;       // Only if title changes
-  originalContent: string[];    // For diff display
-  proposedContent?: string[];   // Only if content changes
-  originalSpeakerNotes: string; // For diff display
-  proposedSpeakerNotes?: string;// Only if notes change
-  reason: string;               // Why this slide was changed
+// Deck Condensation types for lesson-plan-aware slide reduction (Phase 60)
+export type CondensationAction = 'keep' | 'remove' | 'merge';
+
+export interface CondensationSlideAction {
+  slideIndex: number;
+  action: CondensationAction;
+  reason: string;
+  // For 'merge': target slide absorbs these source slides
+  mergeWithSlideIndices?: number[];
 }
 
-export interface CohesionResult {
-  changes: CohesionChange[];
-  summary: string;              // Overall description of harmonization
-  toneDescription: string;      // The unified tone applied
+export interface CondensationResult {
+  actions: CondensationSlideAction[];
+  summary: string;
+  originalSlideCount: number;
+  proposedSlideCount: number;
+  essentialTopicsPreserved: string[];
 }
 
 // Gap Analysis types for deck-vs-lesson-plan comparison (Phase 59)
@@ -353,12 +353,13 @@ export interface AIProviderInterface {
     imageBase64: string         // Raw base64, NO data URL prefix
   ): Promise<ImageCaptionResult>;
 
-  // Analyze entire deck and propose cohesion changes (Phase 58)
-  makeDeckCohesive(
+  // Condense deck using lesson plan as essential-content guide (Phase 60, replaces Phase 58 cohesion)
+  condenseDeck(
     slides: Slide[],
-    gradeLevel: string,
-    verbosity: VerbosityLevel
-  ): Promise<CohesionResult>;
+    lessonPlanText: string,
+    lessonPlanImages: string[],
+    gradeLevel: string
+  ): Promise<CondensationResult>;
 
   // Analyze gaps between deck and lesson plan (Phase 59)
   analyzeGaps(

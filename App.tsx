@@ -3,7 +3,7 @@ import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 // Tour styling
 import './styles/driver.css';
 import { Slide, AppState, SavedClass, StudentPair, EnhancedResourceState } from './types';
-import { createAIProvider, AIProviderError, AIProviderInterface, GenerationInput, GenerationMode, AIErrorCode, VerbosityLevel, CohesionResult, GapAnalysisResult, IdentifiedGap, withRetry } from './services/aiProvider';
+import { createAIProvider, AIProviderError, AIProviderInterface, GenerationInput, GenerationMode, AIErrorCode, VerbosityLevel, CondensationResult, GapAnalysisResult, IdentifiedGap, withRetry } from './services/aiProvider';
 import { useSettings } from './hooks/useSettings';
 import { useClassBank } from './hooks/useClassBank';
 import { exportToPowerPoint } from './services/pptxService';
@@ -31,7 +31,7 @@ import { TourButton } from './components/TourButton';
 import { useTour } from './hooks/useTour';
 import { useTourState } from './hooks/useTourState';
 import PasteComparison from './components/PasteComparison';
-import CohesionPreview from './components/CohesionPreview';
+import CondensationPreview from './components/CondensationPreview';
 import GapAnalysisPanel from './components/GapAnalysisPanel';
 
 declare const pdfjsLib: any;
@@ -331,9 +331,10 @@ function App() {
   // Enhanced resource state for persistence
   const [enhancedResourceStates, setEnhancedResourceStates] = useState<EnhancedResourceState[]>([]);
 
-  // Deck cohesion state (Phase 58)
-  const [isProcessingCohesion, setIsProcessingCohesion] = useState(false);
-  const [cohesionResult, setCohesionResult] = useState<CohesionResult | null>(null);
+  // Deck Condensation state (Phase 60, replaces Phase 58 cohesion)
+  const [isProcessingCondensation, setIsProcessingCondensation] = useState(false);
+  const [condensationResult, setCondensationResult] = useState<CondensationResult | null>(null);
+  const condenseFileInputRef = useRef<HTMLInputElement>(null);
 
   // Gap Analysis state (Phase 59)
   const [isAnalyzingGaps, setIsAnalyzingGaps] = useState(false);
@@ -692,51 +693,150 @@ function App() {
     }
   };
 
-  // Deck Cohesion handlers (Phase 58)
-  const handleMakeCohesive = useCallback(async () => {
+  // Deck Condensation handlers (Phase 60, replaces Phase 58 cohesion)
+  const handleCondenseDeck = useCallback(async (lessonText?: string, lessonImages?: string[]) => {
     if (!provider || slides.length < 2) return;
 
-    setIsProcessingCohesion(true);
+    // Use provided lesson plan or fall back to stored gap analysis plan
+    const planText = lessonText || gapLessonPlanText;
+    const planImages = lessonImages || gapLessonPlanImages;
+
+    if (!planText) {
+      // No lesson plan available — trigger PDF upload
+      condenseFileInputRef.current?.click();
+      return;
+    }
+
+    setIsProcessingCondensation(true);
+    addToast('Analyzing deck for condensation...', 3000, 'info');
+
     try {
-      const result = await withRetry<CohesionResult>(() =>
-        provider!.makeDeckCohesive(slides, 'Year 6 (10-11 years old)', deckVerbosity)
+      // Strip data URL prefix from images if present
+      const rawImages = planImages.map(img =>
+        img.replace(/^data:image\/[a-z]+;base64,/, '')
       );
 
-      if (result.changes.length === 0) {
-        addToast('Your deck is already cohesive! No changes needed.', 3000, 'success');
-      } else {
-        setCohesionResult(result);
+      const result = await withRetry<CondensationResult>(() =>
+        provider!.condenseDeck(slides, planText, rawImages, 'Year 6 (10-11 years old)')
+      );
+
+      // Check if all actions are 'keep' (nothing to condense)
+      const hasChanges = result.actions.some(a => a.action !== 'keep');
+      if (!hasChanges) {
+        addToast('Your deck is already concise! No changes needed.', 3000, 'success');
       }
+
+      setCondensationResult(result);
     } catch (error: any) {
-      const message = error?.userMessage || error?.message || 'Failed to analyze deck';
+      const message = error?.userMessage || error?.message || 'Failed to analyze deck for condensation';
       addToast(message, 5000, 'error');
     } finally {
-      setIsProcessingCohesion(false);
+      setIsProcessingCondensation(false);
     }
-  }, [provider, slides, deckVerbosity, addToast]);
+  }, [provider, slides, gapLessonPlanText, gapLessonPlanImages, addToast]);
 
-  const handleApplyCohesion = useCallback(() => {
-    if (!cohesionResult) return;
+  const handleCondensePdfUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !provider) return;
 
-    for (const change of cohesionResult.changes) {
-      const updates: Partial<Slide> = {};
-      if (change.proposedTitle) updates.title = change.proposedTitle;
-      if (change.proposedContent) updates.content = change.proposedContent;
-      if (change.proposedSpeakerNotes) updates.speakerNotes = change.proposedSpeakerNotes;
+    // Reset file input so same file can be re-uploaded
+    e.target.value = '';
 
-      handleUpdateSlide(change.slideId, updates);
+    if (file.type !== 'application/pdf') {
+      addToast('Please upload a PDF lesson plan.', 3000, 'error');
+      return;
     }
 
+    setIsProcessingCondensation(true);
+    addToast('Processing lesson plan PDF...', 2000, 'info');
+
+    try {
+      const pdfResult = await new Promise<{ text: string; images: string[] }>((resolve, reject) => {
+        processPdf(
+          file,
+          () => {},
+          (text, images) => resolve({ text, images }),
+          (errorMsg) => reject(new Error(errorMsg))
+        );
+      });
+
+      // Store lesson plan for reuse (shares state with gap analysis)
+      setGapLessonPlanText(pdfResult.text);
+      setGapLessonPlanImages(pdfResult.images);
+
+      // Now run condensation with the freshly uploaded plan
+      await handleCondenseDeck(pdfResult.text, pdfResult.images);
+    } catch (error: any) {
+      const message = error?.userMessage || error?.message || 'Failed to process lesson plan';
+      addToast(message, 5000, 'error');
+      setIsProcessingCondensation(false);
+    }
+  }, [provider, handleCondenseDeck, addToast]);
+
+  const handleApplyCondensation = useCallback(() => {
+    if (!condensationResult) return;
+
+    // STEP 1: Apply MERGES — combine content from source slides into target (client-side)
+    for (const action of condensationResult.actions) {
+      if (action.action === 'merge' && action.mergeWithSlideIndices) {
+        const targetSlide = slides[action.slideIndex];
+        if (!targetSlide || targetSlide.originalPastedImage) continue;
+
+        // Collect unique bullets from target + source slides (deduplicate)
+        const seen = new Set<string>();
+        const mergedBullets: string[] = [];
+        const allSlideIndices = [action.slideIndex, ...action.mergeWithSlideIndices];
+        for (const idx of allSlideIndices) {
+          const s = slides[idx];
+          if (!s) continue;
+          for (const bullet of s.content) {
+            const key = bullet.toLowerCase().trim();
+            if (!seen.has(key) && mergedBullets.length < 5) {
+              seen.add(key);
+              mergedBullets.push(bullet);
+            }
+          }
+        }
+
+        handleUpdateSlide(targetSlide.id, {
+          content: mergedBullets,
+          speakerNotes: '', // Clear — old segments don't match merged content
+        });
+      }
+    }
+
+    // STEP 3: Collect all IDs to remove: 'remove' slides
+    const idsToRemove = new Set<string>();
+    for (const action of condensationResult.actions) {
+      if (action.action === 'remove') {
+        const slide = slides[action.slideIndex];
+        if (slide) idsToRemove.add(slide.id);
+      }
+    }
+
+    // STEP 4: Batch removal by ID (safe regardless of index order)
+    if (idsToRemove.size > 0) {
+      setSlides(prev => prev.filter(s => !idsToRemove.has(s.id)));
+    }
+
+    // STEP 5: Clamp activeSlideIndex
+    const newLength = slides.length - idsToRemove.size;
+    if (activeSlideIndex >= newLength) {
+      setActiveSlideIndex(Math.max(0, newLength - 1));
+    }
+
+    const removedCount = idsToRemove.size;
+    const mergedCount = condensationResult.actions.filter(a => a.action === 'merge').length;
     addToast(
-      `Cohesion applied to ${cohesionResult.changes.length} slide${cohesionResult.changes.length === 1 ? '' : 's'}`,
-      3000,
+      `Condensed: ${removedCount} removed${mergedCount > 0 ? `, ${mergedCount} merged` : ''}`,
+      4000,
       'success'
     );
-    setCohesionResult(null);
-  }, [cohesionResult, handleUpdateSlide, addToast]);
+    setCondensationResult(null);
+  }, [condensationResult, slides, activeSlideIndex, handleUpdateSlide, addToast]);
 
-  const handleCancelCohesion = useCallback(() => {
-    setCohesionResult(null);
+  const handleCancelCondensation = useCallback(() => {
+    setCondensationResult(null);
   }, []);
 
   // Gap Analysis handlers (Phase 59)
@@ -1973,6 +2073,15 @@ function App() {
               className="hidden"
               accept=".pdf"
             />
+
+            {/* Hidden file input for condensation PDF upload (Phase 60) */}
+            <input
+              type="file"
+              ref={condenseFileInputRef}
+              onChange={handleCondensePdfUpload}
+              className="hidden"
+              accept=".pdf"
+            />
         </div>
       </header>
 
@@ -2376,7 +2485,7 @@ function App() {
                   </button>
                 </div>
 
-                {/* Gap Analysis + Make Cohesive — right-aligned */}
+                {/* Gap Analysis + Condense Deck — right-aligned */}
                 {slides.length >= 1 && (
                   <div className="ml-auto flex items-center gap-2">
                     {/* Check for Gaps button */}
@@ -2407,31 +2516,31 @@ function App() {
                       )}
                     </button>
 
-                    {/* Make Cohesive button (existing — only show when 2+ slides) */}
+                    {/* Condense Deck button (Phase 60, replaces Make Cohesive — only show when 2+ slides) */}
                     {slides.length >= 2 && (
                       <button
-                        onClick={handleMakeCohesive}
-                        disabled={!provider || isProcessingCohesion}
+                        onClick={() => handleCondenseDeck()}
+                        disabled={!provider || isProcessingCondensation}
                         className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                          !provider || isProcessingCohesion
+                          !provider || isProcessingCondensation
                             ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-amber-500 dark:to-orange-500 text-white dark:text-slate-900 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]'
+                            : 'bg-gradient-to-r from-orange-600 to-red-600 dark:from-amber-500 dark:to-orange-500 text-white dark:text-slate-900 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]'
                         }`}
                       >
-                        {isProcessingCohesion ? (
+                        {isProcessingCondensation ? (
                           <>
                             <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                             </svg>
-                            <span>Analyzing deck...</span>
+                            <span>Condensing...</span>
                           </>
                         ) : (
                           <>
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                             </svg>
-                            <span>Make Cohesive</span>
+                            <span>Condense Deck</span>
                           </>
                         )}
                       </button>
@@ -2740,12 +2849,13 @@ function App() {
         />
       )}
 
-      {/* Cohesion Preview Modal */}
-      {cohesionResult && (
-        <CohesionPreview
-          result={cohesionResult}
-          onApply={handleApplyCohesion}
-          onCancel={handleCancelCohesion}
+      {/* Condensation Preview Modal (Phase 60) */}
+      {condensationResult && (
+        <CondensationPreview
+          result={condensationResult}
+          slides={slides}
+          onApply={handleApplyCondensation}
+          onCancel={handleCancelCondensation}
           isDarkMode={isDarkMode}
         />
       )}
