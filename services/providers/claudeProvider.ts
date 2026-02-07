@@ -9,6 +9,7 @@ import { detectPreservableContent, detectTeachableMoments } from '../contentPres
 import { PreservableContent, ConfidenceLevel, TeachableMoment } from '../contentPreservation/types';
 import { getPreservationRules, getTeleprompterPreservationRules } from '../prompts/contentPreservationRules';
 import { getTeachableMomentRules, getVisualScaffoldingRules } from '../prompts/teachableMomentRules';
+import { COHESION_SYSTEM_PROMPT, COHESION_TOOL, buildCohesionUserPrompt, buildDeckContextForCohesion } from '../prompts/cohesionPrompts';
 
 // Shared teleprompter rules used across all generation modes
 const TELEPROMPTER_RULES = `
@@ -1800,16 +1801,92 @@ INSTRUCTIONS:
     }
   }
 
-  // Stub for Phase 58 - full implementation in Plan 02
   async makeDeckCohesive(
     slides: Slide[],
     gradeLevel: string,
     verbosity: VerbosityLevel
   ): Promise<CohesionResult> {
-    throw new AIProviderError(
-      'Deck cohesion is not yet supported with Claude. Please use Gemini.',
-      'PROVIDER_NOT_SUPPORTED'
-    );
+    try {
+      const deckContext = buildDeckContextForCohesion(slides);
+      const userPrompt = buildCohesionUserPrompt(verbosity, gradeLevel);
+
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': this.apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: this.model,
+          max_tokens: 8192,
+          system: COHESION_SYSTEM_PROMPT,
+          tools: [COHESION_TOOL],
+          tool_choice: { type: 'tool', name: 'propose_cohesion_changes' },
+          messages: [{
+            role: 'user',
+            content: `${userPrompt}\n\nDECK TO ANALYZE:\n\n${deckContext}`
+          }]
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => 'Unknown error');
+        throw new AIProviderError(
+          USER_ERROR_MESSAGES[this.getErrorCode(response.status)],
+          this.getErrorCode(response.status),
+          errorText
+        );
+      }
+
+      const data = await response.json();
+
+      // Extract tool use result
+      const toolUse = data.content?.find((c: any) => c.type === 'tool_use');
+      if (!toolUse?.input) {
+        throw new AIProviderError(
+          USER_ERROR_MESSAGES.PARSE_ERROR,
+          'PARSE_ERROR',
+          'No tool result in cohesion response'
+        );
+      }
+
+      const result = toolUse.input;
+
+      // Enrich AI response with original slide data for diff display
+      const changes = (result.changes || []).map((change: any) => {
+        const slide = slides[change.slideIndex];
+        if (!slide) return null;
+        return {
+          slideIndex: change.slideIndex,
+          slideId: slide.id,
+          originalTitle: slide.title,
+          proposedTitle: change.proposedTitle || undefined,
+          originalContent: [...slide.content],
+          proposedContent: change.proposedContent || undefined,
+          originalSpeakerNotes: slide.speakerNotes,
+          proposedSpeakerNotes: change.proposedSpeakerNotes || undefined,
+          reason: change.reason || 'Tone consistency'
+        };
+      }).filter(Boolean);
+
+      return {
+        changes,
+        summary: result.summary || 'Deck cohesion analysis complete',
+        toneDescription: result.toneDescription || ''
+      };
+    } catch (error) {
+      if (error instanceof AIProviderError) {
+        throw error;
+      }
+      console.error('[ClaudeProvider] makeDeckCohesive error:', error);
+      throw new AIProviderError(
+        USER_ERROR_MESSAGES.UNKNOWN_ERROR,
+        'UNKNOWN_ERROR',
+        error
+      );
+    }
   }
 
   /**
