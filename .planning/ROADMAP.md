@@ -94,8 +94,8 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
-- [ ] 57-01-PLAN.md — Image paste routing and compression (IMG-01, IMG-03)
-- [ ] 57-02-PLAN.md — AI image caption infrastructure (IMG-05 backend)
+- [x] 57-01-PLAN.md — Image paste routing and compression (IMG-01, IMG-03)
+- [x] 57-02-PLAN.md — AI image caption infrastructure (IMG-05 backend)
 - [ ] 57-03-PLAN.md — Drag-drop, Full Image layout, and AI caption UI (IMG-02, IMG-04, IMG-05 UI)
 - [ ] 57-04-PLAN.md — Visual verification checkpoint
 
@@ -152,7 +152,7 @@ Plans:
 |-------|------|--------|-------|
 | 55 | Paste Infrastructure | ✓ Complete | 3/3 |
 | 56 | AI Slide Analysis | ✓ Complete | 2/2 |
-| 57 | Image Paste | Planned | 0/4 |
+| 57 | Image Paste | In Progress | 2/4 |
 | 58 | Deck Cohesion | Pending | — |
 | 59 | Gap Analysis | Pending | — |
 
@@ -190,4 +190,4 @@ All 21 v4.0 requirements mapped:
 
 ---
 *Roadmap created: 2026-02-02*
-*Last updated: 2026-02-07 - Phase 56 complete*
+*Last updated: 2026-02-07 - 57-02 complete*

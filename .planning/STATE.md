@@ -9,34 +9,32 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 
 ## Current Position
 
-Phase: 56 - AI Slide Analysis (COMPLETE)
-Plan: All 2 plans complete
-Status: Phase verified and complete
-Last activity: 2026-02-07 — Phase 56 complete
+Phase: 57 - Image Paste (In Progress)
+Plan: 2 of 4 complete (57-01, 57-02)
+Status: In progress
+Last activity: 2026-02-07 — Completed 57-01-PLAN.md
 
-Progress: [██---] 2/5 phases | 6/21 requirements
+Progress: [██▓--] 2/5 phases | 8/21 requirements
 
-## Phase 56 Summary
+## Phase 57 Progress
 
-**Goal achieved:** Pasted slides are automatically improved by AI to match Cue's presentation style
+**Goal:** Users can paste images directly and have them display as full-slide visuals
 
-**What was built:**
-- analyzePastedSlide() on both Gemini and Claude providers with vision-based analysis
-- Slide analysis prompts with Year 6 context, teleprompter segments, layout selection
-- Pasted slides display original image full-screen (no text overlay)
-- AI-extracted content drives teleprompter segments invisibly
-- PasteComparison panel shows AI-extracted teleprompter notes
-- Graceful fallback to raw image if AI unavailable
+**Completed plans:**
+- 57-01: Image paste routing and compression (IMG-01, IMG-03)
+- 57-02: AI image caption infrastructure (analyzeImage on both providers)
 
-**Key design refinement:** Original plan called for AI to restructure pasted slides visually. User testing revealed pasted slides contain functional teaching content (diagrams, worksheets) that must be preserved. Final design: original image stays intact, AI adds teleprompter guidance only.
+**Remaining plans:**
+- 57-03: Drag-drop, Full Image layout, and AI caption UI (IMG-02, IMG-04, IMG-05 UI)
+- 57-04: Visual verification checkpoint
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 21 (v1.0 through v3.9)
 - Total phases completed: 56
-- Total plans completed: 173
-- Total LOC: ~29,800 TypeScript
+- Total plans completed: 175
+- Total LOC: ~30,000 TypeScript
 
 **Recent Milestones:**
 - v3.9: 4 phases, 8 plans, 14 days (2026-02-01) - Delay Answer Reveal
@@ -47,7 +45,20 @@ Progress: [██---] 2/5 phases | 6/21 requirements
 
 ### Decisions
 
-Recent decisions from Phase 56:
+Recent decisions from Phase 57:
+
+| Phase | Decision | Rationale |
+|-------|----------|-----------|
+| 57 | Default action creates new slide; toast offers Replace instead | Matches paste-first UX with non-blocking alternative |
+| 57 | HTML wrapper detection via DOMParser text extraction | Reliably distinguishes image wrappers from rich content |
+| 57 | GIF images bypass compression | Canvas toDataURL destroys GIF animation |
+| 57 | No originalPastedImage for Phase 57 image pastes | That field is Phase 56 PowerPoint-specific |
+| 57 | 8-second toast timeout for Replace action | Replace is time-sensitive; standard 3s too short |
+| 57 | 3-field output for image caption (title, caption, teachingNotes) | Lighter-weight than full Slide analysis; image-only slides need description, not restructuring |
+| 57 | Second-person teleprompter style in caption prompt | Matches Cue's existing pattern where speaker notes are teacher-facing instructions |
+| 57 | Reuse slideAnalysisPrompts.ts for image caption constants | Keeps all vision-related prompts/schemas co-located; follows Phase 56 organizational pattern |
+
+Carried from Phase 56:
 
 | Phase | Decision | Rationale |
 |-------|----------|-----------|
@@ -70,11 +81,11 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-07
-Stopped at: Phase 56 complete
-Resume file: .planning/ROADMAP.md
+Stopped at: Completed 57-01-PLAN.md
+Resume file: None
 
-**Next step:** `/gsd:plan-phase 57` to plan Image Paste
+**Next step:** Execute 57-03-PLAN.md (drag-drop, Full Image layout, AI caption UI)
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-07 - Phase 56 complete*
+*Last updated: 2026-02-07 - Completed 57-01-PLAN.md*
