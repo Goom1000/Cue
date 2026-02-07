@@ -29,6 +29,26 @@ export interface CohesionResult {
   toneDescription: string;      // The unified tone applied
 }
 
+// Gap Analysis types for deck-vs-lesson-plan comparison (Phase 59)
+export type GapSeverity = 'critical' | 'recommended' | 'nice-to-have';
+
+export interface IdentifiedGap {
+  id: string;
+  topic: string;
+  description: string;
+  severity: GapSeverity;
+  suggestedTitle: string;
+  suggestedContent: string[];
+  suggestedPosition: number;
+  relatedLessonPlanExcerpt: string;
+}
+
+export interface GapAnalysisResult {
+  gaps: IdentifiedGap[];
+  summary: string;
+  coveragePercentage: number;
+}
+
 // Generation mode types for multi-source slide generation
 export type GenerationMode = 'fresh' | 'refine' | 'blend';
 
@@ -339,6 +359,22 @@ export interface AIProviderInterface {
     gradeLevel: string,
     verbosity: VerbosityLevel
   ): Promise<CohesionResult>;
+
+  // Analyze gaps between deck and lesson plan (Phase 59)
+  analyzeGaps(
+    slides: Slide[],
+    lessonPlanText: string,
+    lessonPlanImages: string[],
+    gradeLevel: string
+  ): Promise<GapAnalysisResult>;
+
+  // Generate a full slide from an identified gap (Phase 59)
+  generateSlideFromGap(
+    gap: IdentifiedGap,
+    slides: Slide[],
+    lessonTopic: string,
+    verbosity: VerbosityLevel
+  ): Promise<Slide>;
 
   // Document enhancement for resource differentiation (Phase 45)
   enhanceDocument(
