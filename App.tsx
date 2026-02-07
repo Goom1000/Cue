@@ -3,7 +3,7 @@ import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 // Tour styling
 import './styles/driver.css';
 import { Slide, AppState, SavedClass, StudentPair, EnhancedResourceState } from './types';
-import { createAIProvider, AIProviderError, AIProviderInterface, GenerationInput, GenerationMode, AIErrorCode, VerbosityLevel, CohesionResult, withRetry } from './services/aiProvider';
+import { createAIProvider, AIProviderError, AIProviderInterface, GenerationInput, GenerationMode, AIErrorCode, VerbosityLevel, CohesionResult, GapAnalysisResult, IdentifiedGap, withRetry } from './services/aiProvider';
 import { useSettings } from './hooks/useSettings';
 import { useClassBank } from './hooks/useClassBank';
 import { exportToPowerPoint } from './services/pptxService';
@@ -32,6 +32,7 @@ import { useTour } from './hooks/useTour';
 import { useTourState } from './hooks/useTourState';
 import PasteComparison from './components/PasteComparison';
 import CohesionPreview from './components/CohesionPreview';
+import GapAnalysisPanel from './components/GapAnalysisPanel';
 
 declare const pdfjsLib: any;
 
@@ -333,6 +334,14 @@ function App() {
   // Deck cohesion state (Phase 58)
   const [isProcessingCohesion, setIsProcessingCohesion] = useState(false);
   const [cohesionResult, setCohesionResult] = useState<CohesionResult | null>(null);
+
+  // Gap Analysis state (Phase 59)
+  const [isAnalyzingGaps, setIsAnalyzingGaps] = useState(false);
+  const [gapResult, setGapResult] = useState<GapAnalysisResult | null>(null);
+  const [generatingGapId, setGeneratingGapId] = useState<string | null>(null);
+  const [gapLessonPlanText, setGapLessonPlanText] = useState<string>('');
+  const [gapLessonPlanImages, setGapLessonPlanImages] = useState<string[]>([]);
+  const gapFileInputRef = useRef<HTMLInputElement>(null);
 
   // Class Bank state
   const { classes, saveClass, deleteClass, renameClass, updateClassStudents, updateStudentGrade } = useClassBank();
@@ -729,6 +738,86 @@ function App() {
   const handleCancelCohesion = useCallback(() => {
     setCohesionResult(null);
   }, []);
+
+  // Gap Analysis handlers (Phase 59)
+  const handleGapPdfUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !provider) return;
+
+    // Reset file input so the same file can be re-uploaded
+    e.target.value = '';
+
+    if (file.type !== 'application/pdf') {
+      addToast('Please upload a PDF lesson plan.', 3000, 'error');
+      return;
+    }
+
+    setIsAnalyzingGaps(true);
+    addToast('Processing lesson plan PDF...', 2000, 'info');
+
+    try {
+      // Extract text and images from PDF using existing processPdf
+      const pdfResult = await new Promise<{ text: string; images: string[] }>((resolve, reject) => {
+        processPdf(
+          file,
+          () => {}, // Progress callback (we manage our own state)
+          (text, images) => resolve({ text, images }),
+          (errorMsg) => reject(new Error(errorMsg))
+        );
+      });
+
+      // Store lesson plan data for re-analysis
+      setGapLessonPlanText(pdfResult.text);
+      setGapLessonPlanImages(pdfResult.images);
+
+      // Strip data URL prefix from images for AI (they need raw base64)
+      const rawImages = pdfResult.images.map(img =>
+        img.replace(/^data:image\/[a-z]+;base64,/, '')
+      );
+
+      addToast('Analyzing gaps against your deck...', 3000, 'info');
+
+      const result = await withRetry<GapAnalysisResult>(() =>
+        provider!.analyzeGaps(slides, pdfResult.text, rawImages, 'Year 6 (10-11 years old)')
+      );
+
+      if (result.gaps.length === 0) {
+        addToast(`Great coverage! Your deck covers ~${result.coveragePercentage}% of the lesson plan.`, 4000, 'success');
+      }
+
+      setGapResult(result);
+    } catch (error: any) {
+      const message = error?.userMessage || error?.message || 'Failed to analyze gaps';
+      addToast(message, 5000, 'error');
+    } finally {
+      setIsAnalyzingGaps(false);
+    }
+  }, [provider, slides, addToast]);
+
+  const handleReanalyzeGaps = useCallback(async () => {
+    if (!provider || !gapLessonPlanText) return;
+
+    setIsAnalyzingGaps(true);
+    addToast('Re-analyzing gaps...', 2000, 'info');
+
+    try {
+      const rawImages = gapLessonPlanImages.map(img =>
+        img.replace(/^data:image\/[a-z]+;base64,/, '')
+      );
+
+      const result = await withRetry<GapAnalysisResult>(() =>
+        provider!.analyzeGaps(slides, gapLessonPlanText, rawImages, 'Year 6 (10-11 years old)')
+      );
+
+      setGapResult(result);
+      addToast(`Re-analysis complete: ${result.gaps.length} gap${result.gaps.length === 1 ? '' : 's'} found`, 3000, 'success');
+    } catch (error: any) {
+      const message = error?.userMessage || error?.message || 'Failed to re-analyze gaps';
+      addToast(message, 5000, 'error');
+    } finally {
+      setIsAnalyzingGaps(false);
+    }
+  }, [provider, slides, gapLessonPlanText, gapLessonPlanImages, addToast]);
 
   const handleInsertBlankSlide = (index: number) => {
     const blankSlide: Slide = {
@@ -1772,6 +1861,15 @@ function App() {
               style={{ display: 'none' }}
               ref={loadFileInputRef}
             />
+
+            {/* Hidden file input for gap analysis PDF upload (Phase 59) */}
+            <input
+              type="file"
+              ref={gapFileInputRef}
+              onChange={handleGapPdfUpload}
+              className="hidden"
+              accept=".pdf"
+            />
         </div>
       </header>
 
@@ -2175,35 +2273,66 @@ function App() {
                   </button>
                 </div>
 
-                {/* Make Cohesive Button — right-aligned, separate from selection controls */}
-                {slides.length >= 2 && (
+                {/* Gap Analysis + Make Cohesive — right-aligned */}
+                {slides.length >= 1 && (
                   <div className="ml-auto flex items-center gap-2">
+                    {/* Check for Gaps button */}
                     <button
-                      onClick={handleMakeCohesive}
-                      disabled={!provider || isProcessingCohesion}
+                      onClick={() => gapFileInputRef.current?.click()}
+                      disabled={!provider || isAnalyzingGaps}
                       className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                        !provider || isProcessingCohesion
+                        !provider || isAnalyzingGaps
                           ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'
-                          : 'bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-amber-500 dark:to-orange-500 text-white dark:text-slate-900 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]'
+                          : 'bg-gradient-to-r from-teal-600 to-emerald-600 dark:from-teal-500 dark:to-emerald-500 text-white dark:text-slate-900 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]'
                       }`}
                     >
-                      {isProcessingCohesion ? (
+                      {isAnalyzingGaps ? (
                         <>
                           <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                           </svg>
-                          <span>Analyzing deck...</span>
+                          <span>Analyzing...</span>
                         </>
                       ) : (
                         <>
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                           </svg>
-                          <span>Make Cohesive</span>
+                          <span>Check for Gaps</span>
                         </>
                       )}
                     </button>
+
+                    {/* Make Cohesive button (existing — only show when 2+ slides) */}
+                    {slides.length >= 2 && (
+                      <button
+                        onClick={handleMakeCohesive}
+                        disabled={!provider || isProcessingCohesion}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                          !provider || isProcessingCohesion
+                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-amber-500 dark:to-orange-500 text-white dark:text-slate-900 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]'
+                        }`}
+                      >
+                        {isProcessingCohesion ? (
+                          <>
+                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                            </svg>
+                            <span>Analyzing deck...</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            <span>Make Cohesive</span>
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 )}
              </div>
@@ -2515,6 +2644,17 @@ function App() {
           onApply={handleApplyCohesion}
           onCancel={handleCancelCohesion}
           isDarkMode={isDarkMode}
+        />
+      )}
+
+      {/* Gap Analysis Panel (Phase 59) */}
+      {gapResult && (
+        <GapAnalysisPanel
+          result={gapResult}
+          onAddSlide={handleAddSlideFromGap}
+          onReanalyze={handleReanalyzeGaps}
+          onClose={() => setGapResult(null)}
+          generatingGapId={generatingGapId}
         />
       )}
 
