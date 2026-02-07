@@ -9,36 +9,27 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 
 ## Current Position
 
-Phase: 57 - Image Paste (COMPLETE)
-Plan: All 4 plans complete
-Status: Phase verified and complete
-Last activity: 2026-02-07 — Phase 57 complete
+Phase: 58 - Deck Cohesion (IN PROGRESS)
+Plan: 1 of 3 complete
+Status: In progress
+Last activity: 2026-02-07 — Completed 58-01-PLAN.md
 
-Progress: [███--] 3/5 phases | 11/21 requirements
+Progress: [███--] 3/5 phases | 12/21 requirements
 
-## Phase 57 Summary
+## Phase 58 Progress
 
-**Goal achieved:** Users can paste images directly and have them display as full-slide visuals
+**Goal:** AI-powered deck-wide text harmonization with preview/apply UI
 
-**What was built:**
-- Image-vs-HTML routing in usePaste with PowerPoint signature detection
-- compressImage utility (1920px max, JPEG 0.8, GIF passthrough)
-- Full-image slide creation from clipboard paste with "Replace current instead" toast
-- analyzeImage() on both Gemini and Claude for image captioning
-- Drag-drop image support via useDragDrop hook
-- Full Image layout empty state with dashed placeholder and file picker
-- "Generate AI Notes" button producing teleprompter segments with progressive disclosure
-
-**Bugs fixed during verification:**
-- PowerPoint pastes misrouted to image-only path (HTML signature detection added)
-- AI caption was one block instead of teleprompter segments (talkingPoints[] array with content/speakerNotes formatting)
+**Plan 01 (COMPLETE):** Cohesion AI infrastructure - prompts, schemas, types, Gemini implementation
+**Plan 02:** Claude provider implementation
+**Plan 03:** UI preview modal with diff viewer and Apply/Cancel
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 21 (v1.0 through v3.9)
 - Total phases completed: 57
-- Total plans completed: 179
+- Total plans completed: 180
 - Total LOC: ~30,200 TypeScript
 
 **Recent Milestones:**
@@ -50,15 +41,13 @@ Progress: [███--] 3/5 phases | 11/21 requirements
 
 ### Decisions
 
-Recent decisions from Phase 57:
+Recent decisions from Phase 58:
 
 | Phase | Decision | Rationale |
 |-------|----------|-----------|
-| 57 | Default action creates new slide; toast offers Replace instead | Matches paste-first UX with non-blocking alternative |
-| 57 | PowerPoint detected via style/meta Generator tags | Text-based heuristic falsely matched PPT; signature detection is reliable |
-| 57 | GIF images bypass compression | Canvas toDataURL destroys GIF animation |
-| 57 | AI caption returns talkingPoints[] not single string | Drives teleprompter segments with content[] + speakerNotes 👉 delimiters |
-| 57 | Drag-drop replaces active slide; paste creates new slide | Drag-drop has spatial intent; paste is ambient |
+| 58 | Deck serializer caps at 20 slides with 200-char speaker notes truncation | Balances token cost with tone detection fidelity |
+| 58 | AI returns slideIndex only; provider enriches with slideId and original fields | Keeps AI output small, provides full context for diff UI |
+| 58 | Claude provider stub throws PROVIDER_NOT_SUPPORTED pending Plan 02 | Satisfies TypeScript interface contract without blocking Plan 01 |
 
 Full decision history logged in PROJECT.md Key Decisions table.
 
@@ -74,11 +63,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-07
-Stopped at: Phase 57 complete
-Resume file: .planning/ROADMAP.md
-
-**Next step:** `/gsd:plan-phase 58` to plan Deck Cohesion
+Stopped at: Completed 58-01-PLAN.md
+Resume file: .planning/phases/58-deck-cohesion/58-02-PLAN.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-07 - Phase 57 complete*
+*Last updated: 2026-02-07 - Completed 58-01-PLAN.md*
