@@ -981,24 +981,24 @@ function App() {
               deckVerbosity || 'standard'
             );
 
-            // Replace with AI-improved slide, keep original for comparison
+            // Full-image layout: original image fills the slide, AI text goes to teleprompter only
             setSlides(curr => curr.map(s => {
               if (s.id !== tempId) return s;
               return {
                 ...s,
                 title: aiResult.title,
-                content: aiResult.content,
+                content: [], // No visible text overlay — original image IS the slide
                 speakerNotes: aiResult.speakerNotes,
-                imagePrompt: aiResult.imagePrompt,
-                layout: aiResult.layout || 'split',
+                imagePrompt: '',
+                layout: 'full-image' as const,
                 theme: aiResult.theme || 'default',
                 isGeneratingImage: false,
-                imageUrl: imageDataUrl, // Keep original pasted image as slide visual
-                originalPastedImage: imageDataUrl, // Keep for revert/comparison
+                imageUrl: imageDataUrl, // Original pasted image fills the slide
+                originalPastedImage: imageDataUrl,
                 source: { type: 'pasted', pastedAt: new Date().toISOString() },
               };
             }));
-            addToast('AI improved your pasted slide', 3000, 'success');
+            addToast('Slide imported — AI notes added to teleprompter', 3000, 'success');
           } catch (aiError) {
             console.error('AI analysis failed, keeping raw image:', aiError);
             // Fallback: keep raw image as full-image layout (graceful degradation)
