@@ -902,15 +902,131 @@ function App() {
     });
   };
 
+  // Helper: compress an image data URL to prevent .cue file bloat (Phase 57)
+  // Scales down to maxDimension (default 1920px) and re-encodes as JPEG at quality (default 0.8)
+  // GIF images are returned as-is to preserve animation
+  const compressImage = (dataUrl: string, maxDimension: number = 1920, quality: number = 0.8): Promise<string> => {
+    // Skip compression for GIFs (preserve animation)
+    if (dataUrl.startsWith('data:image/gif')) {
+      return Promise.resolve(dataUrl);
+    }
+
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        // If image is already within bounds, return original
+        if (img.width <= maxDimension && img.height <= maxDimension) {
+          // Still re-encode as JPEG for consistent compression
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d')!;
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+          return;
+        }
+
+        // Scale down proportionally to fit within maxDimension
+        const scale = Math.min(maxDimension / img.width, maxDimension / img.height);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => {
+        // Fallback: return original if image can't be loaded
+        resolve(dataUrl);
+      };
+      img.src = dataUrl;
+    });
+  };
+
   // Paste slide from clipboard (Cmd+V with rich content)
   // Per CONTEXT.md: Immediate creation, no confirmation step
-  // Phase 56: AI analysis for image pastes with before/after comparison
+  // Phase 57: Image paste routing — standalone images create full-image slides with compression
+  // Phase 56: AI analysis for PowerPoint/rich HTML pastes with before/after comparison
   const handlePasteSlide = useCallback(async (result: PasteResult) => {
     // Only process if we have content
     if (!result.html && !result.text && !result.imageBlob) {
       return;
     }
 
+    // Phase 57: Standalone image paste (screenshots, copied images, web images with HTML wrappers)
+    // These bypass HTML parsing and create full-image slides with compression
+    if (result.isImageOnly && result.imageBlob) {
+      let imageDataUrl: string;
+      try {
+        imageDataUrl = await readBlobAsDataUrl(result.imageBlob);
+      } catch {
+        console.error('Failed to read image blob');
+        addToast('Paste failed - could not read image', 3000, 'error');
+        return;
+      }
+
+      // Compress to prevent .cue file bloat (Retina screenshots can be 10MB+)
+      const compressedDataUrl = await compressImage(imageDataUrl);
+
+      // Default action: Create a new slide at the current insert position
+      const newSlideId = `paste-${Date.now()}`;
+      const newSlide: Slide = {
+        id: newSlideId,
+        title: 'Image Slide',
+        content: [],
+        speakerNotes: '',
+        imagePrompt: '',
+        imageUrl: compressedDataUrl,
+        isGeneratingImage: false,
+        layout: 'full-image' as const,
+        source: { type: 'pasted', pastedAt: new Date().toISOString() },
+      };
+
+      // Insert after currently selected slide, or at end if none selected
+      const insertIndex = activeSlideIndex >= 0 ? activeSlideIndex : slides.length - 1;
+      const updatedSlides = [...slides];
+      updatedSlides.splice(insertIndex + 1, 0, newSlide);
+      setSlides(updatedSlides);
+      setActiveSlideIndex(insertIndex + 1);
+
+      // Capture current slide ID for the replace action (before index changes)
+      const currentSlideId = slides[activeSlideIndex]?.id;
+
+      // Helper: replace current slide's image instead of creating new
+      const replaceCurrentSlideImage = (compressedUrl: string) => {
+        if (!currentSlideId) return;
+        // Remove the newly created slide and update the original instead
+        setSlides(curr => {
+          const withoutNew = curr.filter(s => s.id !== newSlideId);
+          return withoutNew.map(s => {
+            if (s.id !== currentSlideId) return s;
+            return {
+              ...s,
+              layout: 'full-image' as const,
+              imageUrl: compressedUrl,
+              content: [],
+              // Keep existing title and speakerNotes
+            };
+          });
+        });
+        // Restore active index to the original slide
+        setActiveSlideIndex(curr => {
+          // The new slide was removed, so if we were past it, adjust
+          return Math.max(0, curr - 1);
+        });
+        addToast('Replaced slide image', 3000, 'success');
+      };
+
+      // Show toast with option to replace current slide instead (8s timeout for time-sensitive action)
+      addToast('Image added as new slide', 8000, 'info', {
+        label: 'Replace current instead',
+        onClick: () => replaceCurrentSlideImage(compressedDataUrl),
+      });
+
+      return; // Exit early — image paste handled
+    }
+
+    // Non-image paste: HTML/rich content flow (PowerPoint, web content, etc.)
     // Create temp slide with loading state
     const tempId = `paste-${Date.now()}`;
     const tempSlide: Slide = {
@@ -935,8 +1051,9 @@ function App() {
 
     // Extract content from paste
     try {
-      // Handle image-only paste (e.g., from PowerPoint which copies slides as images)
-      if (result.imageBlob && !result.html && !result.text) {
+      // Phase 56: Handle PowerPoint image paste (image + real HTML content)
+      // These have imageBlob but isImageOnly is false (HTML has substantive text)
+      if (result.imageBlob && !result.isImageOnly) {
         let imageDataUrl: string;
         try {
           imageDataUrl = await readBlobAsDataUrl(result.imageBlob);
@@ -969,7 +1086,7 @@ function App() {
             imagePrompt: "",
             isGeneratingImage: true, // Keep loading indicator
             layout: 'full-image' as const,
-            originalPastedImage: imageDataUrl, // Store for comparison
+            originalPastedImage: imageDataUrl, // Store for comparison (Phase 56)
           };
         }));
 
@@ -1035,7 +1152,7 @@ function App() {
           }));
           addToast('Slide image pasted successfully', 3000, 'success');
         }
-        return; // Exit early - image paste handled above
+        return; // Exit early - PowerPoint image paste handled above
       }
 
       // Phase 56: AI enhancement of HTML paste is handled by the same parseClipboardContent flow

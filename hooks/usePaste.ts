@@ -12,6 +12,8 @@ export interface PasteResult {
   imageBlob: Blob | null;
   /** Whether this looks like rich content (not just plain text) */
   isRichContent: boolean;
+  /** Whether this is a standalone image paste (screenshot, copied image, or web image with HTML wrapper) */
+  isImageOnly: boolean;
 }
 
 /**
@@ -95,6 +97,29 @@ export function usePaste({
     // Rich = has HTML (from PPT/Word/web) or has image
     const isRichContent = !!html || !!imageBlob;
 
+    // Determine if this is a standalone image paste (Phase 57)
+    // Image-only = has imageBlob AND either no HTML, or HTML is just an image wrapper
+    // Web-copied images often come with HTML like <img src="..."> or <meta>...<img>
+    // We detect these by stripping tags and checking if remaining text is empty
+    let isImageOnly = false;
+    if (imageBlob) {
+      if (!html) {
+        // Pure image paste (screenshot, etc.) — no HTML at all
+        isImageOnly = true;
+      } else {
+        // Has both image and HTML — check if HTML is just an image wrapper
+        // Parse HTML, strip all tags, check if remaining text is empty/whitespace
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const textContent = doc.body?.textContent?.trim() || '';
+        // If no substantive text remains after stripping tags, this is an image wrapper
+        // (e.g., <img src="..."> or <meta charset="utf-8"><img src="...">)
+        if (textContent.length === 0) {
+          isImageOnly = true;
+        }
+      }
+    }
+
     // If in text field and NOT rich content, let browser handle normally
     if (isInTextField && !isRichContent) {
       return; // Don't prevent default, don't call onPaste
@@ -117,6 +142,7 @@ export function usePaste({
         text,
         imageBlob,
         isRichContent,
+        isImageOnly,
       });
     }
   }, [enabled, preventDefault]);
