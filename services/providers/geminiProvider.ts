@@ -3,7 +3,7 @@ import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES, GenerationIn
 import { Slide, LessonResource, DocumentAnalysis, EnhancementResult, EnhancementOptions } from '../../types';
 import { DOCUMENT_ANALYSIS_SYSTEM_PROMPT, buildAnalysisUserPrompt } from '../documentAnalysis/analysisPrompts';
 import { ENHANCEMENT_SYSTEM_PROMPT, buildEnhancementUserPrompt } from '../documentEnhancement/enhancementPrompts';
-import { SLIDE_ANALYSIS_SYSTEM_PROMPT, buildSlideAnalysisPrompt, SLIDE_RESPONSE_SCHEMA } from '../slideAnalysis/slideAnalysisPrompts';
+import { SLIDE_ANALYSIS_SYSTEM_PROMPT, buildSlideAnalysisPrompt, SLIDE_RESPONSE_SCHEMA, IMAGE_CAPTION_PROMPT, IMAGE_CAPTION_SCHEMA, ImageCaptionResult } from '../slideAnalysis/slideAnalysisPrompts';
 import {
   QuizQuestion,
   QuestionWithAnswer,
@@ -423,6 +423,40 @@ export class GeminiProvider implements AIProviderInterface {
         isGeneratingImage: false
       };
     } catch (error) {
+      throw this.wrapError(error);
+    }
+  }
+
+  async analyzeImage(imageBase64: string): Promise<ImageCaptionResult> {
+    try {
+      const ai = new GoogleGenAI({ apiKey: this.apiKey });
+
+      const parts: any[] = [
+        { text: 'Analyze this image and generate a title, caption, and teaching talking points.' },
+        { inlineData: { mimeType: 'image/jpeg', data: imageBase64 } }
+      ];
+
+      const response = await ai.models.generateContent({
+        model: this.model,
+        contents: { parts },
+        config: {
+          systemInstruction: IMAGE_CAPTION_PROMPT,
+          responseMimeType: 'application/json',
+          responseSchema: IMAGE_CAPTION_SCHEMA,
+          temperature: 0.7
+        }
+      });
+
+      const text = response.text || '{}';
+      const parsed = JSON.parse(text);
+
+      return {
+        title: parsed.title || 'Untitled Image',
+        caption: parsed.caption || '',
+        teachingNotes: parsed.teachingNotes || '',
+      };
+    } catch (error) {
+      console.error('[GeminiProvider] analyzeImage error:', error);
       throw this.wrapError(error);
     }
   }

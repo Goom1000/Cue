@@ -1,4 +1,8 @@
 import { Slide, LessonResource, AIProvider, GameType, GameDifficulty, DocumentAnalysis, EnhancementResult, EnhancementOptions } from '../types';
+import { ImageCaptionResult } from './slideAnalysis/slideAnalysisPrompts';
+
+// Re-export ImageCaptionResult for consumers
+export type { ImageCaptionResult } from './slideAnalysis/slideAnalysisPrompts';
 import { QuizQuestion, QuestionWithAnswer, VerbosityLevel } from './geminiService';
 import { GeminiProvider } from './providers/geminiProvider';
 import { ClaudeProvider } from './providers/claudeProvider';
@@ -304,6 +308,11 @@ export interface AIProviderInterface {
     imageBase64: string,        // Raw base64, NO data URL prefix
     verbosity?: VerbosityLevel  // Controls speaker notes depth
   ): Promise<Slide>;
+
+  // Analyze an image and generate caption with teaching talking points (Phase 57)
+  analyzeImage(
+    imageBase64: string         // Raw base64, NO data URL prefix
+  ): Promise<ImageCaptionResult>;
 
   // Document enhancement for resource differentiation (Phase 45)
   enhanceDocument(
