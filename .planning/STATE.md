@@ -5,16 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script
-**Current focus:** Planning next milestone
+**Current focus:** v4.1 Script Mode (Share with Colleague)
 
 ## Current Position
 
-Phase: 60 of 60 (all complete)
-Plan: N/A
-Status: v4.0 milestone complete
-Last activity: 2026-02-08 — v4.0 Clipboard Builder milestone archived
-
-Progress: [██████] 6/6 phases | 26/26 requirements
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-02-08 — Milestone v4.1 started
 
 ## Performance Metrics
 
@@ -44,7 +42,7 @@ Notable: Slide Editor canvas mode (2026-02-07) for composing images on pasted sl
 ### Roadmap Evolution
 
 - v4.0 Clipboard Builder milestone COMPLETE and ARCHIVED
-- Next milestone TBD — run `/gsd:new-milestone` to start
+- v4.1 Script Mode (Share with Colleague) — defining requirements
 
 ### Blockers/Concerns
 
@@ -53,11 +51,11 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: v4.0 milestone archived
+Stopped at: Defining v4.1 requirements
 Resume file: None
 
-**Next step:** Run `/gsd:new-milestone` to start next milestone (questioning -> research -> requirements -> roadmap).
+**Next step:** Complete requirements definition and roadmap creation.
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-08 - v4.0 Clipboard Builder milestone complete and archived*
+*Last updated: 2026-02-08 - v4.1 Script Mode milestone started*

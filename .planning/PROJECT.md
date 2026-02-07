@@ -6,9 +6,20 @@ A presentation tool for teachers that transforms PDF lesson plans into interacti
 
 **v4.0 shipped:** Clipboard Builder — Teachers can build slide decks via copy-paste from PowerPoint, paste images, condense bloated decks with AI-powered lesson-plan-aware analysis, and fill content gaps against lesson plans. Deployed at https://goom1000.github.io/Cue/
 
+## Current Milestone: v4.1 Script Mode (Share with Colleague)
+
+**Goal:** Enable teachers to export any Cue deck as a self-contained presentation that colleagues can deliver without Cue — AI transforms teleprompter scripts into expanded talking-point bullets alongside images.
+
+**Target features:**
+- "Share with colleague" button and export dialog
+- AI transformation of teleprompter scripts into expanded talking-point bullets
+- PPTX export with expanded content and images
+- PDF export with expanded content and images
+- Optional preview of script version before download
+
 ## Current State
 
-Shipped v4.0 with ~30,600 LOC TypeScript. v4.0 delivered Clipboard Builder: teachers can copy-paste slides from PowerPoint (displayed as full-screen images with AI-extracted teleprompter content), paste images directly with AI captioning, condense bloated decks using lesson-plan-aware four-action analysis (keep/edit/remove/merge), and identify content gaps against lesson plans with one-click AI slide generation. 5 new AI methods across both Gemini and Claude providers. 353 tests from v3.9 still passing.
+Shipped v4.0 with ~30,600 LOC TypeScript. Starting v4.1 Script Mode. v4.0 delivered Clipboard Builder: teachers can copy-paste slides from PowerPoint (displayed as full-screen images with AI-extracted teleprompter content), paste images directly with AI captioning, condense bloated decks using lesson-plan-aware four-action analysis (keep/edit/remove/merge), and identify content gaps against lesson plans with one-click AI slide generation. 5 new AI methods across both Gemini and Claude providers. 353 tests from v3.9 still passing.
 
 ## Core Value
 
@@ -161,7 +172,10 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Active
 
-(None yet — plan next milestone)
+- [ ] AI transforms teleprompter scripts into expanded talking-point bullets for colleague delivery
+- [ ] "Share with colleague" button with export dialog (PPTX / PDF format choice)
+- [ ] Exported deck includes images alongside expanded text
+- [ ] Optional preview of script version before download
 
 ### Deferred (v4.1+)
 
@@ -338,4 +352,4 @@ v4.0 delivered Clipboard Builder:
 | Position drift correction for gap slides | Track insertions to adjust target positions as slides are added | ✓ Good — v4.0 |
 
 ---
-*Last updated: 2026-02-08 after v4.0 milestone complete*
+*Last updated: 2026-02-08 after v4.1 milestone started*
