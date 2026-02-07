@@ -993,7 +993,7 @@ function App() {
                 layout: aiResult.layout || 'split',
                 theme: aiResult.theme || 'default',
                 isGeneratingImage: false,
-                imageUrl: undefined, // Clear the pasted image from display (AI created text content)
+                imageUrl: imageDataUrl, // Keep original pasted image as slide visual
                 originalPastedImage: imageDataUrl, // Keep for revert/comparison
                 source: { type: 'pasted', pastedAt: new Date().toISOString() },
               };
