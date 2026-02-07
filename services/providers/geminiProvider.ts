@@ -1,9 +1,10 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES, GenerationInput, GameQuestionRequest, VerbosityLevel, ChatContext } from '../aiProvider';
+import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES, GenerationInput, GameQuestionRequest, VerbosityLevel, ChatContext, CohesionResult } from '../aiProvider';
 import { Slide, LessonResource, DocumentAnalysis, EnhancementResult, EnhancementOptions } from '../../types';
 import { DOCUMENT_ANALYSIS_SYSTEM_PROMPT, buildAnalysisUserPrompt } from '../documentAnalysis/analysisPrompts';
 import { ENHANCEMENT_SYSTEM_PROMPT, buildEnhancementUserPrompt } from '../documentEnhancement/enhancementPrompts';
 import { SLIDE_ANALYSIS_SYSTEM_PROMPT, buildSlideAnalysisPrompt, SLIDE_RESPONSE_SCHEMA, IMAGE_CAPTION_PROMPT, IMAGE_CAPTION_SCHEMA, ImageCaptionResult } from '../slideAnalysis/slideAnalysisPrompts';
+import { COHESION_SYSTEM_PROMPT, buildCohesionUserPrompt, buildDeckContextForCohesion, COHESION_RESPONSE_SCHEMA } from '../prompts/cohesionPrompts';
 import {
   QuizQuestion,
   QuestionWithAnswer,
@@ -457,6 +458,58 @@ export class GeminiProvider implements AIProviderInterface {
       };
     } catch (error) {
       console.error('[GeminiProvider] analyzeImage error:', error);
+      throw this.wrapError(error);
+    }
+  }
+
+  async makeDeckCohesive(
+    slides: Slide[],
+    gradeLevel: string,
+    verbosity: VerbosityLevel
+  ): Promise<CohesionResult> {
+    try {
+      const ai = new GoogleGenAI({ apiKey: this.apiKey });
+      const deckContext = buildDeckContextForCohesion(slides);
+      const userPrompt = buildCohesionUserPrompt(verbosity, gradeLevel);
+
+      const response = await ai.models.generateContent({
+        model: this.model,
+        contents: `${userPrompt}\n\nDECK TO ANALYZE:\n\n${deckContext}`,
+        config: {
+          systemInstruction: COHESION_SYSTEM_PROMPT,
+          responseMimeType: 'application/json',
+          responseSchema: COHESION_RESPONSE_SCHEMA,
+          temperature: 0.7
+        }
+      });
+
+      const text = response.text || '{}';
+      const parsed = JSON.parse(text);
+
+      // Enrich AI response with original slide data for diff display
+      const changes = (parsed.changes || []).map((change: any) => {
+        const slide = slides[change.slideIndex];
+        if (!slide) return null;
+        return {
+          slideIndex: change.slideIndex,
+          slideId: slide.id,
+          originalTitle: slide.title,
+          proposedTitle: change.proposedTitle || undefined,
+          originalContent: [...slide.content],
+          proposedContent: change.proposedContent || undefined,
+          originalSpeakerNotes: slide.speakerNotes,
+          proposedSpeakerNotes: change.proposedSpeakerNotes || undefined,
+          reason: change.reason || 'Tone consistency'
+        };
+      }).filter(Boolean);
+
+      return {
+        changes,
+        summary: parsed.summary || 'Deck cohesion analysis complete',
+        toneDescription: parsed.toneDescription || ''
+      };
+    } catch (error) {
+      console.error('[GeminiProvider] makeDeckCohesive error:', error);
       throw this.wrapError(error);
     }
   }

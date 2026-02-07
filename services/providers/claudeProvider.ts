@@ -1,4 +1,4 @@
-import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, VerbosityLevel, ChatContext } from '../aiProvider';
+import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, VerbosityLevel, ChatContext, CohesionResult } from '../aiProvider';
 import { Slide, LessonResource, PosterLayout, DocumentAnalysis, EnhancementResult, EnhancementOptions } from '../../types';
 import { QuizQuestion, QuestionWithAnswer } from '../geminiService';
 import { getStudentFriendlyRules } from '../prompts/studentFriendlyRules';
@@ -1798,6 +1798,18 @@ INSTRUCTIONS:
         error
       );
     }
+  }
+
+  // Stub for Phase 58 - full implementation in Plan 02
+  async makeDeckCohesive(
+    slides: Slide[],
+    gradeLevel: string,
+    verbosity: VerbosityLevel
+  ): Promise<CohesionResult> {
+    throw new AIProviderError(
+      'Deck cohesion is not yet supported with Claude. Please use Gemini.',
+      'PROVIDER_NOT_SUPPORTED'
+    );
   }
 
   /**

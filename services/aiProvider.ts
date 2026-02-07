@@ -10,6 +10,25 @@ import { ClaudeProvider } from './providers/claudeProvider';
 // Re-export VerbosityLevel for consumers
 export type { VerbosityLevel } from './geminiService';
 
+// Cohesion types for deck-wide harmonization (Phase 58)
+export interface CohesionChange {
+  slideIndex: number;           // 0-indexed position in deck
+  slideId: string;              // For applying via handleUpdateSlide
+  originalTitle: string;        // For diff display
+  proposedTitle?: string;       // Only if title changes
+  originalContent: string[];    // For diff display
+  proposedContent?: string[];   // Only if content changes
+  originalSpeakerNotes: string; // For diff display
+  proposedSpeakerNotes?: string;// Only if notes change
+  reason: string;               // Why this slide was changed
+}
+
+export interface CohesionResult {
+  changes: CohesionChange[];
+  summary: string;              // Overall description of harmonization
+  toneDescription: string;      // The unified tone applied
+}
+
 // Generation mode types for multi-source slide generation
 export type GenerationMode = 'fresh' | 'refine' | 'blend';
 
@@ -313,6 +332,13 @@ export interface AIProviderInterface {
   analyzeImage(
     imageBase64: string         // Raw base64, NO data URL prefix
   ): Promise<ImageCaptionResult>;
+
+  // Analyze entire deck and propose cohesion changes (Phase 58)
+  makeDeckCohesive(
+    slides: Slide[],
+    gradeLevel: string,
+    verbosity: VerbosityLevel
+  ): Promise<CohesionResult>;
 
   // Document enhancement for resource differentiation (Phase 45)
   enhanceDocument(
