@@ -987,7 +987,7 @@ function App() {
               return {
                 ...s,
                 title: aiResult.title,
-                content: [], // No visible text overlay — original image IS the slide
+                content: aiResult.content, // Hidden on slide but drives teleprompter segments
                 speakerNotes: aiResult.speakerNotes,
                 imagePrompt: '',
                 layout: 'full-image' as const,
