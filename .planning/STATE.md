@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 
 ## Current Position
 
-Phase: 58 - Deck Cohesion (IN PROGRESS)
-Plan: 2 of 3 complete
-Status: In progress
-Last activity: 2026-02-07 — Completed 58-02-PLAN.md
+Phase: 58 - Deck Cohesion (COMPLETE)
+Plan: 3 of 3 complete
+Status: Phase complete
+Last activity: 2026-02-07 — Completed 58-03-PLAN.md
 
-Progress: [███--] 3/5 phases | 13/21 requirements
+Progress: [████-] 4/5 phases | 15/21 requirements
 
 ## Phase 58 Progress
 
@@ -22,14 +22,14 @@ Progress: [███--] 3/5 phases | 13/21 requirements
 
 **Plan 01 (COMPLETE):** Cohesion AI infrastructure - prompts, schemas, types, Gemini implementation
 **Plan 02 (COMPLETE):** Claude provider implementation
-**Plan 03:** UI preview modal with diff viewer and Apply/Cancel
+**Plan 03 (COMPLETE):** UI preview modal with diff viewer and Apply/Cancel
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 21 (v1.0 through v3.9)
-- Total phases completed: 57
-- Total plans completed: 180
+- Total phases completed: 58
+- Total plans completed: 183
 - Total LOC: ~30,200 TypeScript
 
 **Recent Milestones:**
@@ -49,6 +49,8 @@ Recent decisions from Phase 58:
 | 58 | AI returns slideIndex only; provider enriches with slideId and original fields | Keeps AI output small, provides full context for diff UI |
 | 58 | Claude provider stub throws PROVIDER_NOT_SUPPORTED pending Plan 02 | Satisfies TypeScript interface contract without blocking Plan 01 |
 | 58 | Claude makeDeckCohesive uses 8192 max_tokens with tool_choice pattern | Matches enhanceDocument; generous for full deck cohesion structured output |
+| 58 | CohesionPreview uses expandable sections per slide with ReactDiffViewer WORDS comparison | Shows granular per-field diffs for title, content, and speaker notes |
+| 58 | Empty cohesion result shows toast instead of modal | Avoids empty modal anti-pattern; immediate feedback |
 
 Full decision history logged in PROJECT.md Key Decisions table.
 
@@ -64,9 +66,9 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-07
-Stopped at: Completed 58-02-PLAN.md
-Resume file: .planning/phases/58-deck-cohesion/58-03-PLAN.md
+Stopped at: Completed 58-03-PLAN.md (Phase 58 complete)
+Resume file: None - next phase is 59 (Gap Analysis)
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-07 - Completed 58-02-PLAN.md*
+*Last updated: 2026-02-07 - Completed 58-03-PLAN.md (Phase 58 Deck Cohesion complete)*
