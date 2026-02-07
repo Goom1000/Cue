@@ -1,10 +1,18 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES, GenerationInput, GameQuestionRequest, VerbosityLevel, ChatContext, CohesionResult } from '../aiProvider';
+import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES, GenerationInput, GameQuestionRequest, VerbosityLevel, ChatContext, CohesionResult, GapAnalysisResult, IdentifiedGap } from '../aiProvider';
 import { Slide, LessonResource, DocumentAnalysis, EnhancementResult, EnhancementOptions } from '../../types';
 import { DOCUMENT_ANALYSIS_SYSTEM_PROMPT, buildAnalysisUserPrompt } from '../documentAnalysis/analysisPrompts';
 import { ENHANCEMENT_SYSTEM_PROMPT, buildEnhancementUserPrompt } from '../documentEnhancement/enhancementPrompts';
 import { SLIDE_ANALYSIS_SYSTEM_PROMPT, buildSlideAnalysisPrompt, SLIDE_RESPONSE_SCHEMA, IMAGE_CAPTION_PROMPT, IMAGE_CAPTION_SCHEMA, ImageCaptionResult } from '../slideAnalysis/slideAnalysisPrompts';
 import { COHESION_SYSTEM_PROMPT, buildCohesionUserPrompt, buildDeckContextForCohesion, COHESION_RESPONSE_SCHEMA } from '../prompts/cohesionPrompts';
+import {
+  GAP_ANALYSIS_SYSTEM_PROMPT,
+  buildGapAnalysisUserPrompt,
+  buildGapAnalysisContext,
+  GAP_ANALYSIS_RESPONSE_SCHEMA,
+  buildGapSlideGenerationPrompt,
+  GAP_SLIDE_RESPONSE_SCHEMA
+} from '../prompts/gapAnalysisPrompts';
 import {
   QuizQuestion,
   QuestionWithAnswer,
@@ -510,6 +518,98 @@ export class GeminiProvider implements AIProviderInterface {
       };
     } catch (error) {
       console.error('[GeminiProvider] makeDeckCohesive error:', error);
+      throw this.wrapError(error);
+    }
+  }
+
+  async analyzeGaps(
+    slides: Slide[],
+    lessonPlanText: string,
+    lessonPlanImages: string[],
+    gradeLevel: string
+  ): Promise<GapAnalysisResult> {
+    try {
+      const ai = new GoogleGenAI({ apiKey: this.apiKey });
+      const context = buildGapAnalysisContext(slides, lessonPlanText);
+      const userPrompt = buildGapAnalysisUserPrompt(gradeLevel);
+      const fullPrompt = `${userPrompt}\n\n${context}`;
+
+      // Build contents: multimodal if page images available, plain text otherwise
+      let contents: any;
+      if (lessonPlanImages.length > 0) {
+        const parts: any[] = [{ text: fullPrompt }];
+        // Limit to 5 page images to control token usage
+        const limitedImages = lessonPlanImages.slice(0, 5);
+        for (const img of limitedImages) {
+          parts.push({
+            inlineData: { mimeType: 'image/jpeg', data: img }
+          });
+        }
+        contents = parts;
+      } else {
+        contents = fullPrompt;
+      }
+
+      const response = await ai.models.generateContent({
+        model: this.model,
+        contents,
+        config: {
+          systemInstruction: GAP_ANALYSIS_SYSTEM_PROMPT,
+          responseMimeType: 'application/json',
+          responseSchema: GAP_ANALYSIS_RESPONSE_SCHEMA,
+          temperature: 0.5
+        }
+      });
+
+      const text = response.text || '{}';
+      const parsed = JSON.parse(text);
+
+      return {
+        gaps: parsed.gaps || [],
+        summary: parsed.summary || 'Gap analysis complete',
+        coveragePercentage: parsed.coveragePercentage ?? 0
+      };
+    } catch (error) {
+      console.error('[GeminiProvider] analyzeGaps error:', error);
+      throw this.wrapError(error);
+    }
+  }
+
+  async generateSlideFromGap(
+    gap: IdentifiedGap,
+    slides: Slide[],
+    lessonTopic: string,
+    verbosity: VerbosityLevel
+  ): Promise<Slide> {
+    try {
+      const ai = new GoogleGenAI({ apiKey: this.apiKey });
+      const prompt = buildGapSlideGenerationPrompt(gap, 'Year 6 (10-11 years old)', verbosity)
+        + `\n\nEXISTING DECK CONTEXT (for tone matching):\n${buildDeckContextForCohesion(slides)}\n\nLESSON TOPIC: ${lessonTopic}`;
+
+      const response = await ai.models.generateContent({
+        model: this.model,
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: GAP_SLIDE_RESPONSE_SCHEMA,
+          temperature: 0.7
+        }
+      });
+
+      const text = response.text || '{}';
+      const parsed = JSON.parse(text);
+
+      return {
+        id: `gap-gen-${Date.now()}`,
+        title: parsed.title || gap.suggestedTitle,
+        content: parsed.content || gap.suggestedContent,
+        speakerNotes: parsed.speakerNotes || '',
+        imagePrompt: parsed.imagePrompt || `Educational illustration: ${gap.topic}`,
+        layout: parsed.layout || 'split',
+        source: { type: 'ai-generated' as const }
+      };
+    } catch (error) {
+      console.error('[GeminiProvider] generateSlideFromGap error:', error);
       throw this.wrapError(error);
     }
   }
