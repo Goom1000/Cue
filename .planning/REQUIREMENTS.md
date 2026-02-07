@@ -33,12 +33,12 @@ Requirements for Clipboard Builder milestone. Each maps to roadmap phases.
 
 ### Gap Analysis
 
-- [ ] **GAP-01**: User can upload lesson plan PDF after deck is built
-- [ ] **GAP-02**: AI compares deck content against lesson plan
-- [ ] **GAP-03**: Gap list shows missing topics/content from lesson plan
-- [ ] **GAP-04**: Each gap has severity ranking (critical, recommended, nice-to-have)
-- [ ] **GAP-05**: AI suggests slide content for each identified gap
-- [ ] **GAP-06**: One-click button generates suggested slide from gap
+- [x] **GAP-01**: User can upload lesson plan PDF after deck is built
+- [x] **GAP-02**: AI compares deck content against lesson plan
+- [x] **GAP-03**: Gap list shows missing topics/content from lesson plan
+- [x] **GAP-04**: Each gap has severity ranking (critical, recommended, nice-to-have)
+- [x] **GAP-05**: AI suggests slide content for each identified gap
+- [x] **GAP-06**: One-click button generates suggested slide from gap
 
 ## Future Requirements (v4.1+)
 
@@ -87,12 +87,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | COHE-02 | 58 | Complete |
 | COHE-03 | 58 | Complete |
 | COHE-04 | 58 | Complete |
-| GAP-01 | 59 | Pending |
-| GAP-02 | 59 | Pending |
-| GAP-03 | 59 | Pending |
-| GAP-04 | 59 | Pending |
-| GAP-05 | 59 | Pending |
-| GAP-06 | 59 | Pending |
+| GAP-01 | 59 | Complete |
+| GAP-02 | 59 | Complete |
+| GAP-03 | 59 | Complete |
+| GAP-04 | 59 | Complete |
+| GAP-05 | 59 | Complete |
+| GAP-06 | 59 | Complete |
 
 **Coverage:**
 - v4.0 requirements: 21 total
@@ -101,4 +101,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-02*
-*Last updated: 2026-02-07 - Phase 58 complete (COHE-01 through COHE-04)*
+*Last updated: 2026-02-07 - Phase 59 complete (GAP-01 through GAP-06) — all v4.0 requirements delivered*
