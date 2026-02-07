@@ -98,25 +98,33 @@ export function usePaste({
     const isRichContent = !!html || !!imageBlob;
 
     // Determine if this is a standalone image paste (Phase 57)
-    // Image-only = has imageBlob AND either no HTML, or HTML is just an image wrapper
-    // Web-copied images often come with HTML like <img src="..."> or <meta>...<img>
-    // We detect these by stripping tags and checking if remaining text is empty
+    // Image-only = has imageBlob AND either no HTML, or HTML is a simple image wrapper
+    // Must NOT match PowerPoint slides, which have an image blob + HTML with no text
+    // but should go through AI slide analysis (Phase 56) instead.
     let isImageOnly = false;
     if (imageBlob) {
       if (!html) {
         // Pure image paste (screenshot, etc.) — no HTML at all
         isImageOnly = true;
       } else {
-        // Has both image and HTML — check if HTML is just an image wrapper
-        // Parse HTML, strip all tags, check if remaining text is empty/whitespace
+        // Has both image and HTML — distinguish simple image wrappers from app-generated HTML.
+        // PowerPoint for Mac generates HTML with <style> blocks, meta Generator tags, or
+        // structured elements even when the slide text is only in the rendered image.
+        // Simple web image copies are just <img src="..."> or <meta charset><img>.
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
         const textContent = doc.body?.textContent?.trim() || '';
-        // If no substantive text remains after stripping tags, this is an image wrapper
-        // (e.g., <img src="..."> or <meta charset="utf-8"><img src="...">)
-        if (textContent.length === 0) {
+
+        // Check for PowerPoint/app signatures that indicate rich paste (not a simple image wrapper)
+        const hasStyleTag = !!doc.querySelector('style');
+        const hasGeneratorMeta = !!doc.querySelector('meta[name="Generator"], meta[name="generator"], meta[name="ProgId"], meta[name="progid"]');
+        const isFromApp = hasStyleTag || hasGeneratorMeta;
+
+        if (textContent.length === 0 && !isFromApp) {
+          // No text AND no app signatures — this is a simple web image wrapper
           isImageOnly = true;
         }
+        // If isFromApp is true, we leave isImageOnly=false so it goes through AI slide analysis
       }
     }
 
