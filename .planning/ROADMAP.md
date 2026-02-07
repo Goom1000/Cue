@@ -126,9 +126,12 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 58-01-PLAN.md — Cohesion prompts, types, interface, and Gemini provider implementation
-- [ ] 58-02-PLAN.md — Claude provider implementation
-- [ ] 58-03-PLAN.md — CohesionPreview modal and App.tsx integration
+- [x] 58-01-PLAN.md — Cohesion prompts, types, interface, and Gemini provider implementation
+- [x] 58-02-PLAN.md — Claude provider implementation
+- [x] 58-03-PLAN.md — CohesionPreview modal and App.tsx integration
+
+**Status:** Complete (2026-02-07)
+**Note:** Dual-provider support (Gemini + Claude) with structured output. CohesionPreview modal uses ReactDiffViewer for word-level diffs. Deck serializer caps at 20 slides with 200-char speaker notes truncation.
 
 ---
 
@@ -163,10 +166,10 @@ Plans:
 | 55 | Paste Infrastructure | ✓ Complete | 3/3 |
 | 56 | AI Slide Analysis | ✓ Complete | 2/2 |
 | 57 | Image Paste | ✓ Complete | 4/4 |
-| 58 | Deck Cohesion | Planned | 0/3 |
+| 58 | Deck Cohesion | ✓ Complete | 3/3 |
 | 59 | Gap Analysis | Pending | — |
 
-**Total:** 3/5 phases complete | 11/21 requirements delivered (CLIP-01 through CLIP-06, IMG-01 through IMG-05)
+**Total:** 4/5 phases complete | 15/21 requirements delivered (CLIP-01 through CLIP-06, IMG-01 through IMG-05, COHE-01 through COHE-04)
 
 ## Coverage Validation
 
@@ -200,4 +203,4 @@ All 21 v4.0 requirements mapped:
 
 ---
 *Roadmap created: 2026-02-02*
-*Last updated: 2026-02-07 - Phase 57 complete*
+*Last updated: 2026-02-07 - Phase 58 complete*

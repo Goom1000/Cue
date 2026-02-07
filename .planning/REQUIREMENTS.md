@@ -26,10 +26,10 @@ Requirements for Clipboard Builder milestone. Each maps to roadmap phases.
 
 ### Deck Cohesion
 
-- [ ] **COHE-01**: "Make Cohesive" button available in editor toolbar
-- [ ] **COHE-02**: AI analyzes entire deck for tone and flow consistency
-- [ ] **COHE-03**: Preview panel shows proposed changes before applying
-- [ ] **COHE-04**: User can apply or cancel cohesion changes
+- [x] **COHE-01**: "Make Cohesive" button available in editor toolbar
+- [x] **COHE-02**: AI analyzes entire deck for tone and flow consistency
+- [x] **COHE-03**: Preview panel shows proposed changes before applying
+- [x] **COHE-04**: User can apply or cancel cohesion changes
 
 ### Gap Analysis
 
@@ -83,10 +83,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | IMG-03 | 57 | Complete |
 | IMG-04 | 57 | Complete |
 | IMG-05 | 57 | Complete |
-| COHE-01 | 58 | Pending |
-| COHE-02 | 58 | Pending |
-| COHE-03 | 58 | Pending |
-| COHE-04 | 58 | Pending |
+| COHE-01 | 58 | Complete |
+| COHE-02 | 58 | Complete |
+| COHE-03 | 58 | Complete |
+| COHE-04 | 58 | Complete |
 | GAP-01 | 59 | Pending |
 | GAP-02 | 59 | Pending |
 | GAP-03 | 59 | Pending |
@@ -101,4 +101,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-02*
-*Last updated: 2026-02-07 - Phase 57 complete (IMG-01 through IMG-05)*
+*Last updated: 2026-02-07 - Phase 58 complete (COHE-01 through COHE-04)*

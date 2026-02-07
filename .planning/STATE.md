@@ -66,8 +66,10 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-07
-Stopped at: Completed 58-03-PLAN.md (Phase 58 complete)
-Resume file: None - next phase is 59 (Gap Analysis)
+Stopped at: Phase 58 complete, verified
+Resume file: .planning/ROADMAP.md
+
+**Next step:** `/gsd:plan-phase 59` to plan Gap Analysis
 
 ---
 *State initialized: 2026-01-18*
