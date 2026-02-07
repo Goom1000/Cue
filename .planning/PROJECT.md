@@ -4,22 +4,11 @@
 
 A presentation tool for teachers that transforms PDF lesson plans into interactive slideshows with AI-generated content, a teleprompter script for the teacher, and progressive bullet reveal. Teachers upload their existing lesson plans, select student age/grade level, and the AI creates an engaging presentation with speaker notes that guide the teacher through natural, conversational delivery.
 
-**v3.9 shipped:** Delay Answer Reveal — AI-generated slides now separate problems from answers, creating deliberate "thinking pauses" for students with scaffolding strategies in the teleprompter. Deployed at https://goom1000.github.io/Cue/
-
-## Current Milestone: v4.0 Clipboard Builder
-
-**Goal:** Enable slide-by-slide deck construction via copy-paste from PowerPoint, with granular control over what gets included and AI cohesion at the end.
-
-**Target features:**
-- Copy slide from PowerPoint → paste into Cue → AI analyzes and improves
-- Paste images directly into slides (teacher-created visuals)
-- "Full image, no text" layout option in tile selector
-- "Make Cohesive" button to unify deck flow after building
-- Upload lesson plan after → AI checks for gaps, suggests slides to fill
+**v4.0 shipped:** Clipboard Builder — Teachers can build slide decks via copy-paste from PowerPoint, paste images, condense bloated decks with AI-powered lesson-plan-aware analysis, and fill content gaps against lesson plans. Deployed at https://goom1000.github.io/Cue/
 
 ## Current State
 
-Shipped v3.9 with ~29,000 LOC TypeScript. v3.9 delivered Delay Answer Reveal: AI detects teachable moments (Q&A pairs, math problems, definitions) and splits them across progressive bullets. Teachers see scaffolding strategies (math decomposition, vocabulary context, reading evidence) in the teleprompter to guide students through productive struggle before revealing answers. 353 tests validate leakage prevention, format diversity, and provider parity.
+Shipped v4.0 with ~30,600 LOC TypeScript. v4.0 delivered Clipboard Builder: teachers can copy-paste slides from PowerPoint (displayed as full-screen images with AI-extracted teleprompter content), paste images directly with AI captioning, condense bloated decks using lesson-plan-aware four-action analysis (keep/edit/remove/merge), and identify content gaps against lesson plans with one-click AI slide generation. 5 new AI methods across both Gemini and Claude providers. 353 tests from v3.9 still passing.
 
 ## Core Value
 
@@ -161,18 +150,20 @@ Students see only the presentation; teachers see the presentation plus a telepro
 - ✓ No answer leakage in problem statement or scaffolding — v3.9
 - ✓ Detection works across lesson plan formats — v3.9
 - ✓ Works with both Gemini and Claude providers — v3.9
+- ✓ Copy slide from PowerPoint and paste into Cue — v4.0
+- ✓ AI analyzes pasted slide content for teleprompter — v4.0
+- ✓ Paste images directly into slides with AI captioning — v4.0
+- ✓ "Full Image" layout option in tile selector — v4.0
+- ✓ Drag-drop images onto existing slides — v4.0
+- ✓ Lesson-plan-aware deck condensation (replaces cohesion) — v4.0
+- ✓ Upload lesson plan after deck built for gap analysis — v4.0
+- ✓ One-click AI slide generation from identified gaps — v4.0
 
 ### Active
 
-- [ ] Copy slide from PowerPoint and paste into Cue
-- [ ] AI analyzes pasted slide and improves it
-- [ ] Paste images directly into slides
-- [ ] "Full image, no text" layout option
-- [ ] "Make Cohesive" button for deck-wide flow review
-- [ ] Upload lesson plan after deck built → gap analysis
-- [ ] AI suggests slides to fill identified gaps
+(None yet — plan next milestone)
 
-### Deferred (v4.0+)
+### Deferred (v4.1+)
 
 - [ ] Tooltips and onboarding walkthrough (v3.6 deferred — Phase 41 infrastructure complete)
 - [ ] Elapsed time display showing presentation duration
@@ -199,17 +190,18 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Current State
 
-Shipped v3.9 with ~29,000 LOC TypeScript.
+Shipped v4.0 with ~30,600 LOC TypeScript.
 Tech stack: React 19, Vite, Gemini/Claude API, Tailwind CSS, react-rnd, jsPDF, html2canvas, mammoth.js, react-diff-viewer-continued, JSZip, Jest 30.
 Client-side only (no backend).
 Deployed at: https://goom1000.github.io/Cue/
 
-v3.9 delivered Delay Answer Reveal:
-- Teachable moment detection with proximity-based Q&A pairing (200 char threshold)
-- 30% throttling to preserve lesson flow
-- 5 content-specific scaffolding templates (math, vocabulary, comprehension, science, general)
-- Word count constraints (<20 words per prompt) for verbal deliverability
-- 353 tests covering leakage prevention, format diversity (8 teacher styles), and provider parity
+v4.0 delivered Clipboard Builder:
+- Copy-paste from PowerPoint with clipboard event handling and content provenance tracking
+- AI slide analysis preserving original visuals, driving teleprompter only
+- Image paste with canvas compression, drag-drop, Full Image layout, and AI captioning
+- Lesson-plan-aware deck condensation with four-action model (keep/edit/remove/merge)
+- Gap analysis with severity-ranked gaps and one-click AI slide generation
+- 5 new AI methods on both Gemini and Claude providers
 
 ### Technical Environment
 
@@ -334,6 +326,16 @@ v3.9 delivered Delay Answer Reveal:
 | Medium confidence default filter | Skip low-confidence detections to reduce false positives | ✓ Good — v3.8 |
 | Mode-specific confidence thresholds | Fresh/Blend use medium, Refine requires high confidence | ✓ Good — v3.8 |
 | Jest 30 with ES Module support | --experimental-vm-modules flag for type: "module" project | ✓ Good — v3.8 |
+| SlideSource provenance tracking | Track origin (pasted, image, generated) per slide for routing decisions | ✓ Good — v4.0 |
+| Pasted slides preserve original image | Teacher's visual content (diagrams, worksheets) displayed full-screen, AI drives teleprompter only | ✓ Good — v4.0 |
+| HTML signature detection for paste routing | Distinguish PowerPoint paste (with HTML) from image-only paste (no HTML) | ✓ Good — v4.0 |
+| Canvas compression for image paste | 1920px max width, JPEG 0.8 quality for reasonable file sizes | ✓ Good — v4.0 |
+| Deck serializer 20-slide cap | Token safety with 200-char speaker notes truncation | ✓ Good — v4.0 |
+| Condensation replaces cohesion | Four-action model (keep/edit/remove/merge) more powerful than tone-only cohesion | ✓ Good — v4.0 |
+| Shared lesson plan state | gapLessonPlanText/Images shared between condensation and gap analysis, avoids re-upload | ✓ Good — v4.0 |
+| Apply order: edits -> merges -> batch removal | Prevents index corruption during slide removal | ✓ Good — v4.0 |
+| Temperature 0.5 for analytical AI calls | Consistent, deterministic analysis for condensation and gap analysis | ✓ Good — v4.0 |
+| Position drift correction for gap slides | Track insertions to adjust target positions as slides are added | ✓ Good — v4.0 |
 
 ---
-*Last updated: 2026-02-02 after v4.0 milestone started*
+*Last updated: 2026-02-08 after v4.0 milestone complete*

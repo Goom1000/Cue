@@ -1,5 +1,33 @@
 # Project Milestones: Cue
 
+## v4.0 Clipboard Builder (Shipped: 2026-02-07)
+
+**Delivered:** Teachers can now build slide decks via copy-paste from PowerPoint, paste images directly, condense bloated decks with AI-powered lesson-plan-aware analysis, and fill content gaps against lesson plans — transforming Cue from a PDF-first tool into a flexible deck builder.
+
+**Phases completed:** 55-60 (18 plans total)
+
+**Key accomplishments:**
+
+- Copy-paste from PowerPoint with clipboard event handling, content provenance tracking, and cross-browser support
+- AI slide analysis on both Gemini and Claude — pasted slides preserve original visuals full-screen, AI-extracted content drives teleprompter only
+- Image paste with canvas compression, drag-drop onto slides, Full Image layout, and AI captioning
+- Lesson plan gap analysis with severity-ranked gaps (critical/recommended/nice-to-have) and one-click AI slide generation
+- Lesson-plan-aware deck condensation with four-action model (keep/edit/remove/merge) replacing basic cohesion
+- Full dual-provider parity: 5 new AI methods on both Gemini and Claude (analyzePastedSlide, analyzeImage, condenseDeck, analyzeGaps, generateSlideFromGap)
+
+**Stats:**
+
+- 15 files created/modified (+3,344 lines)
+- ~30,600 lines of TypeScript (project total)
+- 6 phases, 18 plans, 26 requirements (21 original + 5 COND)
+- 21 days (2026-01-18 → 2026-02-07)
+
+**Git range:** `feat(55-01)` → `feat(59-03)`
+
+**What's next:** TBD with /gsd:new-milestone
+
+---
+
 ## v3.9 Delay Answer Reveal (Shipped: 2026-02-01)
 
 **Delivered:** AI-generated slides now separate problems from answers, creating deliberate "thinking pauses" for students. Teachers see scaffolding strategies in the teleprompter to guide students through productive struggle before revealing answers.
