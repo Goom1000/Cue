@@ -68,32 +68,32 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TRANSFORM-01 | — | Pending |
-| TRANSFORM-02 | — | Pending |
-| TRANSFORM-03 | — | Pending |
-| TRANSFORM-04 | — | Pending |
-| TRANSFORM-05 | — | Pending |
-| TRANSFORM-06 | — | Pending |
-| PPTX-01 | — | Pending |
-| PPTX-02 | — | Pending |
-| PPTX-03 | — | Pending |
-| PPTX-04 | — | Pending |
-| PPTX-05 | — | Pending |
-| PDF-01 | — | Pending |
-| PDF-02 | — | Pending |
-| PDF-03 | — | Pending |
-| UI-01 | — | Pending |
-| UI-02 | — | Pending |
-| UI-03 | — | Pending |
-| UI-04 | — | Pending |
-| UI-05 | — | Pending |
-| UI-06 | — | Pending |
+| TRANSFORM-01 | Phase 61 | Pending |
+| TRANSFORM-02 | Phase 61 | Pending |
+| TRANSFORM-03 | Phase 61 | Pending |
+| TRANSFORM-04 | Phase 61 | Pending |
+| TRANSFORM-05 | Phase 61 | Pending |
+| TRANSFORM-06 | Phase 61 | Pending |
+| PPTX-01 | Phase 62 | Pending |
+| PPTX-02 | Phase 62 | Pending |
+| PPTX-03 | Phase 62 | Pending |
+| PPTX-04 | Phase 62 | Pending |
+| PPTX-05 | Phase 62 | Pending |
+| PDF-01 | Phase 64 | Pending |
+| PDF-02 | Phase 64 | Pending |
+| PDF-03 | Phase 64 | Pending |
+| UI-01 | Phase 63 | Pending |
+| UI-02 | Phase 63 | Pending |
+| UI-03 | Phase 63 | Pending |
+| UI-04 | Phase 63 | Pending |
+| UI-05 | Phase 63 | Pending |
+| UI-06 | Phase 63 | Pending |
 
 **Coverage:**
 - v4.1 requirements: 20 total
-- Mapped to phases: 0
-- Unmapped: 20 (pending roadmap creation)
+- Mapped to phases: 20
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-08*
-*Last updated: 2026-02-08 after initial definition*
+*Last updated: 2026-02-08 after roadmap creation*
