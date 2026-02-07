@@ -157,6 +157,13 @@ Plans:
 5. User clicks "Add Slide" on a gap and AI generates the slide at appropriate position
 6. Gap list updates after adding slides (filled gaps disappear)
 
+**Plans:** 3 plans
+
+Plans:
+- [ ] 59-01-PLAN.md — Gap analysis AI infrastructure (prompts, types, schemas, Gemini implementation)
+- [ ] 59-02-PLAN.md — Claude provider implementation and GapAnalysisPanel UI component
+- [ ] 59-03-PLAN.md — App.tsx integration (button, PDF upload, handlers, panel wiring)
+
 ---
 
 ## Progress
@@ -167,7 +174,7 @@ Plans:
 | 56 | AI Slide Analysis | ✓ Complete | 2/2 |
 | 57 | Image Paste | ✓ Complete | 4/4 |
 | 58 | Deck Cohesion | ✓ Complete | 3/3 |
-| 59 | Gap Analysis | Pending | — |
+| 59 | Gap Analysis | Planned | 0/3 |
 
 **Total:** 4/5 phases complete | 15/21 requirements delivered (CLIP-01 through CLIP-06, IMG-01 through IMG-05, COHE-01 through COHE-04)
 
