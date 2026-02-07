@@ -34,11 +34,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Special slide types (pasted slides with image-only content, Work Together, Class Challenge) produce appropriate transformed output rather than errors or empty bullets
   4. Both Gemini and Claude providers can perform the transformation, producing comparable quality output
   5. The correct teleprompter text is resolved from the verbosity cache based on the deck's active verbosity setting before transformation
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 61-01: TBD
-- [ ] 61-02: TBD
+- [ ] 61-01-PLAN.md -- Transformation prompt module, types, schemas, and helpers
+- [ ] 61-02-PLAN.md -- GeminiProvider and ClaudeProvider implementations
 
 ### Phase 62: PPTX Export
 **Goal**: Teachers can download a PowerPoint file containing their slides with expanded talking-point bullets and images, laid out to prevent text overflow
@@ -90,7 +90,7 @@ Phases execute in numeric order: 61 → 62 → 63 → 64
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 61. AI Transformation Service | 0/TBD | Not started | - |
+| 61. AI Transformation Service | 0/2 | Not started | - |
 | 62. PPTX Export | 0/TBD | Not started | - |
 | 63. Share Modal UI | 0/TBD | Not started | - |
 | 64. PDF Export | 0/TBD | Not started | - |
