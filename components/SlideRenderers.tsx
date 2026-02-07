@@ -79,36 +79,49 @@ export const DefaultLayout: React.FC<{ slide: Slide, visibleBullets: number }> =
   </div>
 );
 
-export const FullImageLayout: React.FC<{ slide: Slide, visibleBullets: number }> = ({ slide, visibleBullets }) => (
-    <div 
-      className="w-full h-full relative flex flex-col items-center justify-center text-center p-8 overflow-hidden"
-      style={{ backgroundColor: slide.backgroundColor || '#000000' }}
-    >
-        {slide.imageUrl && (
-            <div className="absolute inset-0 z-0">
-                    <img src={slide.imageUrl} className="w-full h-full object-cover opacity-60" alt="" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/70"></div>
+export const FullImageLayout: React.FC<{ slide: Slide, visibleBullets: number }> = ({ slide, visibleBullets }) => {
+    // Pasted slides: show original image clean with no text overlay
+    if (slide.originalPastedImage) {
+        return (
+            <div className="w-full h-full relative overflow-hidden" style={{ backgroundColor: slide.backgroundColor || '#ffffff' }}>
+                {slide.imageUrl && (
+                    <img src={slide.imageUrl} className="w-full h-full object-contain" alt={slide.title} />
+                )}
             </div>
-        )}
-        <div className="relative z-10 w-[90%] space-y-12">
-            <h2 className="text-6xl md:text-9xl font-bold text-white drop-shadow-lg font-poppins">
-                {slide.title}
-            </h2>
-            <div className="space-y-8 flex flex-col items-center">
-                {slide.content.map((point, idx) => (
-                    <div 
-                        key={idx} 
-                        className={`transition-all duration-700 transform ${idx < visibleBullets ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-90'}`}
-                    >
-                        <div className="text-4xl md:text-6xl font-bold text-white leading-normal drop-shadow-md bg-black/30 backdrop-blur-sm px-8 py-4 rounded-2xl">
-                             <MarkdownText text={point} />
+        );
+    }
+
+    return (
+        <div
+          className="w-full h-full relative flex flex-col items-center justify-center text-center p-8 overflow-hidden"
+          style={{ backgroundColor: slide.backgroundColor || '#000000' }}
+        >
+            {slide.imageUrl && (
+                <div className="absolute inset-0 z-0">
+                        <img src={slide.imageUrl} className="w-full h-full object-cover opacity-60" alt="" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/70"></div>
+                </div>
+            )}
+            <div className="relative z-10 w-[90%] space-y-12">
+                <h2 className="text-6xl md:text-9xl font-bold text-white drop-shadow-lg font-poppins">
+                    {slide.title}
+                </h2>
+                <div className="space-y-8 flex flex-col items-center">
+                    {slide.content.map((point, idx) => (
+                        <div
+                            key={idx}
+                            className={`transition-all duration-700 transform ${idx < visibleBullets ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-90'}`}
+                        >
+                            <div className="text-4xl md:text-6xl font-bold text-white leading-normal drop-shadow-md bg-black/30 backdrop-blur-sm px-8 py-4 rounded-2xl">
+                                 <MarkdownText text={point} />
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
         </div>
-    </div>
-);
+    );
+};
 
 export const FlowchartLayout: React.FC<{ slide: Slide, visibleBullets: number }> = ({ slide, visibleBullets }) => (
     <div 
