@@ -33,6 +33,7 @@ export interface Slide {
   contributions?: string[];
   challengePrompt?: string;
   source?: SlideSource;
+  originalPastedImage?: string; // Data URL of original pasted image for before/after comparison (Phase 56)
 }
 
 // AI Poster types for Working Wall export

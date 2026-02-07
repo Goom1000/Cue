@@ -30,6 +30,7 @@ import StudentView from './components/StudentView';
 import { TourButton } from './components/TourButton';
 import { useTour } from './hooks/useTour';
 import { useTourState } from './hooks/useTourState';
+import PasteComparison from './components/PasteComparison';
 
 declare const pdfjsLib: any;
 
@@ -891,8 +892,19 @@ function App() {
     }
   };
 
+  // Helper: read a Blob as a data URL (Promise-based FileReader wrapper)
+  const readBlobAsDataUrl = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error('Failed to read image blob'));
+      reader.readAsDataURL(blob);
+    });
+  };
+
   // Paste slide from clipboard (Cmd+V with rich content)
   // Per CONTEXT.md: Immediate creation, no confirmation step
+  // Phase 56: AI analysis for image pastes with before/after comparison
   const handlePasteSlide = useCallback(async (result: PasteResult) => {
     // Only process if we have content
     if (!result.html && !result.text && !result.imageBlob) {
@@ -925,26 +937,10 @@ function App() {
     try {
       // Handle image-only paste (e.g., from PowerPoint which copies slides as images)
       if (result.imageBlob && !result.html && !result.text) {
-        // Convert blob to data URL
-        const reader = new FileReader();
-        reader.onload = () => {
-          const imageDataUrl = reader.result as string;
-          setSlides(curr => curr.map(s => {
-            if (s.id !== tempId) return s;
-            return {
-              ...s,
-              title: "Pasted Slide",
-              content: ["Content pasted from PowerPoint"],
-              speakerNotes: "Pasted from clipboard. Add your speaker notes here.",
-              imageUrl: imageDataUrl,
-              imagePrompt: "",
-              isGeneratingImage: false,
-              layout: 'full-image' as const,
-            };
-          }));
-          addToast('Slide image pasted successfully', 3000, 'success');
-        };
-        reader.onerror = () => {
+        let imageDataUrl: string;
+        try {
+          imageDataUrl = await readBlobAsDataUrl(result.imageBlob);
+        } catch {
           console.error('Failed to read image blob');
           setSlides(curr => curr.map(s => {
             if (s.id !== tempId) return s;
@@ -958,12 +954,92 @@ function App() {
             };
           }));
           addToast('Paste failed - could not read image', 3000, 'error');
-        };
-        reader.readAsDataURL(result.imageBlob);
-        return; // Exit early - async handling above
+          return;
+        }
+
+        // Store original image immediately (user sees it while AI processes)
+        setSlides(curr => curr.map(s => {
+          if (s.id !== tempId) return s;
+          return {
+            ...s,
+            title: "Analyzing pasted slide...",
+            content: ["AI is extracting content from this slide..."],
+            speakerNotes: "",
+            imageUrl: imageDataUrl,
+            imagePrompt: "",
+            isGeneratingImage: true, // Keep loading indicator
+            layout: 'full-image' as const,
+            originalPastedImage: imageDataUrl, // Store for comparison
+          };
+        }));
+
+        // Call AI analysis if provider is available (non-blocking - slide already visible with image)
+        if (provider) {
+          try {
+            const aiResult = await provider.analyzePastedSlide(
+              imageDataUrl.split(',')[1], // Strip data URL prefix, send raw base64
+              deckVerbosity || 'standard'
+            );
+
+            // Replace with AI-improved slide, keep original for comparison
+            setSlides(curr => curr.map(s => {
+              if (s.id !== tempId) return s;
+              return {
+                ...s,
+                title: aiResult.title,
+                content: aiResult.content,
+                speakerNotes: aiResult.speakerNotes,
+                imagePrompt: aiResult.imagePrompt,
+                layout: aiResult.layout || 'split',
+                theme: aiResult.theme || 'default',
+                isGeneratingImage: false,
+                imageUrl: undefined, // Clear the pasted image from display (AI created text content)
+                originalPastedImage: imageDataUrl, // Keep for revert/comparison
+                source: { type: 'pasted', pastedAt: new Date().toISOString() },
+              };
+            }));
+            addToast('AI improved your pasted slide', 3000, 'success');
+          } catch (aiError) {
+            console.error('AI analysis failed, keeping raw image:', aiError);
+            // Fallback: keep raw image as full-image layout (graceful degradation)
+            setSlides(curr => curr.map(s => {
+              if (s.id !== tempId) return s;
+              return {
+                ...s,
+                title: "Pasted Slide",
+                content: ["Content pasted from PowerPoint"],
+                speakerNotes: "Pasted from clipboard. Add your speaker notes here.",
+                imageUrl: imageDataUrl,
+                isGeneratingImage: false,
+                layout: 'full-image' as const,
+                originalPastedImage: imageDataUrl,
+              };
+            }));
+            addToast('Pasted as image (AI analysis unavailable)', 3000, 'info');
+          }
+        } else {
+          // No AI provider available -- keep raw image as full-image layout
+          setSlides(curr => curr.map(s => {
+            if (s.id !== tempId) return s;
+            return {
+              ...s,
+              title: "Pasted Slide",
+              content: ["Content pasted from PowerPoint"],
+              speakerNotes: "Pasted from clipboard. Add your speaker notes here.",
+              imageUrl: imageDataUrl,
+              imagePrompt: "",
+              isGeneratingImage: false,
+              layout: 'full-image' as const,
+              originalPastedImage: imageDataUrl,
+            };
+          }));
+          addToast('Slide image pasted successfully', 3000, 'success');
+        }
+        return; // Exit early - image paste handled above
       }
 
-      // For Phase 55, we do raw paste without AI enhancement (that's Phase 56)
+      // Phase 56: AI enhancement of HTML paste is handled by the same parseClipboardContent flow
+      // HTML paste already extracts title/bullets, so AI is less critical here
       // Parse HTML to extract title and bullets
       const parsedContent = parseClipboardContent(result);
 
@@ -998,7 +1074,26 @@ function App() {
       }));
       addToast('Pasted with limited formatting', 3000, 'info');
     }
-  }, [activeSlideIndex, slides, addToast]);
+  }, [activeSlideIndex, slides, addToast, provider, deckVerbosity]);
+
+  // Revert an AI-improved pasted slide back to original image (Phase 56)
+  const handleRevertToOriginal = useCallback((slideId: string) => {
+    setSlides(curr => curr.map(s => {
+      if (s.id !== slideId || !s.originalPastedImage) return s;
+      return {
+        ...s,
+        title: "Pasted Slide",
+        content: ["Content pasted from PowerPoint"],
+        speakerNotes: "Pasted from clipboard. Add your speaker notes here.",
+        imageUrl: s.originalPastedImage,
+        imagePrompt: "",
+        layout: 'full-image' as const,
+        isGeneratingImage: false,
+        // Keep originalPastedImage so user could re-analyze later
+      };
+    }));
+    addToast('Reverted to original pasted image', 3000, 'info');
+  }, [addToast]);
 
   // Trigger paste via button click (shows keyboard shortcut hint)
   // Note: Clipboard read API requires secure context and permission
@@ -1932,6 +2027,12 @@ function App() {
                                  isAIAvailable={provider !== null}
                                  onRequestAI={handleRequestAI}
                                />
+                               {activeSlide?.originalPastedImage && activeSlide?.source?.type === 'pasted' && (
+                                 <PasteComparison
+                                   slide={activeSlide}
+                                   onRevert={() => handleRevertToOriginal(activeSlide.id)}
+                                 />
+                               )}
                                <div className="mt-6 flex justify-between items-center text-slate-400 dark:text-slate-600 px-4">
                                    <div className="text-[10px] font-bold uppercase tracking-widest flex gap-4">
                                        <span>Words: {activeSlide.speakerNotes.split(' ').length}</span>
