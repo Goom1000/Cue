@@ -168,3 +168,63 @@ export const SLIDE_CREATION_TOOL = {
     required: ['title', 'content', 'speakerNotes', 'imagePrompt', 'layout', 'theme']
   }
 };
+
+// ---------------------------------------------------------------------------
+// 5. Image Caption — Prompts, Schemas & Types (Phase 57)
+// ---------------------------------------------------------------------------
+
+/**
+ * Result type for image caption analysis.
+ * Lighter-weight than full slide analysis — just title, caption, and teaching notes.
+ */
+export interface ImageCaptionResult {
+  title: string;
+  caption: string;
+  teachingNotes: string;
+}
+
+/**
+ * System prompt for image captioning.
+ * Unlike SLIDE_ANALYSIS_SYSTEM_PROMPT (which restructures PowerPoint slides),
+ * this describes any image and generates teaching talking points.
+ */
+export const IMAGE_CAPTION_PROMPT = `You are an education assistant for Cue, a presentation tool for primary school teachers (Year 6, ages 10-11, Australian curriculum).
+
+Analyze this image and provide:
+1. A short, descriptive title (3-7 words) suitable as a slide title
+2. A caption describing what the image shows (1-2 sentences)
+3. Teaching talking points — what should the teacher say about this image? Include key concepts, vocabulary to highlight, and questions to ask students.
+
+Format the talking points as a natural teleprompter script the teacher can read while presenting. Write in second person ("Tell the students...", "Point out...").`;
+
+/**
+ * Gemini responseSchema for image caption structured output.
+ * Uses the same Type import from @google/genai as SLIDE_RESPONSE_SCHEMA.
+ */
+export const IMAGE_CAPTION_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    title: { type: Type.STRING, description: 'Short descriptive title for the image (3-7 words)' },
+    caption: { type: Type.STRING, description: 'What the image shows (1-2 sentences)' },
+    teachingNotes: { type: Type.STRING, description: 'Teleprompter script with teaching talking points, vocabulary, and student questions' },
+  },
+  required: ['title', 'caption', 'teachingNotes'],
+};
+
+/**
+ * Claude tool_choice schema for image caption structured output.
+ * Same pattern as SLIDE_CREATION_TOOL but with simpler output fields.
+ */
+export const IMAGE_CAPTION_TOOL = {
+  name: 'create_image_caption',
+  description: 'Generate a title, caption, and teaching notes for an image',
+  input_schema: {
+    type: 'object' as const,
+    properties: {
+      title: { type: 'string', description: 'Short descriptive title for the image (3-7 words)' },
+      caption: { type: 'string', description: 'What the image shows (1-2 sentences)' },
+      teachingNotes: { type: 'string', description: 'Teleprompter script with teaching talking points, vocabulary, and student questions' },
+    },
+    required: ['title', 'caption', 'teachingNotes'],
+  },
+};
