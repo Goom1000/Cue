@@ -60,6 +60,12 @@ Plans:
 4. AI improvement works with both Gemini and Claude providers
 5. User can skip AI improvement if they prefer raw paste
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 56-01-PLAN.md — AI analysis provider infrastructure (prompts, schemas, both providers)
+- [ ] 56-02-PLAN.md — Paste flow integration and before/after comparison UI
+
 ---
 
 ### Phase 57: Image Paste
@@ -134,7 +140,7 @@ Plans:
 | Phase | Name | Status | Plans |
 |-------|------|--------|-------|
 | 55 | Paste Infrastructure | ✓ Complete | 3/3 |
-| 56 | AI Slide Analysis | Pending | — |
+| 56 | AI Slide Analysis | Planned | 0/2 |
 | 57 | Image Paste | Pending | — |
 | 58 | Deck Cohesion | Pending | — |
 | 59 | Gap Analysis | Pending | — |
@@ -173,4 +179,4 @@ All 21 v4.0 requirements mapped:
 
 ---
 *Roadmap created: 2026-02-02*
-*Last updated: 2026-02-07 - Phase 55 complete*
+*Last updated: 2026-02-07 - Phase 56 planned*
