@@ -819,6 +819,109 @@ function App() {
     }
   }, [provider, slides, gapLessonPlanText, gapLessonPlanImages, addToast]);
 
+  const handleAddSlideFromGap = useCallback(async (gap: IdentifiedGap) => {
+    if (!provider) return;
+
+    setGeneratingGapId(gap.id);
+
+    const tempId = `gap-slide-${Date.now()}`;
+    const tempSlide: Slide = {
+      id: tempId,
+      title: `Generating: ${gap.suggestedTitle}`,
+      content: ['Generating content from gap analysis...'],
+      speakerNotes: '',
+      imagePrompt: '',
+      isGeneratingImage: true,
+      layout: 'split'
+    };
+
+    // Insert at suggested position (clamped to valid range)
+    const insertIndex = Math.min(gap.suggestedPosition, slides.length);
+    const newSlides = [...slides];
+    newSlides.splice(insertIndex, 0, tempSlide);
+    setSlides(newSlides);
+    setActiveSlideIndex(insertIndex);
+
+    try {
+      const generated = await provider.generateSlideFromGap(
+        gap, slides, lessonTitle, deckVerbosity
+      );
+
+      // Replace temp slide with generated content
+      setSlides(curr => curr.map(s =>
+        s.id === tempId
+          ? { ...generated, id: tempId, isGeneratingImage: autoGenerateImages }
+          : s
+      ));
+
+      // Remove the filled gap from the result and adjust positions of remaining gaps
+      setGapResult(prev => {
+        if (!prev) return null;
+        const remainingGaps = prev.gaps
+          .filter(g => g.id !== gap.id)
+          .map(g => ({
+            ...g,
+            // Adjust positions: gaps after the insertion point shift by +1
+            suggestedPosition: g.suggestedPosition >= insertIndex
+              ? g.suggestedPosition + 1
+              : g.suggestedPosition
+          }));
+        return {
+          ...prev,
+          gaps: remainingGaps
+        };
+      });
+
+      addToast(`Added slide: ${generated.title || gap.suggestedTitle}`, 3000, 'success');
+
+      // Generate image if auto-generate is enabled
+      if (autoGenerateImages) {
+        try {
+          const img = await provider.generateSlideImage(
+            generated.imagePrompt, generated.layout
+          );
+          setSlides(curr => curr.map(s =>
+            s.id === tempId
+              ? { ...s, imageUrl: img, isGeneratingImage: false }
+              : s
+          ));
+        } catch (imgErr) {
+          // Image generation failure is non-fatal
+          console.error('[GapAnalysis] Image generation failed:', imgErr);
+          setSlides(curr => curr.map(s =>
+            s.id === tempId ? { ...s, isGeneratingImage: false } : s
+          ));
+        }
+      }
+    } catch (err) {
+      console.error('[GapAnalysis] Slide generation failed:', err);
+
+      // Fallback: replace temp with basic slide using suggested content
+      setSlides(curr => curr.map(s =>
+        s.id === tempId
+          ? {
+              ...tempSlide,
+              title: gap.suggestedTitle,
+              content: gap.suggestedContent,
+              speakerNotes: '',
+              isGeneratingImage: false
+            }
+          : s
+      ));
+
+      if (err instanceof AIProviderError) {
+        setErrorModal({
+          title: 'Gap Slide Generation Failed',
+          message: err.userMessage
+        });
+      } else {
+        addToast('Slide generation failed. Added basic slide from gap suggestion.', 4000, 'error');
+      }
+    } finally {
+      setGeneratingGapId(null);
+    }
+  }, [provider, slides, lessonTitle, deckVerbosity, autoGenerateImages, addToast]);
+
   const handleInsertBlankSlide = (index: number) => {
     const blankSlide: Slide = {
       id: `blank-${Date.now()}`,
