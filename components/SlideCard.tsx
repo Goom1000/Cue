@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Slide } from '../types';
 
 interface SlideCardProps {
@@ -12,6 +12,8 @@ interface SlideCardProps {
   onInsertAfter: (index: number) => void;
   isAIAvailable: boolean;
   onRequestAI: (featureName: string) => void;
+  onGenerateCaption?: (slideId: string) => Promise<void>;
+  onImageSelected?: (slideId: string, dataUrl: string) => void;
 }
 
 const SlideCard: React.FC<SlideCardProps> = ({
@@ -22,11 +24,15 @@ const SlideCard: React.FC<SlideCardProps> = ({
   onDelete,
   onRevise,
   isAIAvailable,
-  onRequestAI
+  onRequestAI,
+  onGenerateCaption,
+  onImageSelected
 }) => {
   const [localPrompt, setLocalPrompt] = useState(slide.imagePrompt);
   const [revisionInput, setRevisionInput] = useState('');
   const [isRevising, setIsRevising] = useState(false);
+  const [isGeneratingCaption, setIsGeneratingCaption] = useState(false);
+  const imageFileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync local prompt when slide changes
   useEffect(() => {
@@ -184,9 +190,30 @@ const SlideCard: React.FC<SlideCardProps> = ({
                 ) : slide.imageUrl ? (
                 <img src={slide.imageUrl} className="w-full h-full object-cover" alt="Slide Visual" />
                 ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-[10px] text-slate-300 dark:text-slate-600 text-center p-8 bg-slate-50 dark:bg-slate-800">
+                <div
+                    onClick={slide.layout === 'full-image' && onImageSelected ? () => imageFileInputRef.current?.click() : undefined}
+                    className={`absolute inset-0 flex flex-col items-center justify-center text-[10px] text-slate-300 dark:text-slate-600 text-center p-8 bg-slate-50 dark:bg-slate-800 ${slide.layout === 'full-image' && onImageSelected ? 'cursor-pointer hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors' : ''}`}
+                >
                     <svg className="w-10 h-10 mb-2 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                    No Image Yet
+                    {slide.layout === 'full-image' && onImageSelected ? 'Paste, drop, or click to add image' : 'No Image Yet'}
+                    {slide.layout === 'full-image' && onImageSelected && (
+                        <input
+                            ref={imageFileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                const reader = new FileReader();
+                                reader.onload = () => {
+                                    if (reader.result) onImageSelected(slide.id, reader.result as string);
+                                };
+                                reader.readAsDataURL(file);
+                                e.target.value = '';
+                            }}
+                            className="hidden"
+                        />
+                    )}
                 </div>
                 )}
                 
@@ -215,6 +242,47 @@ const SlideCard: React.FC<SlideCardProps> = ({
              </div>
           </div>
           
+          {/* Generate AI Notes button for full-image slides (Phase 57) */}
+          {slide.layout === 'full-image' && slide.imageUrl && onGenerateCaption && (
+            <div>
+              <button
+                onClick={async () => {
+                  if (!isAIAvailable) {
+                    onRequestAI('generate AI notes for this image');
+                    return;
+                  }
+                  setIsGeneratingCaption(true);
+                  try {
+                    await onGenerateCaption(slide.id);
+                  } finally {
+                    setIsGeneratingCaption(false);
+                  }
+                }}
+                disabled={isGeneratingCaption}
+                className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-sm active:scale-95 ${
+                  isGeneratingCaption
+                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-wait'
+                    : 'bg-indigo-600 dark:bg-amber-500 text-white dark:text-slate-900 hover:bg-indigo-700 dark:hover:bg-amber-400'
+                } ${!isAIAvailable ? 'opacity-50' : ''}`}
+                title={!isAIAvailable ? 'Add API key in Settings to enable' : undefined}
+              >
+                {isGeneratingCaption ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                    </svg>
+                    {slide.speakerNotes ? 'Regenerate AI Notes' : 'Generate AI Notes'}
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+
           <div className="flex-1 flex flex-col gap-3">
             <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Artist Prompt</label>
             <textarea 

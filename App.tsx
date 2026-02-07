@@ -1478,6 +1478,46 @@ function App() {
   }, [handleLoadFile]);
 
   // ============================================================================
+  // Image caption and image selection (Phase 57)
+  // ============================================================================
+
+  // Generate AI teaching notes for an image slide using vision API
+  const handleGenerateImageCaption = useCallback(async (slideId: string) => {
+    if (!provider) {
+      setEnableAIModal({ featureName: 'generate AI notes for this image' });
+      return;
+    }
+    const slide = slides.find(s => s.id === slideId);
+    if (!slide?.imageUrl) return;
+
+    try {
+      // Extract raw base64 from data URL (strip "data:image/...;base64," prefix)
+      const base64 = slide.imageUrl.replace(/^data:image\/[^;]+;base64,/, '');
+      const result = await provider.analyzeImage(base64);
+
+      // Update slide with AI-generated title and notes
+      handleUpdateSlide(slideId, {
+        title: result.title,
+        speakerNotes: result.caption + '\n\n' + result.teachingNotes,
+      });
+      addToast('AI notes generated', 3000, 'success');
+    } catch (err) {
+      const message = err instanceof AIProviderError ? err.userMessage : 'Failed to generate AI notes';
+      addToast(message, 5000, 'error');
+    }
+  }, [provider, slides, handleUpdateSlide, addToast]);
+
+  // Handle image selected from file picker in FullImageLayout empty state
+  const handleSlideImageSelected = useCallback(async (slideId: string, dataUrl: string) => {
+    try {
+      const compressedDataUrl = await compressImage(dataUrl);
+      handleUpdateSlide(slideId, { imageUrl: compressedDataUrl });
+    } catch {
+      addToast('Failed to process image', 3000, 'error');
+    }
+  }, [handleUpdateSlide, addToast]);
+
+  // ============================================================================
   // Drag-drop integration
   // ============================================================================
 
@@ -2186,6 +2226,8 @@ function App() {
                                  onInsertAfter={() => handleInsertBlankSlide(activeSlideIndex)}
                                  isAIAvailable={provider !== null}
                                  onRequestAI={handleRequestAI}
+                                 onGenerateCaption={handleGenerateImageCaption}
+                                 onImageSelected={handleSlideImageSelected}
                                />
                                {activeSlide?.originalPastedImage && activeSlide?.source?.type === 'pasted' && (
                                  <PasteComparison

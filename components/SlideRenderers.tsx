@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Slide } from '../types';
 
 // --- SHARED COMPONENTS ---
@@ -79,7 +79,9 @@ export const DefaultLayout: React.FC<{ slide: Slide, visibleBullets: number }> =
   </div>
 );
 
-export const FullImageLayout: React.FC<{ slide: Slide, visibleBullets: number }> = ({ slide, visibleBullets }) => {
+export const FullImageLayout: React.FC<{ slide: Slide, visibleBullets: number, onImageSelected?: (dataUrl: string) => void }> = ({ slide, visibleBullets, onImageSelected }) => {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     // Pasted slides: show original image clean with no text overlay
     if (slide.originalPastedImage) {
         return (
@@ -87,6 +89,49 @@ export const FullImageLayout: React.FC<{ slide: Slide, visibleBullets: number }>
                 {slide.imageUrl && (
                     <img src={slide.imageUrl} className="w-full h-full object-contain" alt={slide.title} />
                 )}
+            </div>
+        );
+    }
+
+    // Empty state: no image yet — show placeholder with file picker (Phase 57)
+    if (!slide.imageUrl) {
+        const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0];
+            if (!file || !onImageSelected) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                if (reader.result) onImageSelected(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+            e.target.value = '';
+        };
+
+        return (
+            <div
+              className="w-full h-full relative flex flex-col items-center justify-center text-center p-8 overflow-hidden"
+              style={{ backgroundColor: slide.backgroundColor || '#f8fafc' }}
+            >
+                <div
+                    onClick={onImageSelected ? () => fileInputRef.current?.click() : undefined}
+                    className={`border-2 border-dashed border-slate-300 rounded-2xl p-12 flex flex-col items-center justify-center gap-4 max-w-md ${onImageSelected ? 'cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 transition-colors' : ''}`}
+                >
+                    <svg className="w-16 h-16 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p className="text-2xl font-semibold text-slate-400">Paste or drop an image</p>
+                    {onImageSelected && (
+                        <p className="text-sm text-slate-400">or click to browse</p>
+                    )}
+                    {onImageSelected && (
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileSelect}
+                            className="hidden"
+                        />
+                    )}
+                </div>
             </div>
         );
     }
@@ -450,10 +495,10 @@ export const ClassChallengeLayout: React.FC<{ slide: Slide, visibleBullets: numb
   );
 };
 
-export const SlideContentRenderer: React.FC<{ slide: Slide, visibleBullets: number }> = ({ slide, visibleBullets }) => {
+export const SlideContentRenderer: React.FC<{ slide: Slide, visibleBullets: number, onImageSelected?: (dataUrl: string) => void }> = ({ slide, visibleBullets, onImageSelected }) => {
     switch (slide.layout) {
         case 'full-image':
-            return <FullImageLayout slide={slide} visibleBullets={visibleBullets} />;
+            return <FullImageLayout slide={slide} visibleBullets={visibleBullets} onImageSelected={onImageSelected} />;
         case 'flowchart':
             return <FlowchartLayout slide={slide} visibleBullets={visibleBullets} />;
         case 'grid':
