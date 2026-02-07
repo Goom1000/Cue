@@ -1,4 +1,4 @@
-import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, VerbosityLevel, ChatContext, CohesionResult } from '../aiProvider';
+import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, VerbosityLevel, ChatContext, CohesionResult, GapAnalysisResult, IdentifiedGap } from '../aiProvider';
 import { Slide, LessonResource, PosterLayout, DocumentAnalysis, EnhancementResult, EnhancementOptions } from '../../types';
 import { QuizQuestion, QuestionWithAnswer } from '../geminiService';
 import { getStudentFriendlyRules } from '../prompts/studentFriendlyRules';
@@ -10,6 +10,7 @@ import { PreservableContent, ConfidenceLevel, TeachableMoment } from '../content
 import { getPreservationRules, getTeleprompterPreservationRules } from '../prompts/contentPreservationRules';
 import { getTeachableMomentRules, getVisualScaffoldingRules } from '../prompts/teachableMomentRules';
 import { COHESION_SYSTEM_PROMPT, COHESION_TOOL, buildCohesionUserPrompt, buildDeckContextForCohesion } from '../prompts/cohesionPrompts';
+import { GAP_ANALYSIS_SYSTEM_PROMPT, buildGapAnalysisUserPrompt, buildGapAnalysisContext, GAP_ANALYSIS_TOOL, buildGapSlideGenerationPrompt, GAP_SLIDE_TOOL } from '../prompts/gapAnalysisPrompts';
 
 // Shared teleprompter rules used across all generation modes
 const TELEPROMPTER_RULES = `
@@ -1881,6 +1882,162 @@ INSTRUCTIONS:
         throw error;
       }
       console.error('[ClaudeProvider] makeDeckCohesive error:', error);
+      throw new AIProviderError(
+        USER_ERROR_MESSAGES.UNKNOWN_ERROR,
+        'UNKNOWN_ERROR',
+        error
+      );
+    }
+  }
+
+  async analyzeGaps(
+    slides: Slide[],
+    lessonPlanText: string,
+    lessonPlanImages: string[],
+    gradeLevel: string
+  ): Promise<GapAnalysisResult> {
+    try {
+      const context = buildGapAnalysisContext(slides, lessonPlanText);
+      const userPrompt = buildGapAnalysisUserPrompt(gradeLevel);
+
+      // Build multimodal content array: text + optional page images
+      const contentArray: any[] = [
+        { type: 'text', text: userPrompt + '\n\n' + context }
+      ];
+
+      // Append up to 5 lesson plan page images for multimodal analysis
+      if (lessonPlanImages.length > 0) {
+        const limitedImages = lessonPlanImages.slice(0, 5);
+        for (const img of limitedImages) {
+          contentArray.push({
+            type: 'image',
+            source: { type: 'base64', media_type: 'image/jpeg', data: img }
+          });
+        }
+      }
+
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': this.apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: this.model,
+          max_tokens: 8192,
+          system: GAP_ANALYSIS_SYSTEM_PROMPT,
+          tools: [GAP_ANALYSIS_TOOL],
+          tool_choice: { type: 'tool', name: 'analyze_gaps' },
+          messages: [{ role: 'user', content: contentArray }]
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => 'Unknown error');
+        throw new AIProviderError(
+          USER_ERROR_MESSAGES[this.getErrorCode(response.status)],
+          this.getErrorCode(response.status),
+          errorText
+        );
+      }
+
+      const data = await response.json();
+
+      // Extract tool_use result
+      const toolUse = data.content?.find((c: any) => c.type === 'tool_use');
+      const result = toolUse?.input;
+      if (!result) {
+        throw new AIProviderError(
+          USER_ERROR_MESSAGES.PARSE_ERROR,
+          'PARSE_ERROR',
+          'No tool result in gap analysis response'
+        );
+      }
+
+      return {
+        gaps: result.gaps || [],
+        summary: result.summary || 'Gap analysis complete',
+        coveragePercentage: result.coveragePercentage ?? 0
+      };
+    } catch (error) {
+      if (error instanceof AIProviderError) {
+        throw error;
+      }
+      console.error('[ClaudeProvider] analyzeGaps error:', error);
+      throw new AIProviderError(
+        USER_ERROR_MESSAGES.UNKNOWN_ERROR,
+        'UNKNOWN_ERROR',
+        error
+      );
+    }
+  }
+
+  async generateSlideFromGap(
+    gap: IdentifiedGap,
+    slides: Slide[],
+    lessonTopic: string,
+    verbosity: VerbosityLevel
+  ): Promise<Slide> {
+    try {
+      const prompt = buildGapSlideGenerationPrompt(gap, 'Year 6 (10-11 years old)', verbosity)
+        + '\n\nEXISTING DECK CONTEXT:\n' + buildDeckContextForCohesion(slides)
+        + '\n\nLESSON TOPIC: ' + lessonTopic;
+
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': this.apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: this.model,
+          max_tokens: 4096,
+          tools: [GAP_SLIDE_TOOL],
+          tool_choice: { type: 'tool', name: 'generate_gap_slide' },
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => 'Unknown error');
+        throw new AIProviderError(
+          USER_ERROR_MESSAGES[this.getErrorCode(response.status)],
+          this.getErrorCode(response.status),
+          errorText
+        );
+      }
+
+      const data = await response.json();
+
+      // Extract tool_use result
+      const toolUse = data.content?.find((c: any) => c.type === 'tool_use');
+      const result = toolUse?.input;
+      if (!result) {
+        throw new AIProviderError(
+          USER_ERROR_MESSAGES.PARSE_ERROR,
+          'PARSE_ERROR',
+          'No tool result in gap slide generation response'
+        );
+      }
+
+      return {
+        id: `gap-gen-${Date.now()}`,
+        title: result.title || gap.suggestedTitle,
+        content: result.content || gap.suggestedContent,
+        speakerNotes: result.speakerNotes || '',
+        imagePrompt: result.imagePrompt || `Educational illustration: ${gap.topic}`,
+        layout: result.layout || 'split',
+        source: { type: 'ai-generated' as const }
+      };
+    } catch (error) {
+      if (error instanceof AIProviderError) {
+        throw error;
+      }
+      console.error('[ClaudeProvider] generateSlideFromGap error:', error);
       throw new AIProviderError(
         USER_ERROR_MESSAGES.UNKNOWN_ERROR,
         'UNKNOWN_ERROR',
