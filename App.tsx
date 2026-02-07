@@ -3,7 +3,7 @@ import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 // Tour styling
 import './styles/driver.css';
 import { Slide, AppState, SavedClass, StudentPair, EnhancedResourceState } from './types';
-import { createAIProvider, AIProviderError, AIProviderInterface, GenerationInput, GenerationMode, AIErrorCode, VerbosityLevel } from './services/aiProvider';
+import { createAIProvider, AIProviderError, AIProviderInterface, GenerationInput, GenerationMode, AIErrorCode, VerbosityLevel, CohesionResult, withRetry } from './services/aiProvider';
 import { useSettings } from './hooks/useSettings';
 import { useClassBank } from './hooks/useClassBank';
 import { exportToPowerPoint } from './services/pptxService';
@@ -31,6 +31,7 @@ import { TourButton } from './components/TourButton';
 import { useTour } from './hooks/useTour';
 import { useTourState } from './hooks/useTourState';
 import PasteComparison from './components/PasteComparison';
+import CohesionPreview from './components/CohesionPreview';
 
 declare const pdfjsLib: any;
 
@@ -328,6 +329,10 @@ function App() {
 
   // Enhanced resource state for persistence
   const [enhancedResourceStates, setEnhancedResourceStates] = useState<EnhancedResourceState[]>([]);
+
+  // Deck cohesion state (Phase 58)
+  const [isProcessingCohesion, setIsProcessingCohesion] = useState(false);
+  const [cohesionResult, setCohesionResult] = useState<CohesionResult | null>(null);
 
   // Class Bank state
   const { classes, saveClass, deleteClass, renameClass, updateClassStudents, updateStudentGrade } = useClassBank();
@@ -677,6 +682,53 @@ function App() {
       );
     }
   };
+
+  // Deck Cohesion handlers (Phase 58)
+  const handleMakeCohesive = useCallback(async () => {
+    if (!provider || slides.length < 2) return;
+
+    setIsProcessingCohesion(true);
+    try {
+      const result = await withRetry<CohesionResult>(() =>
+        provider!.makeDeckCohesive(slides, 'Year 6 (10-11 years old)', deckVerbosity)
+      );
+
+      if (result.changes.length === 0) {
+        addToast('Your deck is already cohesive! No changes needed.', 3000, 'success');
+      } else {
+        setCohesionResult(result);
+      }
+    } catch (error: any) {
+      const message = error?.userMessage || error?.message || 'Failed to analyze deck';
+      addToast(message, 5000, 'error');
+    } finally {
+      setIsProcessingCohesion(false);
+    }
+  }, [provider, slides, deckVerbosity, addToast]);
+
+  const handleApplyCohesion = useCallback(() => {
+    if (!cohesionResult) return;
+
+    for (const change of cohesionResult.changes) {
+      const updates: Partial<Slide> = {};
+      if (change.proposedTitle) updates.title = change.proposedTitle;
+      if (change.proposedContent) updates.content = change.proposedContent;
+      if (change.proposedSpeakerNotes) updates.speakerNotes = change.proposedSpeakerNotes;
+
+      handleUpdateSlide(change.slideId, updates);
+    }
+
+    addToast(
+      `Cohesion applied to ${cohesionResult.changes.length} slide${cohesionResult.changes.length === 1 ? '' : 's'}`,
+      3000,
+      'success'
+    );
+    setCohesionResult(null);
+  }, [cohesionResult, handleUpdateSlide, addToast]);
+
+  const handleCancelCohesion = useCallback(() => {
+    setCohesionResult(null);
+  }, []);
 
   const handleInsertBlankSlide = (index: number) => {
     const blankSlide: Slide = {
@@ -2122,6 +2174,38 @@ function App() {
                     Export for Working Wall
                   </button>
                 </div>
+
+                {/* Make Cohesive Button — right-aligned, separate from selection controls */}
+                {slides.length >= 2 && (
+                  <div className="ml-auto flex items-center gap-2">
+                    <button
+                      onClick={handleMakeCohesive}
+                      disabled={!provider || isProcessingCohesion}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                        !provider || isProcessingCohesion
+                          ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-amber-500 dark:to-orange-500 text-white dark:text-slate-900 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]'
+                      }`}
+                    >
+                      {isProcessingCohesion ? (
+                        <>
+                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                          </svg>
+                          <span>Analyzing deck...</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          <span>Make Cohesive</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
              </div>
 
              {/* MAIN WORKSPACE: Sidebar + Stage */}
@@ -2421,6 +2505,16 @@ function App() {
             setShowStudentListModal(false);
             setShowManageModal(true);
           }}
+        />
+      )}
+
+      {/* Cohesion Preview Modal */}
+      {cohesionResult && (
+        <CohesionPreview
+          result={cohesionResult}
+          onApply={handleApplyCohesion}
+          onCancel={handleCancelCohesion}
+          isDarkMode={isDarkMode}
         />
       )}
 
