@@ -923,6 +923,46 @@ function App() {
 
     // Extract content from paste
     try {
+      // Handle image-only paste (e.g., from PowerPoint which copies slides as images)
+      if (result.imageBlob && !result.html && !result.text) {
+        // Convert blob to data URL
+        const reader = new FileReader();
+        reader.onload = () => {
+          const imageDataUrl = reader.result as string;
+          setSlides(curr => curr.map(s => {
+            if (s.id !== tempId) return s;
+            return {
+              ...s,
+              title: "Pasted Slide",
+              content: ["Content pasted from PowerPoint"],
+              speakerNotes: "Pasted from clipboard. Add your speaker notes here.",
+              imageUrl: imageDataUrl,
+              imagePrompt: "",
+              isGeneratingImage: false,
+              layout: 'full-image' as const,
+            };
+          }));
+          addToast('Slide image pasted successfully', 3000, 'success');
+        };
+        reader.onerror = () => {
+          console.error('Failed to read image blob');
+          setSlides(curr => curr.map(s => {
+            if (s.id !== tempId) return s;
+            return {
+              ...s,
+              title: "Pasted Slide",
+              content: ["Image could not be processed"],
+              speakerNotes: "Pasted from clipboard - please edit as needed.",
+              imagePrompt: "",
+              isGeneratingImage: false,
+            };
+          }));
+          addToast('Paste failed - could not read image', 3000, 'error');
+        };
+        reader.readAsDataURL(result.imageBlob);
+        return; // Exit early - async handling above
+      }
+
       // For Phase 55, we do raw paste without AI enhancement (that's Phase 56)
       // Parse HTML to extract title and bullets
       const parsedContent = parseClipboardContent(result);

@@ -70,13 +70,24 @@ export function usePaste({
     const html = clipboardData.getData('text/html') || null;
     const text = clipboardData.getData('text/plain') || null;
 
-    // Check for image
+    // Check for image - first in items, then in files
     let imageBlob: Blob | null = null;
     const items = clipboardData.items;
     for (let i = 0; i < items.length; i++) {
       if (items[i].type.startsWith('image/')) {
         imageBlob = items[i].getAsFile();
         break;
+      }
+    }
+
+    // Also check files array (PowerPoint copies slides as image files)
+    if (!imageBlob && clipboardData.files.length > 0) {
+      for (let i = 0; i < clipboardData.files.length; i++) {
+        const file = clipboardData.files[i];
+        if (file.type.startsWith('image/')) {
+          imageBlob = file;
+          break;
+        }
       }
     }
 
