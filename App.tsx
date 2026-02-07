@@ -1481,10 +1481,53 @@ function App() {
   // Drag-drop integration
   // ============================================================================
 
+  // Phase 57: Handle image file drops — replaces active slide's image, or creates new slide if empty deck
+  const handleImageDrop = useCallback(async (file: File) => {
+    try {
+      const imageDataUrl = await readBlobAsDataUrl(file);
+      const compressedDataUrl = await compressImage(imageDataUrl);
+
+      if (slides.length > 0 && activeSlideIndex >= 0) {
+        // Replace active slide's image (drag-drop has spatial intent — user drops onto a visible slide)
+        const activeId = slides[activeSlideIndex]?.id;
+        if (activeId) {
+          handleUpdateSlide(activeId, {
+            layout: 'full-image' as const,
+            imageUrl: compressedDataUrl,
+            content: [],
+          });
+          addToast('Image dropped — replaced current slide', 3000, 'success');
+        }
+      } else {
+        // Empty deck: create a new full-image slide
+        const newSlide: Slide = {
+          id: `drop-${Date.now()}`,
+          title: 'Image Slide',
+          content: [],
+          speakerNotes: '',
+          imagePrompt: '',
+          imageUrl: compressedDataUrl,
+          isGeneratingImage: false,
+          layout: 'full-image' as const,
+          source: { type: 'pasted', pastedAt: new Date().toISOString() },
+        };
+        setSlides([newSlide]);
+        setActiveSlideIndex(0);
+        if (appState === AppState.INPUT) {
+          setAppState(AppState.EDITING);
+        }
+        addToast('Image added as new slide', 3000, 'success');
+      }
+    } catch {
+      addToast('Failed to process dropped image', 3000, 'error');
+    }
+  }, [slides, activeSlideIndex, handleUpdateSlide, addToast, appState]);
+
   useDragDrop(
     handleLoadFile,
     !showSettings && !showResourceHub && appState !== AppState.PRESENTING && !showFilenamePrompt && !showRecoveryModal,
-    (file) => addToast(`"${file.name}" is not a .cue or .pipi file. Only .cue and .pipi files can be loaded.`, 5000, 'error')
+    (file) => addToast(`"${file.name}" is not a .cue or .pipi file. Only .cue and .pipi files can be loaded.`, 5000, 'error'),
+    handleImageDrop
   );
 
   // Paste slide handler - only active in editing mode
