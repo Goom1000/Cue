@@ -91,6 +91,14 @@ Plans:
 4. User can drag image file from Finder onto a slide to replace its visual
 5. Optional AI caption appears in teleprompter notes for image-only slides
 
+**Plans:** 4 plans
+
+Plans:
+- [ ] 57-01-PLAN.md — Image paste routing and compression (IMG-01, IMG-03)
+- [ ] 57-02-PLAN.md — AI image caption infrastructure (IMG-05 backend)
+- [ ] 57-03-PLAN.md — Drag-drop, Full Image layout, and AI caption UI (IMG-02, IMG-04, IMG-05 UI)
+- [ ] 57-04-PLAN.md — Visual verification checkpoint
+
 ---
 
 ### Phase 58: Deck Cohesion
@@ -144,7 +152,7 @@ Plans:
 |-------|------|--------|-------|
 | 55 | Paste Infrastructure | ✓ Complete | 3/3 |
 | 56 | AI Slide Analysis | ✓ Complete | 2/2 |
-| 57 | Image Paste | Pending | — |
+| 57 | Image Paste | Planned | 0/4 |
 | 58 | Deck Cohesion | Pending | — |
 | 59 | Gap Analysis | Pending | — |
 
