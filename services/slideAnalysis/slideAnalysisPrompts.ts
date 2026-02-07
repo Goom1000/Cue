@@ -175,12 +175,13 @@ export const SLIDE_CREATION_TOOL = {
 
 /**
  * Result type for image caption analysis.
- * Lighter-weight than full slide analysis — just title, caption, and teaching notes.
+ * Returns structured talking points so they can drive teleprompter segments
+ * (content[] for step counting, speakerNotes with 👉 delimiters for progressive disclosure).
  */
 export interface ImageCaptionResult {
   title: string;
   caption: string;
-  teachingNotes: string;
+  talkingPoints: string[];
 }
 
 /**
@@ -193,9 +194,14 @@ export const IMAGE_CAPTION_PROMPT = `You are an education assistant for Cue, a p
 Analyze this image and provide:
 1. A short, descriptive title (3-7 words) suitable as a slide title
 2. A caption describing what the image shows (1-2 sentences)
-3. Teaching talking points — what should the teacher say about this image? Include key concepts, vocabulary to highlight, and questions to ask students.
+3. Teaching talking points as SEPARATE items (3-5 items). Each talking point should be a self-contained prompt the teacher reads aloud while presenting.
 
-Format the talking points as a natural teleprompter script the teacher can read while presenting. Write in second person ("Tell the students...", "Point out...").`;
+TALKING POINT RULES:
+- Each point covers ONE distinct concept, observation, or question
+- Write in second person ("Tell the students...", "Point out...", "Ask the class...")
+- Include key vocabulary, examples, or student questions where appropriate
+- Each point should be 1-3 sentences — short enough to read at a glance
+- Order them in a natural teaching progression (introduce, explain, explore, connect)`;
 
 /**
  * Gemini responseSchema for image caption structured output.
@@ -206,9 +212,13 @@ export const IMAGE_CAPTION_SCHEMA = {
   properties: {
     title: { type: Type.STRING, description: 'Short descriptive title for the image (3-7 words)' },
     caption: { type: Type.STRING, description: 'What the image shows (1-2 sentences)' },
-    teachingNotes: { type: Type.STRING, description: 'Teleprompter script with teaching talking points, vocabulary, and student questions' },
+    talkingPoints: {
+      type: Type.ARRAY,
+      items: { type: Type.STRING },
+      description: 'Array of 3-5 separate teaching talking points, each 1-3 sentences covering one concept',
+    },
   },
-  required: ['title', 'caption', 'teachingNotes'],
+  required: ['title', 'caption', 'talkingPoints'],
 };
 
 /**
@@ -223,8 +233,12 @@ export const IMAGE_CAPTION_TOOL = {
     properties: {
       title: { type: 'string', description: 'Short descriptive title for the image (3-7 words)' },
       caption: { type: 'string', description: 'What the image shows (1-2 sentences)' },
-      teachingNotes: { type: 'string', description: 'Teleprompter script with teaching talking points, vocabulary, and student questions' },
+      talkingPoints: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Array of 3-5 separate teaching talking points, each 1-3 sentences covering one concept',
+      },
     },
-    required: ['title', 'caption', 'teachingNotes'],
+    required: ['title', 'caption', 'talkingPoints'],
   },
 };

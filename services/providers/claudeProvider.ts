@@ -1785,7 +1785,7 @@ INSTRUCTIONS:
       return {
         title: result.title || 'Untitled Image',
         caption: result.caption || '',
-        teachingNotes: result.teachingNotes || '',
+        talkingPoints: Array.isArray(result.talkingPoints) ? result.talkingPoints : [],
       };
     } catch (error) {
       if (error instanceof AIProviderError) {

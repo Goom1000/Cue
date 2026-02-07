@@ -1495,10 +1495,17 @@ function App() {
       const base64 = slide.imageUrl.replace(/^data:image\/[^;]+;base64,/, '');
       const result = await provider.analyzeImage(base64);
 
-      // Update slide with AI-generated title and notes
+      // Build teleprompter segments from talking points
+      // content[] drives step count, speakerNotes with 👉 drives progressive disclosure
+      const content = result.talkingPoints.map((tp, i) => `Point ${i + 1}`);
+      // Segment 0 = intro (caption), then one segment per talking point
+      const segments = [result.caption, ...result.talkingPoints];
+      const speakerNotes = segments.join('👉');
+
       handleUpdateSlide(slideId, {
         title: result.title,
-        speakerNotes: result.caption + '\n\n' + result.teachingNotes,
+        content,
+        speakerNotes,
       });
       addToast('AI notes generated', 3000, 'success');
     } catch (err) {

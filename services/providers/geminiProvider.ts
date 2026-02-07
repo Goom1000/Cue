@@ -453,7 +453,7 @@ export class GeminiProvider implements AIProviderInterface {
       return {
         title: parsed.title || 'Untitled Image',
         caption: parsed.caption || '',
-        teachingNotes: parsed.teachingNotes || '',
+        talkingPoints: Array.isArray(parsed.talkingPoints) ? parsed.talkingPoints : [],
       };
     } catch (error) {
       console.error('[GeminiProvider] analyzeImage error:', error);
