@@ -299,6 +299,12 @@ export interface AIProviderInterface {
     pageCount: number
   ): Promise<DocumentAnalysis>;
 
+  // Analyze a pasted slide image and transform into Cue format (Phase 56)
+  analyzePastedSlide(
+    imageBase64: string,        // Raw base64, NO data URL prefix
+    verbosity?: VerbosityLevel  // Controls speaker notes depth
+  ): Promise<Slide>;
+
   // Document enhancement for resource differentiation (Phase 45)
   enhanceDocument(
     documentAnalysis: DocumentAnalysis,

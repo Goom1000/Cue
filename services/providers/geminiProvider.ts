@@ -3,6 +3,7 @@ import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES, GenerationIn
 import { Slide, LessonResource, DocumentAnalysis, EnhancementResult, EnhancementOptions } from '../../types';
 import { DOCUMENT_ANALYSIS_SYSTEM_PROMPT, buildAnalysisUserPrompt } from '../documentAnalysis/analysisPrompts';
 import { ENHANCEMENT_SYSTEM_PROMPT, buildEnhancementUserPrompt } from '../documentEnhancement/enhancementPrompts';
+import { SLIDE_ANALYSIS_SYSTEM_PROMPT, buildSlideAnalysisPrompt, SLIDE_RESPONSE_SCHEMA } from '../slideAnalysis/slideAnalysisPrompts';
 import {
   QuizQuestion,
   QuestionWithAnswer,
@@ -380,6 +381,47 @@ export class GeminiProvider implements AIProviderInterface {
 
       const text = response.text || '{}';
       return JSON.parse(text) as DocumentAnalysis;
+    } catch (error) {
+      throw this.wrapError(error);
+    }
+  }
+
+  async analyzePastedSlide(
+    imageBase64: string,
+    verbosity: VerbosityLevel = 'standard'
+  ): Promise<Slide> {
+    try {
+      const ai = new GoogleGenAI({ apiKey: this.apiKey });
+
+      const parts: any[] = [
+        { text: buildSlideAnalysisPrompt(verbosity) },
+        { inlineData: { mimeType: 'image/png', data: imageBase64 } }
+      ];
+
+      const response = await ai.models.generateContent({
+        model: this.model,
+        contents: { parts },
+        config: {
+          systemInstruction: SLIDE_ANALYSIS_SYSTEM_PROMPT,
+          responseMimeType: 'application/json',
+          responseSchema: SLIDE_RESPONSE_SCHEMA,
+          temperature: 0.7
+        }
+      });
+
+      const text = response.text || '{}';
+      const parsed = JSON.parse(text);
+
+      return {
+        id: '',
+        title: parsed.title || 'Untitled Slide',
+        content: parsed.content || [],
+        speakerNotes: parsed.speakerNotes || '',
+        imagePrompt: parsed.imagePrompt || '',
+        layout: parsed.layout || 'split',
+        theme: parsed.theme || 'default',
+        isGeneratingImage: false
+      };
     } catch (error) {
       throw this.wrapError(error);
     }

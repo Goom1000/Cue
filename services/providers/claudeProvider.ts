@@ -4,6 +4,7 @@ import { QuizQuestion, QuestionWithAnswer } from '../geminiService';
 import { getStudentFriendlyRules } from '../prompts/studentFriendlyRules';
 import { DOCUMENT_ANALYSIS_SYSTEM_PROMPT, buildAnalysisUserPrompt } from '../documentAnalysis/analysisPrompts';
 import { ENHANCEMENT_SYSTEM_PROMPT, buildEnhancementUserPrompt } from '../documentEnhancement/enhancementPrompts';
+import { SLIDE_ANALYSIS_SYSTEM_PROMPT, buildSlideAnalysisPrompt, SLIDE_CREATION_TOOL } from '../slideAnalysis/slideAnalysisPrompts';
 import { detectPreservableContent, detectTeachableMoments } from '../contentPreservation/detector';
 import { PreservableContent, ConfidenceLevel, TeachableMoment } from '../contentPreservation/types';
 import { getPreservationRules, getTeleprompterPreservationRules } from '../prompts/contentPreservationRules';
@@ -1657,6 +1658,74 @@ INSTRUCTIONS:
     }
 
     return toolUse.input as DocumentAnalysis;
+  }
+
+  async analyzePastedSlide(
+    imageBase64: string,
+    verbosity: VerbosityLevel = 'standard'
+  ): Promise<Slide> {
+    const content: any[] = [
+      { type: 'text', text: buildSlideAnalysisPrompt(verbosity) },
+      {
+        type: 'image',
+        source: { type: 'base64', media_type: 'image/png', data: imageBase64 }
+      }
+    ];
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': this.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: this.model,
+        max_tokens: 4096,
+        system: SLIDE_ANALYSIS_SYSTEM_PROMPT,
+        messages: [{
+          role: 'user',
+          content
+        }],
+        tools: [SLIDE_CREATION_TOOL],
+        tool_choice: { type: 'tool', name: 'create_slide' }
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new AIProviderError(
+        this.getErrorMessage(response.status, errorText),
+        this.getErrorCode(response.status),
+        errorText
+      );
+    }
+
+    const data = await response.json();
+
+    // Extract tool use result
+    const toolUse = data.content?.find((c: any) => c.type === 'tool_use');
+    if (!toolUse?.input) {
+      throw new AIProviderError(
+        USER_ERROR_MESSAGES.PARSE_ERROR,
+        'PARSE_ERROR',
+        'No tool result in slide analysis response'
+      );
+    }
+
+    const result = toolUse.input;
+
+    return {
+      id: '',
+      title: result.title || 'Untitled Slide',
+      content: result.content || [],
+      speakerNotes: result.speakerNotes || '',
+      imagePrompt: result.imagePrompt || '',
+      layout: result.layout || 'split',
+      theme: result.theme || 'default',
+      isGeneratingImage: false
+    };
   }
 
   /**
