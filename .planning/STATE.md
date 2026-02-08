@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script that lets them sound knowledgeable and natural.
-**Current focus:** v4.1 Script Mode -- Phase 64 PDF Export -- COMPLETE
+**Current focus:** v4.1 Script Mode -- MILESTONE COMPLETE
 
 ## Current Position
 
@@ -14,12 +14,12 @@ Plan: 1 of 1 in current phase
 Status: Phase complete
 Last activity: 2026-02-08 -- Completed Phase 64 (PDF Export)
 
-Progress: [█████░░░░░] 5/8 plans (v4.1)
+Progress: [██████████] 5/5 plans (v4.1) -- MILESTONE COMPLETE
 
 ## Performance Metrics
 
 **Velocity:**
-- Milestones shipped: 22 (v1.0 through v4.0)
+- Milestones shipped: 23 (v1.0 through v4.1)
 - Total phases completed: 64
 - Total plans completed: 215
 - Total LOC: ~31,700 TypeScript
@@ -67,7 +67,7 @@ Notable: Slide Editor canvas mode (2026-02-07) for composing images on pasted sl
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed Phase 64 (PDF Export), v4.1 progress at 5/8 plans
+Stopped at: Completed Phase 64 (PDF Export), v4.1 milestone complete
 Resume file: .planning/ROADMAP.md
 
 ---

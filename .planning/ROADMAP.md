@@ -7,7 +7,7 @@ Transform Cue's teleprompter-driven presentations into standalone teaching mater
 ## Milestones
 
 - ✅ **v4.0 Clipboard Builder** - Phases 55-60 (shipped 2026-02-07)
-- 🚧 **v4.1 Script Mode** - Phases 61-64 (in progress)
+- ✅ **v4.1 Script Mode** - Phases 61-64 (shipped 2026-02-08)
 
 ## Phases
 
@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 61: AI Transformation Service** - AI converts teleprompter scripts into expanded talking-point bullets
 - [x] **Phase 62: PPTX Export** - Script-version slides export as PowerPoint with images and expanded text
 - [x] **Phase 63: Share Modal UI** - Teacher-facing share dialog with progress, preview, and download
-- [ ] **Phase 64: PDF Export** - Script-version slides export as readable PDF with images and talking points
+- [x] **Phase 64: PDF Export** - Script-version slides export as readable PDF with images and talking points
 
 ## Phase Details
 
@@ -80,7 +80,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 64-01-PLAN.md -- exportScriptPdf function and ShareModal PDF wiring
+- [x] 64-01-PLAN.md -- exportScriptPdf function and ShareModal PDF wiring
 
 ## Progress
 
@@ -92,4 +92,4 @@ Phases execute in numeric order: 61 -> 62 -> 63 -> 64
 | 61. AI Transformation Service | 2/2 | Complete | 2026-02-08 |
 | 62. PPTX Export | 1/1 | Complete | 2026-02-08 |
 | 63. Share Modal UI | 1/1 | Complete | 2026-02-08 |
-| 64. PDF Export | 0/1 | Not started | - |
+| 64. PDF Export | 1/1 | Complete | 2026-02-08 |
