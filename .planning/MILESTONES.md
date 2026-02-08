@@ -1,5 +1,33 @@
 # Project Milestones: Cue
 
+## v4.1 Script Mode (Shipped: 2026-02-08)
+
+**Delivered:** Teachers can now export any Cue deck as a self-contained presentation for colleagues — AI transforms teleprompter scripts into expanded talking-point bullets, exports as PPTX or PDF with images, via a share dialog with progress tracking and preview.
+
+**Phases completed:** 61-64 (5 plans total)
+
+**Key accomplishments:**
+
+- AI transformation service converts teleprompter scripts into expanded talking-point bullets with batched processing and cross-slide context coherence
+- Dual-provider support (Gemini + Claude) for script transformation with real-time progress callbacks
+- Script-mode PPTX export with dedicated layout (16-18pt text, image thumbnails, shrink-to-fit overflow handling)
+- ShareModal component with 4-phase state machine (transform → preview → export → download)
+- PDF export with jsPDF vector text rendering, cue marker styling (italic indigo), and print-friendly A4 layout
+- End-to-end "Share with colleague" workflow from button click to file download with no cloud dependencies
+
+**Stats:**
+
+- 23 files created/modified (+4,308 lines)
+- ~35,000 lines of TypeScript (project total)
+- 4 phases, 5 plans, 20 requirements
+- 1 day (2026-02-08)
+
+**Git range:** `feat(61-01)` → `feat(64-01)`
+
+**What's next:** TBD with /gsd:new-milestone
+
+---
+
 ## v4.0 Clipboard Builder (Shipped: 2026-02-07)
 
 **Delivered:** Teachers can now build slide decks via copy-paste from PowerPoint, paste images directly, condense bloated decks with AI-powered lesson-plan-aware analysis, and fill content gaps against lesson plans — transforming Cue from a PDF-first tool into a flexible deck builder.

@@ -4,22 +4,11 @@
 
 A presentation tool for teachers that transforms PDF lesson plans into interactive slideshows with AI-generated content, a teleprompter script for the teacher, and progressive bullet reveal. Teachers upload their existing lesson plans, select student age/grade level, and the AI creates an engaging presentation with speaker notes that guide the teacher through natural, conversational delivery.
 
-**v4.0 shipped:** Clipboard Builder — Teachers can build slide decks via copy-paste from PowerPoint, paste images, condense bloated decks with AI-powered lesson-plan-aware analysis, and fill content gaps against lesson plans. Deployed at https://goom1000.github.io/Cue/
-
-## Current Milestone: v4.1 Script Mode (Share with Colleague)
-
-**Goal:** Enable teachers to export any Cue deck as a self-contained presentation that colleagues can deliver without Cue — AI transforms teleprompter scripts into expanded talking-point bullets alongside images.
-
-**Target features:**
-- "Share with colleague" button and export dialog
-- AI transformation of teleprompter scripts into expanded talking-point bullets
-- PPTX export with expanded content and images
-- PDF export with expanded content and images
-- Optional preview of script version before download
+**v4.1 shipped:** Script Mode (Share with Colleague) — Teachers can export any Cue deck as a self-contained presentation for colleagues. AI transforms teleprompter scripts into expanded talking-point bullets, exports as PPTX or PDF with images. Deployed at https://goom1000.github.io/Cue/
 
 ## Current State
 
-Shipped v4.0 with ~30,600 LOC TypeScript. Starting v4.1 Script Mode. v4.0 delivered Clipboard Builder: teachers can copy-paste slides from PowerPoint (displayed as full-screen images with AI-extracted teleprompter content), paste images directly with AI captioning, condense bloated decks using lesson-plan-aware four-action analysis (keep/edit/remove/merge), and identify content gaps against lesson plans with one-click AI slide generation. 5 new AI methods across both Gemini and Claude providers. 353 tests from v3.9 still passing.
+Shipped v4.1 with ~35,000 LOC TypeScript. v4.1 delivered Script Mode: AI transformation service converts teleprompter scripts into expanded talking-point bullets with batched processing and cross-slide context coherence, PPTX and PDF export with dedicated script-mode layouts, ShareModal with 4-phase state machine (transform → preview → export → download), and dual-provider support (Gemini + Claude). 23 milestones shipped, 64 phases completed, 215 plans executed.
 
 ## Core Value
 
@@ -169,15 +158,16 @@ Students see only the presentation; teachers see the presentation plus a telepro
 - ✓ Lesson-plan-aware deck condensation (replaces cohesion) — v4.0
 - ✓ Upload lesson plan after deck built for gap analysis — v4.0
 - ✓ One-click AI slide generation from identified gaps — v4.0
+- ✓ AI transforms teleprompter scripts into expanded talking-point bullets for colleague delivery — v4.1
+- ✓ "Share with colleague" button with export dialog (PPTX / PDF format choice) — v4.1
+- ✓ Exported deck includes images alongside expanded text — v4.1
+- ✓ Optional preview of script version before download — v4.1
 
 ### Active
 
-- [ ] AI transforms teleprompter scripts into expanded talking-point bullets for colleague delivery
-- [ ] "Share with colleague" button with export dialog (PPTX / PDF format choice)
-- [ ] Exported deck includes images alongside expanded text
-- [ ] Optional preview of script version before download
+(None — planning next milestone)
 
-### Deferred (v4.1+)
+### Deferred
 
 - [ ] Tooltips and onboarding walkthrough (v3.6 deferred — Phase 41 infrastructure complete)
 - [ ] Elapsed time display showing presentation duration
@@ -204,18 +194,18 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Current State
 
-Shipped v4.0 with ~30,600 LOC TypeScript.
-Tech stack: React 19, Vite, Gemini/Claude API, Tailwind CSS, react-rnd, jsPDF, html2canvas, mammoth.js, react-diff-viewer-continued, JSZip, Jest 30.
+Shipped v4.1 with ~35,000 LOC TypeScript.
+Tech stack: React 19, Vite, Gemini/Claude API, Tailwind CSS, react-rnd, jsPDF, html2canvas, mammoth.js, react-diff-viewer-continued, JSZip, PptxGenJS, Jest 30.
 Client-side only (no backend).
 Deployed at: https://goom1000.github.io/Cue/
 
-v4.0 delivered Clipboard Builder:
-- Copy-paste from PowerPoint with clipboard event handling and content provenance tracking
-- AI slide analysis preserving original visuals, driving teleprompter only
-- Image paste with canvas compression, drag-drop, Full Image layout, and AI captioning
-- Lesson-plan-aware deck condensation with four-action model (keep/edit/remove/merge)
-- Gap analysis with severity-ranked gaps and one-click AI slide generation
-- 5 new AI methods on both Gemini and Claude providers
+v4.1 delivered Script Mode (Share with Colleague):
+- AI transformation service with batched processing and cross-slide context coherence
+- Dual-provider support (Gemini + Claude) with progress callbacks
+- Script-mode PPTX export with dedicated layout (16-18pt text, thumbnails, shrink-to-fit)
+- ShareModal with 4-phase state machine (transform → preview → export → download)
+- PDF export with jsPDF vector text, cue marker styling, print-friendly A4 layout
+- End-to-end share workflow with no cloud dependencies
 
 ### Technical Environment
 
@@ -350,6 +340,16 @@ v4.0 delivered Clipboard Builder:
 | Apply order: edits -> merges -> batch removal | Prevents index corruption during slide removal | ✓ Good — v4.0 |
 | Temperature 0.5 for analytical AI calls | Consistent, deterministic analysis for condensation and gap analysis | ✓ Good — v4.0 |
 | Position drift correction for gap slides | Track insertions to adjust target positions as slides are added | ✓ Good — v4.0 |
+| Transform-then-export pipeline | Temporary ScriptSlide in memory, never mutate original deck | ✓ Good — v4.1 |
+| Batched AI calls (5-8 slides) | Cross-slide context and token safety for transformation | ✓ Good — v4.1 |
+| Separate exportScriptPptx function | Different layout concerns from standard PPTX export | ✓ Good — v4.1 |
+| 4-phase ShareModal state machine | Clean transforming → preview → exporting → error flow | ✓ Good — v4.1 |
+| jsPDF vector text for PDF export | Crisp readable text vs blurry rasterization | ✓ Good — v4.1 |
+| Self-contained pdfService.ts | Avoid coupling to exportService.ts config | ✓ Good — v4.1 |
+| Short "Share" toolbar label | Save toolbar space; modal title provides full context | ✓ Good — v4.1 |
+| Text-based preview cards | Transformed data is bullets, not full Slide objects | ✓ Good — v4.1 |
+| Temperature 0.7 for transformation | Creative delivery text, not analytical output | ✓ Good — v4.1 |
+| Sequential chunk iteration | Cross-chunk context coherence over parallel speed | ✓ Good — v4.1 |
 
 ---
-*Last updated: 2026-02-08 after v4.1 milestone started*
+*Last updated: 2026-02-08 after v4.1 milestone complete*
