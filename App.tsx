@@ -24,6 +24,7 @@ import ClassBankDropdown from './components/ClassBankDropdown';
 import ClassManagementModal from './components/ClassManagementModal';
 import StudentListModal from './components/StudentListModal';
 import ExportModal from './components/ExportModal';
+import ShareModal from './components/ShareModal';
 import { useToast, ToastContainer } from './components/Toast';
 import useHashRoute from './hooks/useHashRoute';
 import StudentView from './components/StudentView';
@@ -357,6 +358,7 @@ function App() {
   const [selectedSlideIds, setSelectedSlideIds] = useState<Set<string>>(new Set());
   const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // PDF handling state - Lesson Plan
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -2050,6 +2052,7 @@ function App() {
                 <Button variant="secondary" className="!py-1.5 !px-4 text-sm" onClick={handleLoadClick}>Load</Button>
                 <Button variant="secondary" className="!py-1.5 !px-4 text-sm" onClick={handleSaveClick}>Save</Button>
                 <Button variant="secondary" className="!py-1.5 !px-4 text-sm" onClick={() => exportToPowerPoint(slides, lessonTitle)}>Export PPTX</Button>
+                <Button variant="secondary" className="!py-1.5 !px-4 text-sm" onClick={() => setShowShareModal(true)} disabled={!provider || slides.length === 0}>Share</Button>
                 <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
                 <Button variant="secondary" className="!py-1.5 !px-4 text-sm" onClick={() => startPresentation(activeSlideIndex)}>Present from current</Button>
                 <Button className="!py-1.5 !px-4 text-sm" onClick={() => startPresentation(0)}>Present</Button>
@@ -2878,6 +2881,19 @@ function App() {
           selectedSlideIds={selectedSlideIds}
           onUpdateSelection={setSelectedSlideIds}
           onClose={() => setShowExportModal(false)}
+          addToast={addToast}
+        />
+      )}
+
+      {/* Share Modal */}
+      {showShareModal && provider && (
+        <ShareModal
+          slides={slides}
+          lessonTitle={lessonTitle}
+          deckVerbosity={deckVerbosity}
+          gradeLevel="Year 6 (10-11 years old)"
+          provider={provider}
+          onClose={() => setShowShareModal(false)}
           addToast={addToast}
         />
       )}
