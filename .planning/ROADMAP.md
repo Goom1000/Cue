@@ -18,7 +18,7 @@ Transform Cue's teleprompter-driven presentations into standalone teaching mater
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 61: AI Transformation Service** - AI converts teleprompter scripts into expanded talking-point bullets
-- [ ] **Phase 62: PPTX Export** - Script-version slides export as PowerPoint with images and expanded text
+- [x] **Phase 62: PPTX Export** - Script-version slides export as PowerPoint with images and expanded text
 - [ ] **Phase 63: Share Modal UI** - Teacher-facing share dialog with progress, preview, and download
 - [ ] **Phase 64: PDF Export** - Script-version slides export as readable PDF with images and talking points
 
@@ -52,7 +52,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 62-01-PLAN.md -- Script-mode PPTX export function with dedicated layout
+- [x] 62-01-PLAN.md -- Script-mode PPTX export function with dedicated layout
 
 ### Phase 63: Share Modal UI
 **Goal**: Teachers have a complete share workflow -- click a button, see transformation progress, preview the script version, and download in their chosen format
@@ -91,6 +91,6 @@ Phases execute in numeric order: 61 -> 62 -> 63 -> 64
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 61. AI Transformation Service | 2/2 | Complete | 2026-02-08 |
-| 62. PPTX Export | 0/1 | Not started | - |
+| 62. PPTX Export | 1/1 | Complete | 2026-02-08 |
 | 63. Share Modal UI | 0/TBD | Not started | - |
 | 64. PDF Export | 0/TBD | Not started | - |
