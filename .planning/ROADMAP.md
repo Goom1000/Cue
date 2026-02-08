@@ -64,11 +64,10 @@ Plans:
   3. After transformation completes, teacher can scroll through a preview of script-version slides before downloading
   4. Teacher can choose between PPTX and PDF export formats and the file downloads automatically with no cloud or account steps
   5. If transformation or export fails, the teacher sees a clear error message via toast notification
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 63-01: TBD
-- [ ] 63-02: TBD
+- [ ] 63-01-PLAN.md -- onProgress callback, ShareModal component, and App.tsx wiring
 
 ### Phase 64: PDF Export
 **Goal**: Teachers can download a PDF version of the script-mode deck with readable text and images in a print-friendly layout
@@ -92,5 +91,5 @@ Phases execute in numeric order: 61 -> 62 -> 63 -> 64
 |-------|----------------|--------|-----------|
 | 61. AI Transformation Service | 2/2 | Complete | 2026-02-08 |
 | 62. PPTX Export | 1/1 | Complete | 2026-02-08 |
-| 63. Share Modal UI | 0/TBD | Not started | - |
+| 63. Share Modal UI | 0/1 | Not started | - |
 | 64. PDF Export | 0/TBD | Not started | - |
