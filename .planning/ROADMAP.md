@@ -37,7 +37,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 61-01-PLAN.md -- Transformation prompt module, types, schemas, and helpers
+- [x] 61-01-PLAN.md -- Transformation prompt module, types, schemas, and helpers
 - [ ] 61-02-PLAN.md -- GeminiProvider and ClaudeProvider implementations
 
 ### Phase 62: PPTX Export
@@ -90,7 +90,7 @@ Phases execute in numeric order: 61 → 62 → 63 → 64
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 61. AI Transformation Service | 0/2 | Not started | - |
+| 61. AI Transformation Service | 1/2 | In progress | - |
 | 62. PPTX Export | 0/TBD | Not started | - |
 | 63. Share Modal UI | 0/TBD | Not started | - |
 | 64. PDF Export | 0/TBD | Not started | - |
