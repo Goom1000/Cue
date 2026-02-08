@@ -1,4 +1,4 @@
-import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, VerbosityLevel, ChatContext, CondensationResult, GapAnalysisResult, IdentifiedGap, ColleagueTransformationResult } from '../aiProvider';
+import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, VerbosityLevel, ChatContext, CondensationResult, GapAnalysisResult, IdentifiedGap, ColleagueTransformationResult, TransformedSlide } from '../aiProvider';
 import { Slide, LessonResource, PosterLayout, DocumentAnalysis, EnhancementResult, EnhancementOptions } from '../../types';
 import { QuizQuestion, QuestionWithAnswer } from '../geminiService';
 import { getStudentFriendlyRules } from '../prompts/studentFriendlyRules';
@@ -12,6 +12,15 @@ import { getTeachableMomentRules, getVisualScaffoldingRules } from '../prompts/t
 import { buildDeckContextForCohesion } from '../prompts/cohesionPrompts';
 import { CONDENSATION_SYSTEM_PROMPT, buildCondensationUserPrompt, buildCondensationContext, CONDENSATION_TOOL } from '../prompts/condensationPrompts';
 import { GAP_ANALYSIS_SYSTEM_PROMPT, buildGapAnalysisUserPrompt, buildGapAnalysisContext, GAP_ANALYSIS_TOOL, buildGapSlideGenerationPrompt, GAP_SLIDE_TOOL } from '../prompts/gapAnalysisPrompts';
+import {
+  TRANSFORMATION_SYSTEM_PROMPT,
+  buildTransformationUserPrompt,
+  buildTransformationContext,
+  filterTransformableSlides,
+  chunkSlides,
+  buildChunkSummary,
+  TRANSFORMATION_TOOL
+} from '../prompts/transformationPrompts';
 
 // Shared teleprompter rules used across all generation modes
 const TELEPROMPTER_RULES = `
@@ -2226,20 +2235,102 @@ Generate the poster layout now.
   }
 
   /**
-   * Helper to get error code from HTTP status.
+   * Transform teleprompter scripts into colleague-deliverable talking-point bullets (Phase 61).
+   * Filters slides by verbosity, chunks large decks, calls Claude with tool_choice for
+   * structured output, and returns ColleagueTransformationResult.
    */
-  // Transform teleprompter scripts into colleague-deliverable talking-point bullets (Phase 61)
-  // Stub: Full implementation in Plan 61-02
   async transformForColleague(
     slides: Slide[],
     deckVerbosity: VerbosityLevel,
     gradeLevel: string
   ): Promise<ColleagueTransformationResult> {
-    throw new AIProviderError(
-      'Transformation not yet implemented for Claude provider',
-      'UNKNOWN_ERROR'
-    );
+    try {
+      const transformable = filterTransformableSlides(slides, deckVerbosity);
+      const skippedCount = slides.length - transformable.length;
+
+      if (transformable.length === 0) {
+        return { slides: [], skippedCount };
+      }
+
+      const chunks = chunkSlides(transformable);
+      const allTransformed: TransformedSlide[] = [];
+
+      for (let i = 0; i < chunks.length; i++) {
+        const chunk = chunks[i];
+        const context = buildTransformationContext(chunk);
+        const userPrompt = buildTransformationUserPrompt(gradeLevel);
+
+        // Include summary of prior chunks for narrative coherence
+        const priorSummary = i > 0 ? buildChunkSummary(allTransformed) : '';
+        const messageText = priorSummary
+          ? `${userPrompt}\n\nPREVIOUS SLIDES SUMMARY (for coherence -- do NOT repeat this content):\n${priorSummary}\n\n${context}`
+          : `${userPrompt}\n\n${context}`;
+
+        const contentArray: any[] = [
+          { type: 'text', text: messageText }
+        ];
+
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': this.apiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true',
+          },
+          body: JSON.stringify({
+            model: this.model,
+            max_tokens: 8192,
+            system: TRANSFORMATION_SYSTEM_PROMPT,
+            tools: [TRANSFORMATION_TOOL],
+            tool_choice: { type: 'tool', name: 'transform_for_colleague' },
+            messages: [{ role: 'user', content: contentArray }],
+          }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => 'Unknown error');
+          throw new AIProviderError(
+            USER_ERROR_MESSAGES[this.getErrorCode(response.status)],
+            this.getErrorCode(response.status),
+            errorText
+          );
+        }
+
+        const data = await response.json();
+
+        // Extract tool_use result
+        const toolUse = data.content?.find((c: any) => c.type === 'tool_use');
+        const result = toolUse?.input;
+        if (!result) {
+          throw new AIProviderError(
+            USER_ERROR_MESSAGES.PARSE_ERROR,
+            'PARSE_ERROR',
+            'No tool result in transformation response'
+          );
+        }
+
+        const chunkResults = result.slides || [];
+        allTransformed.push(...chunkResults);
+      }
+
+      return { slides: allTransformed, skippedCount };
+    } catch (error) {
+      if (error instanceof AIProviderError) {
+        throw error;
+      }
+      console.error('[ClaudeProvider] transformForColleague error:', error);
+      throw new AIProviderError(
+        USER_ERROR_MESSAGES.UNKNOWN_ERROR,
+        'UNKNOWN_ERROR',
+        error
+      );
+    }
   }
+
+  /**
+   * Helper to get error code from HTTP status.
+   */
 
   private getErrorCode(status: number): AIErrorCode {
     if (status === 429) return 'RATE_LIMIT';
