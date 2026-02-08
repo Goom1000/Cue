@@ -49,10 +49,10 @@ Plans:
   2. Each exported slide shows the slide image alongside expanded talking-point bullets in a layout that does not overflow or clip text (16-18pt font, dedicated script-mode layout)
   3. Slide titles are visible in the export for topic orientation
   4. The downloaded filename includes the deck title and a "Script Version" suffix
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 62-01: TBD
+- [ ] 62-01-PLAN.md -- Script-mode PPTX export function with dedicated layout
 
 ### Phase 63: Share Modal UI
 **Goal**: Teachers have a complete share workflow -- click a button, see transformation progress, preview the script version, and download in their chosen format
@@ -86,11 +86,11 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 61 → 62 → 63 → 64
+Phases execute in numeric order: 61 -> 62 -> 63 -> 64
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 61. AI Transformation Service | 2/2 | Complete | 2026-02-08 |
-| 62. PPTX Export | 0/TBD | Not started | - |
+| 62. PPTX Export | 0/1 | Not started | - |
 | 63. Share Modal UI | 0/TBD | Not started | - |
 | 64. PDF Export | 0/TBD | Not started | - |
