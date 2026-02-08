@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script that lets them sound knowledgeable and natural.
-**Current focus:** v4.1 Script Mode -- Phase 62 PPTX Export
+**Current focus:** v4.1 Script Mode -- Phase 63 Share Modal UI
 
 ## Current Position
 
-Phase: 62 of 64 (PPTX Export) -- COMPLETE
+Phase: 63 of 64 (Share Modal UI) -- COMPLETE
 Plan: 1 of 1 in current phase
 Status: Phase complete
-Last activity: 2026-02-08 -- Completed Phase 62 (PPTX Export)
+Last activity: 2026-02-08 -- Completed Phase 63 (Share Modal UI)
 
-Progress: [███░░░░░░░] 3/8 plans (v4.1)
+Progress: [████░░░░░░] 4/8 plans (v4.1)
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 22 (v1.0 through v4.0)
-- Total phases completed: 62
-- Total plans completed: 213
-- Total LOC: ~31,000 TypeScript
+- Total phases completed: 63
+- Total plans completed: 214
+- Total LOC: ~31,400 TypeScript
 
 **Recent Milestones:**
 - v4.0: 6 phases, 18 plans, 21 days (2026-02-07) - Clipboard Builder
@@ -47,6 +47,9 @@ Recent decisions affecting current work:
 - [61-02]: No JSON sanitization needed for Claude (tool_use returns parsed JSON)
 - [62-01]: Separate exportScriptPptx function (not parameterized exportToPowerPoint) -- different layout concerns
 - [62-01]: White background for script-mode readability, originalPastedImage priority for thumbnail source
+- [63-01]: Short toolbar label "Share" (not "Share with colleague") to save toolbar space; modal title provides full context
+- [63-01]: Text-based preview cards (not SlideContentRenderer) since transformed data is bullets, not full Slide objects
+- [63-01]: setTimeout wrapper around synchronous exportScriptPptx for exporting UI state render
 
 ### Pending Todos
 
@@ -60,9 +63,9 @@ Notable: Slide Editor canvas mode (2026-02-07) for composing images on pasted sl
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed Phase 62 (PPTX Export), ready for Phase 63 (Share Modal UI)
+Stopped at: Completed Phase 63 (Share Modal UI), ready for Phase 64 (PDF Export)
 Resume file: .planning/ROADMAP.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-08 -- completed Phase 62 PPTX Export (1 plan)*
+*Last updated: 2026-02-08 -- completed Phase 63 Share Modal UI (1 plan)*
