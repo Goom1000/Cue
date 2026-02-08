@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script that lets them sound knowledgeable and natural.
-**Current focus:** v4.1 Script Mode -- Phase 63 Share Modal UI
+**Current focus:** v4.1 Script Mode -- Phase 64 PDF Export -- COMPLETE
 
 ## Current Position
 
-Phase: 63 of 64 (Share Modal UI) -- COMPLETE
+Phase: 64 of 64 (PDF Export) -- COMPLETE
 Plan: 1 of 1 in current phase
 Status: Phase complete
-Last activity: 2026-02-08 -- Completed Phase 63 (Share Modal UI)
+Last activity: 2026-02-08 -- Completed Phase 64 (PDF Export)
 
-Progress: [████░░░░░░] 4/8 plans (v4.1)
+Progress: [█████░░░░░] 5/8 plans (v4.1)
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 22 (v1.0 through v4.0)
-- Total phases completed: 63
-- Total plans completed: 214
-- Total LOC: ~31,400 TypeScript
+- Total phases completed: 64
+- Total plans completed: 215
+- Total LOC: ~31,700 TypeScript
 
 **Recent Milestones:**
 - v4.0: 6 phases, 18 plans, 21 days (2026-02-07) - Clipboard Builder
@@ -50,6 +50,10 @@ Recent decisions affecting current work:
 - [63-01]: Short toolbar label "Share" (not "Share with colleague") to save toolbar space; modal title provides full context
 - [63-01]: Text-based preview cards (not SlideContentRenderer) since transformed data is bullets, not full Slide objects
 - [63-01]: setTimeout wrapper around synchronous exportScriptPptx for exporting UI state render
+- [64-01]: Self-contained PDF config in pdfService.ts (not imported from exportService.ts) to avoid coupling
+- [64-01]: Bold markers stripped entirely (same as pptxService.ts) -- readability over formatting
+- [64-01]: async exportScriptPdf (Image onload + canvas) unlike sync exportScriptPptx
+- [64-01]: Cue markers rendered italic indigo (#4F46E5) with 5mm indent in PDF
 
 ### Pending Todos
 
@@ -58,14 +62,14 @@ Notable: Slide Editor canvas mode (2026-02-07) for composing images on pasted sl
 
 ### Blockers/Concerns
 
-- PDF approach decision (jsPDF native text vs html2canvas rasterize) deferred to Phase 64 planning
+- None currently
 
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed Phase 63 (Share Modal UI), ready for Phase 64 (PDF Export)
+Stopped at: Completed Phase 64 (PDF Export), v4.1 progress at 5/8 plans
 Resume file: .planning/ROADMAP.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-08 -- completed Phase 63 Share Modal UI (1 plan)*
+*Last updated: 2026-02-08 -- completed Phase 64 PDF Export (1 plan)*
