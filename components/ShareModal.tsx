@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Slide } from '../types';
 import { AIProviderInterface, AIProviderError, ColleagueTransformationResult, VerbosityLevel } from '../services/aiProvider';
 import { exportScriptPptx } from '../services/pptxService';
+import { exportScriptPdf } from '../services/pdfService';
 
 // ============================================================================
 // Types
@@ -100,18 +101,21 @@ const ShareModal: React.FC<ShareModalProps> = ({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onClose, phase]);
 
-  // Handle PPTX download
+  // Handle PPTX/PDF download
   const handleDownload = () => {
-    if (!transformResult || selectedFormat !== 'pptx') return;
+    if (!transformResult) return;
 
     setPhase('exporting');
 
-    // exportScriptPptx is synchronous (PptxGenJS writeFile triggers browser download)
-    // Use setTimeout to let the exporting UI render before the synchronous call blocks
-    setTimeout(() => {
+    // Use setTimeout to let the exporting UI render before the export call
+    setTimeout(async () => {
       try {
-        exportScriptPptx(slides, transformResult, lessonTitle);
-        addToast('Script version downloaded!', 3000, 'success');
+        if (selectedFormat === 'pptx') {
+          exportScriptPptx(slides, transformResult, lessonTitle);
+        } else {
+          await exportScriptPdf(slides, transformResult, lessonTitle);
+        }
+        addToast(`Script version downloaded as ${selectedFormat.toUpperCase()}!`, 3000, 'success');
         onClose();
       } catch (error) {
         console.error('[ShareModal] Export failed:', error);
@@ -200,7 +204,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
     <div className="flex flex-col items-center justify-center py-16">
       <div className="w-12 h-12 border-4 border-indigo-600 dark:border-amber-500 border-t-transparent rounded-full animate-spin mb-6"></div>
       <p className="text-lg font-bold text-slate-700 dark:text-white">
-        Generating PowerPoint...
+        {selectedFormat === 'pptx' ? 'Generating PowerPoint...' : 'Generating PDF...'}
       </p>
     </div>
   );
@@ -253,10 +257,14 @@ const ShareModal: React.FC<ShareModalProps> = ({
                 PowerPoint (.pptx)
               </button>
               <button
-                disabled
-                className="px-4 py-2 rounded-xl text-sm font-bold text-slate-400 dark:text-slate-600 border-2 border-slate-200 dark:border-slate-700 opacity-50 cursor-not-allowed"
+                onClick={() => setSelectedFormat('pdf')}
+                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                  selectedFormat === 'pdf'
+                    ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-2 border-indigo-600 dark:border-indigo-500'
+                    : 'text-slate-500 dark:text-slate-400 border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                }`}
               >
-                PDF (.pdf) -- Coming soon
+                PDF (.pdf)
               </button>
             </div>
 
@@ -270,8 +278,7 @@ const ShareModal: React.FC<ShareModalProps> = ({
               </button>
               <button
                 onClick={handleDownload}
-                disabled={selectedFormat !== 'pptx'}
-                className="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-amber-500 dark:hover:bg-amber-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-amber-500 dark:hover:bg-amber-600 transition-colors"
               >
                 Download
               </button>
