@@ -10,6 +10,19 @@ import { ClaudeProvider } from './providers/claudeProvider';
 // Re-export VerbosityLevel for consumers
 export type { VerbosityLevel } from './geminiService';
 
+// AI Transformation types for colleague-deliverable talking-point bullets (Phase 61)
+export interface TransformedSlide {
+  slideIndex: number;        // 0-indexed position in original deck
+  originalTitle: string;     // Slide title for reference
+  expandedBullets: string[]; // The transformed talking-point bullets
+  slideType: string;         // 'standard' | 'elaborate' | 'work-together' | 'class-challenge' | 'pasted'
+}
+
+export interface ColleagueTransformationResult {
+  slides: TransformedSlide[];
+  skippedCount: number;      // Slides with no teleprompter content
+}
+
 // Deck Condensation types for lesson-plan-aware slide reduction (Phase 60)
 export type CondensationAction = 'keep' | 'remove' | 'merge';
 
@@ -376,6 +389,13 @@ export interface AIProviderInterface {
     lessonTopic: string,
     verbosity: VerbosityLevel
   ): Promise<Slide>;
+
+  // Transform teleprompter scripts into colleague-deliverable talking-point bullets (Phase 61)
+  transformForColleague(
+    slides: Slide[],
+    deckVerbosity: VerbosityLevel,
+    gradeLevel: string
+  ): Promise<ColleagueTransformationResult>;
 
   // Document enhancement for resource differentiation (Phase 45)
   enhanceDocument(

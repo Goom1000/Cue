@@ -1,4 +1,4 @@
-import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, VerbosityLevel, ChatContext, CondensationResult, GapAnalysisResult, IdentifiedGap } from '../aiProvider';
+import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, VerbosityLevel, ChatContext, CondensationResult, GapAnalysisResult, IdentifiedGap, ColleagueTransformationResult } from '../aiProvider';
 import { Slide, LessonResource, PosterLayout, DocumentAnalysis, EnhancementResult, EnhancementOptions } from '../../types';
 import { QuizQuestion, QuestionWithAnswer } from '../geminiService';
 import { getStudentFriendlyRules } from '../prompts/studentFriendlyRules';
@@ -2228,6 +2228,19 @@ Generate the poster layout now.
   /**
    * Helper to get error code from HTTP status.
    */
+  // Transform teleprompter scripts into colleague-deliverable talking-point bullets (Phase 61)
+  // Stub: Full implementation in Plan 61-02
+  async transformForColleague(
+    slides: Slide[],
+    deckVerbosity: VerbosityLevel,
+    gradeLevel: string
+  ): Promise<ColleagueTransformationResult> {
+    throw new AIProviderError(
+      'Transformation not yet implemented for Claude provider',
+      'UNKNOWN_ERROR'
+    );
+  }
+
   private getErrorCode(status: number): AIErrorCode {
     if (status === 429) return 'RATE_LIMIT';
     if (status === 401 || status === 403) return 'AUTH_ERROR';

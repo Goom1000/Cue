@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES, GenerationInput, GameQuestionRequest, VerbosityLevel, ChatContext, CondensationResult, GapAnalysisResult, IdentifiedGap } from '../aiProvider';
+import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES, GenerationInput, GameQuestionRequest, VerbosityLevel, ChatContext, CondensationResult, GapAnalysisResult, IdentifiedGap, ColleagueTransformationResult } from '../aiProvider';
 import { Slide, LessonResource, DocumentAnalysis, EnhancementResult, EnhancementOptions } from '../../types';
 import { DOCUMENT_ANALYSIS_SYSTEM_PROMPT, buildAnalysisUserPrompt } from '../documentAnalysis/analysisPrompts';
 import { ENHANCEMENT_SYSTEM_PROMPT, buildEnhancementUserPrompt } from '../documentEnhancement/enhancementPrompts';
@@ -878,6 +878,19 @@ RULES:
    * Wrap any error in AIProviderError for consistent error handling.
    * If already an AIProviderError, rethrow as-is.
    */
+  // Transform teleprompter scripts into colleague-deliverable talking-point bullets (Phase 61)
+  // Stub: Full implementation in Plan 61-02
+  async transformForColleague(
+    slides: Slide[],
+    deckVerbosity: VerbosityLevel,
+    gradeLevel: string
+  ): Promise<ColleagueTransformationResult> {
+    throw new AIProviderError(
+      'Transformation not yet implemented for Gemini provider',
+      'UNKNOWN_ERROR'
+    );
+  }
+
   private wrapError(error: unknown): AIProviderError {
     if (error instanceof AIProviderError) {
       return error;
