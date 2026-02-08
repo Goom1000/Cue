@@ -891,7 +891,8 @@ RULES:
   async transformForColleague(
     slides: Slide[],
     deckVerbosity: VerbosityLevel,
-    gradeLevel: string
+    gradeLevel: string,
+    onProgress?: (progress: { current: number; total: number }) => void
   ): Promise<ColleagueTransformationResult> {
     try {
       const ai = new GoogleGenAI({ apiKey: this.apiKey });
@@ -904,6 +905,7 @@ RULES:
 
       const chunks = chunkSlides(transformable);
       const allTransformed: TransformedSlide[] = [];
+      onProgress?.({ current: 0, total: transformable.length });
 
       for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i];
@@ -952,6 +954,7 @@ RULES:
         const parsed = JSON.parse(sanitized);
         const chunkResults = parsed.slides || [];
         allTransformed.push(...chunkResults);
+        onProgress?.({ current: allTransformed.length, total: transformable.length });
       }
 
       return { slides: allTransformed, skippedCount };

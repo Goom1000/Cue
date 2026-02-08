@@ -394,7 +394,8 @@ export interface AIProviderInterface {
   transformForColleague(
     slides: Slide[],
     deckVerbosity: VerbosityLevel,
-    gradeLevel: string
+    gradeLevel: string,
+    onProgress?: (progress: { current: number; total: number }) => void
   ): Promise<ColleagueTransformationResult>;
 
   // Document enhancement for resource differentiation (Phase 45)
