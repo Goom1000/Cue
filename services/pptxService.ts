@@ -1,4 +1,5 @@
 import { Slide } from "../types";
+import { ColleagueTransformationResult } from './aiProvider';
 
 export const exportToPowerPoint = (slides: Slide[], title: string) => {
   if (!window.PptxGenJS) {
@@ -79,4 +80,96 @@ export const exportToPowerPoint = (slides: Slide[], title: string) => {
   });
 
   pptx.writeFile({ fileName: `${title || 'Lesson'}.pptx` });
+};
+
+/**
+ * Export AI-transformed talking-point bullets as a script-mode PPTX file.
+ * Layout is optimized for expanded text readability (16pt bullets, small thumbnail).
+ * Only slides present in transformationResult are included (skipped slides omitted).
+ */
+export const exportScriptPptx = (
+  slides: Slide[],
+  transformationResult: ColleagueTransformationResult,
+  title: string
+): void => {
+  if (!window.PptxGenJS) {
+    alert("PowerPoint generator library not loaded.");
+    return;
+  }
+
+  const pptx = new window.PptxGenJS();
+  pptx.layout = 'LAYOUT_16x9';
+  pptx.title = `${title} - Script Version`;
+
+  transformationResult.slides.forEach((transformed) => {
+    // Look up original slide with safety check
+    const originalSlide = slides[transformed.slideIndex];
+    if (!originalSlide) return;
+
+    // Determine image source: pasted original takes priority (per MEMORY.md)
+    const imageSource = originalSlide.originalPastedImage || originalSlide.imageUrl;
+    const hasImage = !!imageSource;
+
+    const pptSlide = pptx.addSlide();
+
+    // White background for script-mode readability
+    pptSlide.background = { color: "FFFFFF" };
+
+    // Title - narrower when image thumbnail is present
+    pptSlide.addText(transformed.originalTitle, {
+      x: 0.5,
+      y: 0.3,
+      w: hasImage ? 6.5 : 9.0,
+      h: 0.6,
+      fontSize: 18,
+      fontFace: "Arial",
+      color: "1e293b",
+      bold: true,
+      valign: "top",
+    });
+
+    // Image thumbnail in top-right (only when image exists)
+    if (hasImage && imageSource) {
+      pptSlide.addImage({
+        data: imageSource,
+        x: 7.2,
+        y: 0.3,
+        w: 2.5,
+        h: 1.9,
+        sizing: { type: "contain", w: 2.5, h: 1.9 },
+      });
+    }
+
+    // Expanded talking-point bullets - strip markdown bold markers
+    const bulletRuns = transformed.expandedBullets.map((bullet) => ({
+      text: bullet.replace(/\*\*/g, ''),
+      options: { breakLine: true },
+    }));
+
+    pptSlide.addText(bulletRuns, {
+      x: 0.5,
+      y: 1.3,
+      w: hasImage ? 6.5 : 9.0,
+      h: 4.0,
+      fontSize: 16,
+      fontFace: "Arial",
+      color: "334155",
+      bullet: true,
+      paraSpaceBefore: 6,
+      lineSpacingMultiple: 1.15,
+      valign: "top",
+      fit: "shrink",
+    });
+
+    // Speaker notes with prefix to distinguish from on-slide bullets
+    if (originalSlide.speakerNotes) {
+      pptSlide.addNotes(
+        `Original teleprompter script:\n\n${originalSlide.speakerNotes}`
+      );
+    }
+  });
+
+  // Sanitize filename: strip illegal characters, fallback to 'Lesson'
+  const sanitizedTitle = title.replace(/[<>:"/\\|?*]/g, '').trim() || 'Lesson';
+  pptx.writeFile({ fileName: `${sanitizedTitle} - Script Version.pptx` });
 };
