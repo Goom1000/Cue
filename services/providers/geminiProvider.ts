@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES, GenerationInput, GameQuestionRequest, VerbosityLevel, ChatContext, CondensationResult, GapAnalysisResult, IdentifiedGap, ColleagueTransformationResult } from '../aiProvider';
+import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES, GenerationInput, GameQuestionRequest, VerbosityLevel, ChatContext, CondensationResult, GapAnalysisResult, IdentifiedGap, ColleagueTransformationResult, TransformedSlide } from '../aiProvider';
 import { Slide, LessonResource, DocumentAnalysis, EnhancementResult, EnhancementOptions } from '../../types';
 import { DOCUMENT_ANALYSIS_SYSTEM_PROMPT, buildAnalysisUserPrompt } from '../documentAnalysis/analysisPrompts';
 import { ENHANCEMENT_SYSTEM_PROMPT, buildEnhancementUserPrompt } from '../documentEnhancement/enhancementPrompts';
@@ -19,6 +19,15 @@ import {
   buildGapSlideGenerationPrompt,
   GAP_SLIDE_RESPONSE_SCHEMA
 } from '../prompts/gapAnalysisPrompts';
+import {
+  TRANSFORMATION_SYSTEM_PROMPT,
+  buildTransformationUserPrompt,
+  buildTransformationContext,
+  filterTransformableSlides,
+  chunkSlides,
+  buildChunkSummary,
+  TRANSFORMATION_RESPONSE_SCHEMA
+} from '../prompts/transformationPrompts';
 import {
   QuizQuestion,
   QuestionWithAnswer,
@@ -875,20 +884,81 @@ RULES:
   }
 
   /**
-   * Wrap any error in AIProviderError for consistent error handling.
-   * If already an AIProviderError, rethrow as-is.
+   * Transform teleprompter scripts into colleague-deliverable talking-point bullets (Phase 61).
+   * Filters slides by verbosity, chunks large decks, calls Gemini with structured output schema,
+   * sanitizes JSON control characters, and returns ColleagueTransformationResult.
    */
-  // Transform teleprompter scripts into colleague-deliverable talking-point bullets (Phase 61)
-  // Stub: Full implementation in Plan 61-02
   async transformForColleague(
     slides: Slide[],
     deckVerbosity: VerbosityLevel,
     gradeLevel: string
   ): Promise<ColleagueTransformationResult> {
-    throw new AIProviderError(
-      'Transformation not yet implemented for Gemini provider',
-      'UNKNOWN_ERROR'
-    );
+    try {
+      const ai = new GoogleGenAI({ apiKey: this.apiKey });
+      const transformable = filterTransformableSlides(slides, deckVerbosity);
+      const skippedCount = slides.length - transformable.length;
+
+      if (transformable.length === 0) {
+        return { slides: [], skippedCount };
+      }
+
+      const chunks = chunkSlides(transformable);
+      const allTransformed: TransformedSlide[] = [];
+
+      for (let i = 0; i < chunks.length; i++) {
+        const chunk = chunks[i];
+        const context = buildTransformationContext(chunk);
+        const userPrompt = buildTransformationUserPrompt(gradeLevel);
+
+        // Include summary of prior chunks for narrative coherence
+        const priorSummary = i > 0 ? buildChunkSummary(allTransformed) : '';
+        const fullPrompt = priorSummary
+          ? `${userPrompt}\n\nPREVIOUS SLIDES SUMMARY (for coherence -- do NOT repeat this content):\n${priorSummary}\n\n${context}`
+          : `${userPrompt}\n\n${context}`;
+
+        const response = await ai.models.generateContent({
+          model: this.model,
+          contents: fullPrompt,
+          config: {
+            systemInstruction: TRANSFORMATION_SYSTEM_PROMPT,
+            responseMimeType: 'application/json',
+            responseSchema: TRANSFORMATION_RESPONSE_SCHEMA,
+            temperature: 0.7,
+            maxOutputTokens: 8192,
+          },
+        });
+
+        const rawText = response.text || '{}';
+
+        // Sanitize control characters inside JSON string values
+        // (Gemini sometimes emits raw newlines/tabs) -- same pattern as condenseDeck
+        let sanitized = '';
+        let inStr = false;
+        let esc = false;
+        for (let j = 0; j < rawText.length; j++) {
+          const ch = rawText[j];
+          if (esc) { sanitized += ch; esc = false; continue; }
+          if (ch === '\\' && inStr) { sanitized += ch; esc = true; continue; }
+          if (ch === '"') { inStr = !inStr; sanitized += ch; continue; }
+          if (inStr && ch.charCodeAt(0) < 32) {
+            if (ch === '\n') sanitized += '\\n';
+            else if (ch === '\r') sanitized += '\\r';
+            else if (ch === '\t') sanitized += '\\t';
+            continue;
+          }
+          sanitized += ch;
+        }
+
+        const parsed = JSON.parse(sanitized);
+        const chunkResults = parsed.slides || [];
+        allTransformed.push(...chunkResults);
+      }
+
+      return { slides: allTransformed, skippedCount };
+    } catch (error) {
+      console.error('[GeminiProvider] transformForColleague error:', error);
+      throw this.wrapError(error);
+    }
   }
 
   private wrapError(error: unknown): AIProviderError {
