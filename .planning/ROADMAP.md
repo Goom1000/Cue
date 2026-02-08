@@ -77,10 +77,10 @@ Plans:
   1. User can select PDF format in the share dialog and receive a downloaded PDF file
   2. Text in the PDF is crisp and readable (vector text rendering, not blurry rasterized screenshots)
   3. Each page presents the slide image alongside expanded talking points in a clean, print-friendly layout
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 64-01: TBD
+- [ ] 64-01-PLAN.md -- exportScriptPdf function and ShareModal PDF wiring
 
 ## Progress
 
@@ -92,4 +92,4 @@ Phases execute in numeric order: 61 -> 62 -> 63 -> 64
 | 61. AI Transformation Service | 2/2 | Complete | 2026-02-08 |
 | 62. PPTX Export | 1/1 | Complete | 2026-02-08 |
 | 63. Share Modal UI | 1/1 | Complete | 2026-02-08 |
-| 64. PDF Export | 0/TBD | Not started | - |
+| 64. PDF Export | 0/1 | Not started | - |
