@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script that lets them sound knowledgeable and natural.
-**Current focus:** v4.1 Script Mode -- Phase 61 AI Transformation Service
+**Current focus:** v4.1 Script Mode -- Phase 62 PPTX Export
 
 ## Current Position
 
-Phase: 61 of 64 (AI Transformation Service)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-02-08 -- Completed 61-01-PLAN.md (transformation prompts)
+Phase: 61 of 64 (AI Transformation Service) -- COMPLETE
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-02-08 -- Completed 61-02-PLAN.md (provider implementations)
 
-Progress: [█░░░░░░░░░] 1/8 plans (v4.1)
+Progress: [██░░░░░░░░] 2/8 plans (v4.1)
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 22 (v1.0 through v4.0)
-- Total phases completed: 60
-- Total plans completed: 210
+- Total phases completed: 61
+- Total plans completed: 212
 - Total LOC: ~30,900 TypeScript
 
 **Recent Milestones:**
@@ -42,6 +42,9 @@ Recent decisions affecting current work:
 - [61-01]: Bold key terms, flat bullets (no sub-bullets) for PPTX/PDF rendering compatibility
 - [61-01]: Chunking threshold of 20 slides with prior-chunk summaries for tone continuity
 - [61-01]: [Discussion point], [Activity], [Question], [Answer] cue marker format for interaction hints
+- [61-02]: Temperature 0.7 for transformation (creative delivery text, not analytical)
+- [61-02]: Sequential chunk iteration for cross-chunk context coherence (not parallel)
+- [61-02]: No JSON sanitization needed for Claude (tool_use returns parsed JSON)
 
 ### Pending Todos
 
@@ -55,9 +58,9 @@ Notable: Slide Editor canvas mode (2026-02-07) for composing images on pasted sl
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed 61-01 (transformation prompts), ready for 61-02 (provider implementations)
-Resume file: .planning/phases/61-ai-transformation-service/61-02-PLAN.md
+Stopped at: Completed Phase 61 (AI Transformation Service), ready for Phase 62 (PPTX Export)
+Resume file: .planning/ROADMAP.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-08 -- completed 61-01 transformation prompts plan*
+*Last updated: 2026-02-08 -- completed Phase 61 AI Transformation Service (2 plans)*
