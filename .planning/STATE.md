@@ -2,17 +2,19 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-08)
+See: .planning/PROJECT.md (updated 2026-02-14)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script that lets them sound knowledgeable and natural.
-**Current focus:** v5.0 Smart Generation + Lesson Phases
+**Current focus:** v5.0 Smart Generation -- Phase 65 (Foundation Types + Phase Detection)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-02-08 — Milestone v5.0 started
+Phase: 65 of 68 (Foundation Types + Phase Detection)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-02-14 -- Roadmap created for v5.0
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -36,18 +38,18 @@ See PROJECT.md Key Decisions table for full history.
 ### Pending Todos
 
 See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
-Notable: Slide annotation layer (2026-02-08) for image overlays + arrows on slides.
 
 ### Blockers/Concerns
 
-- None currently
+- Phase detection regex needs validation against real Australian lesson plan templates (research flag from SUMMARY)
+- PPTX edge cases (SmartArt, charts, grouped shapes) may not extract cleanly -- needs testing with real teacher files
 
 ## Session Continuity
 
-Last session: 2026-02-08
-Stopped at: Defining v5.0 requirements
-Resume file: .planning/PROJECT.md
+Last session: 2026-02-14
+Stopped at: Roadmap created, ready to plan Phase 65
+Resume file: .planning/ROADMAP.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-08 — v5.0 milestone started*
+*Last updated: 2026-02-14 -- v5.0 roadmap created*

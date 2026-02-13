@@ -73,35 +73,35 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PIPE-01 | — | Pending |
-| PIPE-02 | — | Pending |
-| PIPE-03 | — | Pending |
-| PIPE-04 | — | Pending |
-| PIPE-05 | — | Pending |
-| PIPE-06 | — | Pending |
-| PIPE-07 | — | Pending |
-| RES-01 | — | Pending |
-| RES-02 | — | Pending |
-| RES-03 | — | Pending |
-| RES-04 | — | Pending |
-| RES-05 | — | Pending |
-| RES-06 | — | Pending |
-| RES-07 | — | Pending |
-| PHASE-01 | — | Pending |
-| PHASE-02 | — | Pending |
-| PHASE-03 | — | Pending |
-| PHASE-04 | — | Pending |
-| PHASE-05 | — | Pending |
-| PHASE-06 | — | Pending |
-| PHASE-07 | — | Pending |
-| PROV-01 | — | Pending |
-| PROV-02 | — | Pending |
+| PIPE-01 | Phase 67 | Pending |
+| PIPE-02 | Phase 67 | Pending |
+| PIPE-03 | Phase 67 | Pending |
+| PIPE-04 | Phase 67 | Pending |
+| PIPE-05 | Phase 67 | Pending |
+| PIPE-06 | Phase 67 | Pending |
+| PIPE-07 | Phase 67 | Pending |
+| RES-01 | Phase 66 | Pending |
+| RES-02 | Phase 66 | Pending |
+| RES-03 | Phase 66 | Pending |
+| RES-04 | Phase 68 | Pending |
+| RES-05 | Phase 66 | Pending |
+| RES-06 | Phase 68 | Pending |
+| RES-07 | Phase 66 | Pending |
+| PHASE-01 | Phase 65 | Pending |
+| PHASE-02 | Phase 65 | Pending |
+| PHASE-03 | Phase 68 | Pending |
+| PHASE-04 | Phase 68 | Pending |
+| PHASE-05 | Phase 68 | Pending |
+| PHASE-06 | Phase 65 | Pending |
+| PHASE-07 | Phase 65 | Pending |
+| PROV-01 | Phase 68 | Pending |
+| PROV-02 | Phase 68 | Pending |
 
 **Coverage:**
 - v5.0 requirements: 23 total
-- Mapped to phases: 0
-- Unmapped: 23
+- Mapped to phases: 23
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-08*
-*Last updated: 2026-02-08 after initial definition*
+*Last updated: 2026-02-14 after roadmap creation*
