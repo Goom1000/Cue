@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-14)
 ## Current Position
 
 Phase: 65 of 68 (Foundation Types + Phase Detection)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-02-14 -- Roadmap created for v5.0
+Plan: 1 of TBD in current phase
+Status: In progress
+Last activity: 2026-02-14 -- Completed 65-01-PLAN.md (Foundation Types + Phase Detection)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 10%
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 23 (v1.0 through v4.1)
 - Total phases completed: 64
-- Total plans completed: 215
+- Total plans completed: 216
 - Total LOC: ~35,000 TypeScript
 
 **Recent Milestones:**
@@ -35,6 +35,11 @@ Progress: [░░░░░░░░░░] 0%
 
 See PROJECT.md Key Decisions table for full history.
 
+**Phase 65-01 decisions:**
+- Content patterns skipped when structural (high confidence) match exists for same phase -- prevents duplicate detections
+- "I Do" uses case-sensitive structural regex; longer synonyms use case-insensitive
+- PHASE_PATTERNS ordered: hook, i-do, we-do-together, we-do, you-do, plenary (longest match first)
+
 ### Pending Todos
 
 See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
@@ -47,9 +52,9 @@ See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Roadmap created, ready to plan Phase 65
-Resume file: .planning/ROADMAP.md
+Stopped at: Completed Phase 65 Plan 01 (Foundation Types + Phase Detection)
+Resume file: .planning/phases/65-foundation-types-phase-detection/65-01-SUMMARY.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-14 -- v5.0 roadmap created*
+*Last updated: 2026-02-14 -- Phase 65 Plan 01 complete*
