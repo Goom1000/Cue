@@ -7,6 +7,7 @@ import { detectPreservableContent, detectTeachableMoments } from './contentPrese
 import { PreservableContent, ConfidenceLevel, TeachableMoment } from './contentPreservation/types';
 import { getPreservationRules, getTeleprompterPreservationRules } from './prompts/contentPreservationRules';
 import { getTeachableMomentRules, getVisualScaffoldingRules } from './prompts/teachableMomentRules';
+import { detectPhasesInText, assignPhasesToSlides } from './phaseDetection/phaseDetector';
 
 // Shared teleprompter rules used across all generation modes
 const TELEPROMPTER_RULES = `
@@ -258,6 +259,16 @@ export const generateLessonSlides = async (
     ? { lessonText: inputOrText, lessonImages: pageImages, mode: 'fresh' }
     : inputOrText;
 
+  // Detect lesson phases on FULL lesson plan text (before any truncation)
+  // Mode-gated: only Fresh and Blend modes use lesson plans with GRR structure
+  const phaseResult = (input.mode === 'fresh' || input.mode === 'blend')
+    ? detectPhasesInText(input.lessonText)
+    : { phases: [], hasExplicitPhases: false };
+
+  if (phaseResult.hasExplicitPhases) {
+    console.log(`[GeminiService] Detected ${phaseResult.phases.length} lesson phases`);
+  }
+
   // Detect preservable content from source text based on mode
   const sourceText = getDetectionSource(input);
   const detectedContent = detectPreservableContent(sourceText);
@@ -386,11 +397,17 @@ export const generateLessonSlides = async (
     });
 
     const data = JSON.parse(response.text || "[]");
-    return data.map((item: any, index: number) => ({
+    const slides = data.map((item: any, index: number) => ({
       ...item,
       id: `slide-${Date.now()}-${index}`,
       isGeneratingImage: false
     }));
+
+    // Assign lesson phases as post-processing (Fresh/Blend only)
+    if (input.mode === 'fresh' || input.mode === 'blend') {
+      return assignPhasesToSlides(slides, phaseResult);
+    }
+    return slides;
   } catch (error: any) {
     console.error("Gemini Generation Error:", error);
     throw new Error("The AI Architect encountered an error. Check your connection.");

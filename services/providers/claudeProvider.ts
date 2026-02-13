@@ -9,6 +9,7 @@ import { detectPreservableContent, detectTeachableMoments } from '../contentPres
 import { PreservableContent, ConfidenceLevel, TeachableMoment } from '../contentPreservation/types';
 import { getPreservationRules, getTeleprompterPreservationRules } from '../prompts/contentPreservationRules';
 import { getTeachableMomentRules, getVisualScaffoldingRules } from '../prompts/teachableMomentRules';
+import { detectPhasesInText, assignPhasesToSlides } from '../phaseDetection/phaseDetector';
 import { buildDeckContextForCohesion } from '../prompts/cohesionPrompts';
 import { CONDENSATION_SYSTEM_PROMPT, buildCondensationUserPrompt, buildCondensationContext, CONDENSATION_TOOL } from '../prompts/condensationPrompts';
 import { GAP_ANALYSIS_SYSTEM_PROMPT, buildGapAnalysisUserPrompt, buildGapAnalysisContext, GAP_ANALYSIS_TOOL, buildGapSlideGenerationPrompt, GAP_SLIDE_TOOL } from '../prompts/gapAnalysisPrompts';
@@ -697,6 +698,16 @@ export class ClaudeProvider implements AIProviderInterface {
       ? { lessonText: inputOrText, lessonImages: pageImages, mode: 'fresh' }
       : inputOrText;
 
+    // Detect lesson phases on FULL lesson plan text (before any truncation)
+    // Mode-gated: only Fresh and Blend modes use lesson plans with GRR structure
+    const phaseResult = (input.mode === 'fresh' || input.mode === 'blend')
+      ? detectPhasesInText(input.lessonText)
+      : { phases: [], hasExplicitPhases: false };
+
+    if (phaseResult.hasExplicitPhases) {
+      console.log(`[ClaudeProvider] Detected ${phaseResult.phases.length} lesson phases`);
+    }
+
     // Detect preservable content from source text based on mode
     const sourceText = getDetectionSource(input);
     const detectedContent = detectPreservableContent(sourceText);
@@ -795,11 +806,17 @@ export class ClaudeProvider implements AIProviderInterface {
     const response = await callClaude(this.apiKey, messages, systemPrompt, 8192);
     const data = extractJSON<any[]>(response);
 
-    return data.map((item: any, index: number) => ({
+    const slides = data.map((item: any, index: number) => ({
       ...item,
       id: `slide-${Date.now()}-${index}`,
       isGeneratingImage: false
     }));
+
+    // Assign lesson phases as post-processing (Fresh/Blend only)
+    if (input.mode === 'fresh' || input.mode === 'blend') {
+      return assignPhasesToSlides(slides, phaseResult);
+    }
+    return slides;
   }
 
   async generateSlideImage(imagePrompt: string, layout?: string): Promise<string | undefined> {
