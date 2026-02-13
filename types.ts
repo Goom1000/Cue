@@ -7,6 +7,9 @@ export type SlideSource =
   | { type: 'pasted'; pastedAt: string } // Pasted from clipboard (ISO 8601)
   | { type: 'manual' };                // User-created or manually edited
 
+// Lesson phase labels for the Gradual Release of Responsibility model (Phase 65)
+export type LessonPhase = 'hook' | 'i-do' | 'we-do' | 'we-do-together' | 'you-do' | 'plenary';
+
 export interface Slide {
   id: string;
   title: string;
@@ -34,6 +37,8 @@ export interface Slide {
   challengePrompt?: string;
   source?: SlideSource;
   originalPastedImage?: string; // Data URL of original pasted image for before/after comparison (Phase 56)
+  // Lesson phase label for pedagogically structured decks (Phase 65)
+  lessonPhase?: LessonPhase;
 }
 
 // AI Poster types for Working Wall export
