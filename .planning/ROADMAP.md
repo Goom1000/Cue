@@ -35,7 +35,11 @@ See MILESTONES.md for full history.
   2. Phase detection correctly identifies phases using UK/Australian teaching terminology (e.g., "Modelled Practice" maps to I Do, "Independent Practice" maps to You Do)
   3. Generating in Refine mode produces slides with no phase labels (phase detection skipped)
   4. Saving a deck with phase labels and reloading it preserves all labels exactly
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 65-01-PLAN.md -- Types, phase patterns dictionary, and phase detector module (TDD)
+- [ ] 65-02-PLAN.md -- Wire phase detection into generation flow for both providers
 
 ### Phase 66: Resource Processing + Upload
 **Goal**: Teachers can upload supplementary resources alongside their lesson plan and those resources are processed, stored, and ready for the generation pipeline to consume
@@ -77,7 +81,7 @@ See MILESTONES.md for full history.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
-| 65. Foundation Types + Phase Detection | 0/TBD | Not started | - |
+| 65. Foundation Types + Phase Detection | 0/2 | Planning complete | - |
 | 66. Resource Processing + Upload | 0/TBD | Not started | - |
 | 67. Generation Pipeline | 0/TBD | Not started | - |
 | 68. Phase-Aware UI + Resource Injection | 0/TBD | Not started | - |
