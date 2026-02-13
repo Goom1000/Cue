@@ -12,7 +12,9 @@
 
 import { describe, it, expect } from '@jest/globals';
 import { detectPhasesInText, assignPhasesToSlides } from './phaseDetector';
-import { Slide } from '../../types';
+import { Slide, LessonPhase } from '../../types';
+import { createCueFile } from '../saveService';
+import { isValidCueFile } from '../loadService';
 
 // =============================================================================
 // Helper: Create a minimal Slide for testing
@@ -283,5 +285,59 @@ Wrap up`;
     slides.forEach(slide => {
       expect(slide.lessonPhase).toBeUndefined();
     });
+  });
+});
+
+// =============================================================================
+// Phase label persistence (save/load round-trip)
+// =============================================================================
+
+describe('Phase label persistence', () => {
+  // Test 18: lessonPhase serializes in CueFile JSON
+  it('lessonPhase survives JSON serialize/parse round-trip via createCueFile', () => {
+    const slide = makeSlide({ title: 'Hook Slide', lessonPhase: 'hook' });
+    const cueFile = createCueFile('Test Deck', [slide], [], 'Test lesson text');
+    const json = JSON.stringify(cueFile);
+    const parsed = JSON.parse(json);
+
+    expect(parsed.content.slides[0].lessonPhase).toBe('hook');
+  });
+
+  // Test 19: All 6 phase values survive round-trip
+  it('all 6 lessonPhase values survive serialize/parse round-trip', () => {
+    const allPhases: LessonPhase[] = ['hook', 'i-do', 'we-do', 'we-do-together', 'you-do', 'plenary'];
+    const slides = allPhases.map((phase, i) =>
+      makeSlide({ title: `Slide ${i + 1}`, lessonPhase: phase })
+    );
+
+    const cueFile = createCueFile('Phase Test Deck', slides, [], 'Test lesson');
+    const json = JSON.stringify(cueFile);
+    const parsed = JSON.parse(json);
+
+    allPhases.forEach((phase, i) => {
+      expect(parsed.content.slides[i].lessonPhase).toBe(phase);
+    });
+  });
+
+  // Test 20: Slide without lessonPhase has undefined after round-trip
+  it('slide without lessonPhase has undefined after round-trip', () => {
+    const slide = makeSlide({ title: 'No Phase Slide' });
+    const cueFile = createCueFile('No Phase Deck', [slide], [], 'Test lesson');
+    const json = JSON.stringify(cueFile);
+    const parsed = JSON.parse(json);
+
+    expect(parsed.content.slides[0].lessonPhase).toBeUndefined();
+  });
+
+  // Test 21: isValidCueFile accepts file with lessonPhase slides
+  it('isValidCueFile accepts CueFile containing phase-tagged slides', () => {
+    const slides = [
+      makeSlide({ title: 'Hook', lessonPhase: 'hook' }),
+      makeSlide({ title: 'I Do', lessonPhase: 'i-do' }),
+      makeSlide({ title: 'Plenary', lessonPhase: 'plenary' }),
+    ];
+
+    const cueFile = createCueFile('Valid Phase Deck', slides, [], 'Test lesson');
+    expect(isValidCueFile(cueFile)).toBe(true);
   });
 });
