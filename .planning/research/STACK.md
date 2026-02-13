@@ -1,253 +1,297 @@
-# Technology Stack: Clipboard Paste & Deck Cohesion
+# Technology Stack
 
-**Project:** Cue v4.0 - Clipboard Paste & Deck Cohesion Features
-**Researched:** 2026-02-02
-**Confidence:** HIGH (Clipboard API), HIGH (Deck Cohesion)
+**Project:** Cue v5.0 -- Smart Generation Pipeline
+**Researched:** 2026-02-14
+**Focus:** Multi-pass AI generation, resource integration during generation, lesson phase detection
 
-## Executive Summary
+## Executive Decision
 
-The new features require **zero new dependencies**. The existing stack already contains everything needed:
-- Browser Clipboard API (native) for paste handling
-- `@google/genai` ^1.30.0 (already installed) includes embedding support for semantic similarity
-- Existing `imageProcessor.ts` pattern for processing pasted images
+**No new npm dependencies required.** The existing stack already has everything needed. The v5.0 features are architectural changes to how existing tools are orchestrated, not library additions.
 
-The only stack change is **leveraging underutilized capabilities** already present.
+## What Already Exists (DO NOT ADD)
 
----
+These are already in the codebase and validated. Listed here to prevent re-research or accidental duplication.
 
-## Feature 1: Clipboard Paste Handling
+| Capability | Technology | Version (installed) | Notes |
+|------------|-----------|---------------------|-------|
+| AI (Gemini) | `@google/genai` | 1.37.0 (^1.30.0) | Structured output, multimodal vision, streaming |
+| AI (Claude) | Direct fetch to API | N/A (raw HTTP) | tool_choice for structured output |
+| PDF parsing | pdf.js via CDN | 3.11.174 | Text extraction + page-to-image rendering |
+| DOCX parsing | mammoth | ^1.11.0 | HTML/text extraction from Word docs |
+| PPTX export | PptxGenJS via CDN | N/A | Write-only (no read/parse capability) |
+| ZIP handling | jszip | ^3.10.1 | Already used for multi-file export |
+| Image processing | Canvas API | Browser native | Compression, base64 conversion |
+| File upload | uploadService.ts | Custom | PDF/image/DOCX routing, validation |
+| Gap analysis | analyzeGaps + generateSlideFromGap | Custom | Both Gemini and Claude providers |
+| Document analysis | analyzeDocument (multimodal) | Custom | Vision-based structure detection |
+| Document enhancement | enhanceDocument | Custom | 3-level differentiation pipeline |
+| Content preservation | detector.ts | Custom | Regex-based question/activity detection |
+| Provider abstraction | AIProviderInterface | Custom | Strategy pattern, 20+ methods |
+| Retry/backoff | withRetry() | Custom | Exponential backoff with error classification |
 
-### Recommended Approach: Native Clipboard API
+## Recommended Stack Changes
 
-**No library needed.** Use the browser's native Clipboard API.
+### No New Dependencies
 
-| Capability | API | Browser Support | Notes |
-|------------|-----|-----------------|-------|
-| Paste event listener | `paste` event + `clipboardData` | 96%+ all browsers | Synchronous, well-supported |
-| Read images | `clipboardData.files` / `clipboardData.items` | Chrome 66+, Firefox 63+, Safari 13.1+ | Works in paste event context |
-| Async clipboard read | `navigator.clipboard.read()` | Chrome 76+, Firefox 127+, Safari 13.1+ | Requires user gesture |
-| Read text | `clipboardData.getData('text/plain')` | Universal | Already used in codebase |
-| Read HTML | `clipboardData.getData('text/html')` | Universal | PowerPoint copies as HTML |
+The three v5.0 features require zero new packages. Here is why:
 
-### Why No Library
+#### 1. Multi-Pass AI Generation Pipeline
 
-1. **Native API is sufficient** - Paste event + clipboardData handles all use cases
-2. **Already used in codebase** - `EnhancementPanel.tsx` already uses `e.clipboardData.getData('text/plain')`
-3. **No polyfill needed** - Target browsers (modern Chrome, Safari, Firefox) all support required features
-4. **No CORS/permissions issues** - Paste event doesn't require `clipboard-read` permission
+**What it needs:** Sequential AI calls with intermediate state, progress tracking, and the ability to pass Pass 1 output as Pass 2 input.
 
-### Implementation Pattern
+**What exists:** The codebase already does multi-step AI orchestration in several places:
+- `handleGenerate()` in App.tsx: generates slides, then optionally regenerates speakerNotes per-slide for non-standard verbosity (lines 563-590)
+- `transformForColleague()`: batched slide processing with `onProgress` callback
+- `enhanceUploadedDocument()`: analysis -> enhancement pipeline with state machine (`EnhancementState`)
+- `withRetry()`: retry wrapper for transient failures
 
-```typescript
-// Already in codebase pattern (EnhancementPanel.tsx:401-405)
-onPaste={(e) => {
-  e.preventDefault();
-  const text = e.clipboardData.getData('text/plain');
-  // handle text
-}}
+**What to build (no new deps):**
+- A `GenerationPipeline` service class that chains: generate -> analyze gaps -> fill gaps -> return merged deck
+- Reuse `GapAnalysisResult` and `generateSlideFromGap` types/methods already on `AIProviderInterface`
+- Progress state machine mirroring `EnhancementState` pattern (idle -> generating -> analyzing -> filling -> complete -> error)
 
-// For images (new):
-onPaste={(e) => {
-  e.preventDefault();
-  const items = e.clipboardData.items;
-  for (const item of items) {
-    if (item.type.startsWith('image/')) {
-      const file = item.getAsFile();
-      // Use existing processImage() from imageProcessor.ts
-    }
-  }
-}}
+**Confidence:** HIGH -- all primitives exist, this is pure orchestration code.
 
-// For HTML (PowerPoint paste):
-onPaste={(e) => {
-  e.preventDefault();
-  const html = e.clipboardData.getData('text/html');
-  const text = e.clipboardData.getData('text/plain');
-  // Parse HTML for structured content, fall back to text
-}}
+#### 2. Resource Integration During Generation
+
+**What it needs:** Accept uploaded files (PDF, images, DOCX, PPTX) alongside the lesson plan, extract their content, and feed it to the AI during slide generation.
+
+**What exists:**
+- `uploadService.ts` already validates and routes files to processors
+- `pdfProcessor.ts` extracts text + page images from PDFs
+- `docxProcessor.ts` extracts text from Word docs via mammoth
+- `imageProcessor.ts` extracts base64 from images
+- `GenerationInput` type already has `lessonText`, `lessonImages`, `presentationText`, `presentationImages`
+
+**What to build (no new deps):**
+- Extend `GenerationInput` with a `supplementaryResources?: ProcessedResource[]` field
+- Each resource carries its extracted text and/or images
+- System prompt includes resource content as context ("The teacher has also provided these supplementary materials: ...")
+- PPTX upload: use existing `jszip` to unzip, parse `ppt/slides/slide*.xml` for text, extract images from `ppt/media/` -- see detailed approach below
+
+**PPTX Parsing via JSZip (no new dependency):**
+The project already has `jszip ^3.10.1`. PPTX files are ZIP archives (Office Open XML format). The extraction path:
+```
+1. jszip.loadAsync(file) to open the PPTX as a ZIP
+2. Read ppt/slides/slide1.xml, slide2.xml, etc.
+3. Parse XML with DOMParser (browser-native) to extract text from <a:t> elements
+4. Extract images from ppt/media/*.png|jpg as base64
+5. Return { text: string, images: string[], slideCount: number }
 ```
 
-### PowerPoint Clipboard Format
+This is the same approach used by pptx-text-parser and pptx-content-extractor libraries, but we avoid adding a dependency because the XML structure is simple and we already have JSZip. The core extraction logic is ~80 lines.
 
-When copying slides from PowerPoint (desktop or web):
+**Confidence:** HIGH -- file processing pipeline exists, just needs a new processor and extended input type.
 
-| Data Type | Content | Use Case |
-|-----------|---------|----------|
-| `text/html` | HTML fragment with formatting | Structured content extraction |
-| `text/plain` | Plain text fallback | Simple text extraction |
-| `image/png` | Screenshot of selection | Visual capture (if available) |
+#### 3. Lesson Phase Detection (I Do / We Do / You Do)
 
-**Key insight:** PowerPoint copies as [CF_HTML format](https://learn.microsoft.com/en-us/windows/win32/dataxchg/html-clipboard-format) which includes `<!--StartFragment-->` markers. Parse the HTML to extract slide content structure.
+**What it needs:** Detect pedagogical phases in lesson plan text and tag slides with their phase.
 
-### Browser Compatibility Notes
+**What exists:**
+- `contentPreservation/detector.ts` already does regex-based pattern matching on lesson plan text
+- The existing system prompt already references phases: "Preserve the pedagogical structure: 'Hook', 'I Do', 'We Do', 'You Do'" (geminiService.ts line 173)
+- `Slide` type has extensible optional fields (can add `lessonPhase?`)
 
-| Browser | Paste Event | Image Paste | HTML Paste |
-|---------|-------------|-------------|------------|
-| Chrome 66+ | Full | Full | Full |
-| Firefox 63+ | Full | Full | Full |
-| Safari 13.1+ | Full | Full | Full |
-| Edge 79+ | Full | Full | Full |
+**What to build (no new deps):**
+- A `phaseDetector.ts` module using regex patterns (like `detector.ts` does for questions/activities)
+- Pattern matching for common phase labels in Australian/UK education:
+  - Exact: "I Do", "We Do", "We Do Together", "You Do"
+  - Equivalent: "Modelling", "Guided Practice", "Shared Practice", "Independent Practice"
+  - Structural: "Introduction", "Warm-Up", "Hook", "Main Activity", "Plenary", "Exit Ticket"
+- Feed detected phases to AI in the generation prompt so AI can tag slides with phase metadata
+- Add `lessonPhase?: LessonPhase` to the `Slide` type
 
-**Security:** Paste events work on any page. No HTTPS requirement. No permission prompts (unlike `navigator.clipboard.read()`).
+**Why regex over AI for phase detection:**
+- Phase labels are consistent and finite (teachers use standard terminology)
+- Regex detection is instant (0ms) vs. an extra AI call (~2-5 seconds)
+- The AI already sees the lesson plan -- telling it "I detected I Do at position X, We Do at position Y" lets it assign phases to slides accurately
+- Matches the existing `contentPreservation/detector.ts` pattern the codebase already uses
 
----
+**Confidence:** HIGH -- purely string matching + prompt engineering, no external tools needed.
 
-## Feature 2: Deck Cohesion Analysis
+## Detailed Technology Decisions
 
-### Recommended Approach: Gemini Embeddings
+### @google/genai SDK: Stay on ^1.30.0 (currently 1.37.0)
 
-**No new dependency.** Use `@google/genai` (already at ^1.30.0) with `embedContent` API.
+The installed version (1.37.0) is recent. The latest on npm is 1.41.0 (published 2 days ago per npmjs.com). The `^1.30.0` semver range covers it. No action needed.
 
-| Component | Technology | Status | Notes |
-|-----------|------------|--------|-------|
-| Embedding Model | `gemini-embedding-001` | Available via existing SDK | 3072 dimensions, MRL-trained |
-| Similarity Metric | Cosine similarity | Implement in-app (trivial) | Standard formula |
-| SDK Method | `ai.models.embedContent()` | Available in ^1.30.0+ | Supports batch embedding |
+Key capabilities already available in 1.37.0 that v5.0 uses:
+- `responseSchema` for structured JSON output (used in gap analysis, condensation, etc.)
+- Multimodal `inlineData` for image input (used for document analysis, slide analysis)
+- System instructions (used in all generation prompts)
 
-### Why Embeddings Over Prompt Engineering
+**Recommendation:** Do NOT update to 1.41.0 unless a specific bug fix is needed. The project works, avoid unnecessary churn.
 
-| Approach | Pros | Cons |
-|----------|------|------|
-| **Embeddings + Cosine** | Deterministic, fast, cacheable, cheap | Requires understanding threshold tuning |
-| Prompt-based comparison | Flexible, natural language output | Expensive, slower, non-deterministic |
+### Claude API: No Changes
 
-**Recommendation:** Use embeddings for gap detection (fast, cheap), then use generative AI only to explain detected gaps in natural language.
+Claude is called via direct `fetch()` to `https://api.anthropic.com/v1/messages` with `tool_choice` for structured output. This pattern works and does not need modification. The multi-pass pipeline will make sequential calls using the same provider instance.
 
-### Gemini Embedding API Syntax
+Default model is `claude-sonnet-4-20250514`. No change needed.
 
-```typescript
-import { GoogleGenAI } from "@google/genai";
+### JSZip for PPTX Reading: Already Installed
 
-const ai = new GoogleGenAI({ apiKey: "..." });
+`jszip ^3.10.1` is already a dependency. PPTX files are ZIP archives (Office Open XML format). The extraction path:
 
-// Embed lesson plan sections
-const lessonEmbeddings = await ai.models.embedContent({
-  model: 'gemini-embedding-001',
-  contents: lessonPlanSections, // string[]
-  config: { taskType: 'SEMANTIC_SIMILARITY' }
-});
+1. `ppt/slides/slide{N}.xml` -- Slide content (text in `<a:t>` elements within `<a:p>` paragraphs)
+2. `ppt/media/image{N}.png` -- Embedded images
+3. `ppt/presentation.xml` -- Slide order metadata (maps rId to slide files)
+4. `ppt/notesSlides/notesSlide{N}.xml` -- Speaker notes (optional)
+5. `[Content_Types].xml` -- MIME types for each file in the archive
 
-// Embed slide content
-const slideEmbeddings = await ai.models.embedContent({
-  model: 'gemini-embedding-001',
-  contents: slideContents, // string[]
-  config: { taskType: 'SEMANTIC_SIMILARITY' }
-});
+DOMParser (browser-native) handles the XML parsing. No xml2js or other XML library needed.
 
-// Compare using cosine similarity
-function cosineSimilarity(a: number[], b: number[]): number {
-  const dot = a.reduce((sum, ai, i) => sum + ai * b[i], 0);
-  const normA = Math.sqrt(a.reduce((sum, ai) => sum + ai * ai, 0));
-  const normB = Math.sqrt(b.reduce((sum, bi) => sum + bi * bi, 0));
-  return dot / (normA * normB);
-}
+Key XML structure for text extraction:
+```xml
+<!-- ppt/slides/slide1.xml -->
+<p:sp>
+  <p:txBody>
+    <a:p>              <!-- paragraph -->
+      <a:r>            <!-- run -->
+        <a:t>Text</a:t>  <!-- text content -->
+      </a:r>
+    </a:p>
+  </p:txBody>
+</p:sp>
 ```
 
-### Embedding Model Details
+### File Type Support Matrix (After v5.0)
 
-| Property | Value |
-|----------|-------|
-| Model | `gemini-embedding-001` |
-| Default Dimensions | 3072 |
-| Reduced Dimensions | 768, 1536 (via `outputDimensionality`) |
-| Token Limit | 8K tokens per text |
-| Task Types | `SEMANTIC_SIMILARITY`, `RETRIEVAL_DOCUMENT`, `RETRIEVAL_QUERY`, `CLASSIFICATION`, `CLUSTERING` |
-
-**For deck cohesion:** Use `SEMANTIC_SIMILARITY` task type for both lesson plan and slides.
-
-### Cost Considerations
-
-Gemini embeddings are significantly cheaper than generative API calls:
-- Embedding: ~1000x cheaper per token than generation
-- Batch support: Send multiple texts in one API call
-- Cacheable: Embed slides once, re-embed only on changes
-
----
+| File Type | Lesson Plan Upload | Resource Upload | As Supplementary | Parse Library |
+|-----------|-------------------|----------------|-----------------|---------------|
+| PDF | Yes (existing) | Yes (existing) | Yes (new) | pdf.js CDN |
+| Image (PNG/JPG) | Yes (existing) | Yes (existing) | Yes (new) | Canvas API |
+| DOCX | No | Yes (existing) | Yes (new) | mammoth |
+| PPTX | No | **New** | **New** | jszip + DOMParser |
 
 ## What NOT to Add
 
-### Libraries Considered and Rejected
+| Technology | Why Considered | Why Rejected |
+|------------|---------------|-------------|
+| officeparser (npm) | PPTX parsing | Adds 200KB+ for something achievable with jszip (already installed) + DOMParser (browser-native). 80 lines of custom code vs. a dependency. |
+| pptx-parser (npm) | PPTX parsing | Node.js focused, browser support unclear, 6 transitive deps |
+| pptx-content-extractor (npm) | PPTX parsing | Node.js only (uses `fs`), not browser-compatible |
+| LangChain | Pipeline orchestration | Massive overkill for sequential AI calls; project uses direct API calls successfully |
+| Zustand/Redux | Pipeline state management | App state lives in App.tsx useState; pipeline state is a service-layer concern using discriminated unions |
+| xml2js (npm) | XML parsing for PPTX | DOMParser is browser-native and sufficient for the simple XML queries needed |
+| XState | State machine for pipeline | `EnhancementState` discriminated union pattern already works well in the codebase |
+| AbortController polyfill | Cancellation support | Browser-native since Chrome 66, Safari 12.1 -- project targets modern browsers |
+| compromise / natural (NLP) | Phase label detection | Overkill -- regex handles finite set of known pedagogical labels |
 
-| Library | Why Considered | Why Rejected |
-|---------|----------------|--------------|
-| `clipboard-polyfill` | Async clipboard polyfill | Not needed - paste event sufficient |
-| `sentence-transformers` (Python) | High-quality embeddings | Python-only, Gemini embeddings are sufficient |
-| `@xenova/transformers` | Client-side embeddings | 100MB+ model download, Gemini API is simpler |
-| `compromise` / `natural` | NLP text parsing | Overkill - AI handles semantic analysis |
-| `diff` / `diff-match-patch` | Text diffing | Wrong tool - need semantic, not textual similarity |
+## Integration Points with Existing Code
 
-### Why Client-Side Embeddings Were Rejected
+### Multi-Pass Pipeline Integration
 
-1. **Model size:** Transformer.js requires downloading 100MB+ models
-2. **Latency:** First load would be very slow
-3. **Existing infrastructure:** Already have Gemini API key and SDK
-4. **Quality:** Gemini embeddings outperform many client-side alternatives (MTEB benchmark leader)
-
----
-
-## Integration Points
-
-### With Existing Codebase
-
-| New Feature | Integrates With | How |
-|-------------|-----------------|-----|
-| Image paste | `services/documentProcessors/imageProcessor.ts` | Reuse `processImage()` for pasted images |
-| Text/HTML paste | `App.tsx` paste handler pattern | Extend existing textarea paste handling |
-| Embeddings | `services/geminiService.ts` | Add `embedContent` calls alongside `generateContent` |
-| Cohesion UI | `components/Dashboard.tsx` | Add cohesion panel to editing view |
-
-### File Structure Recommendation
+The pipeline hooks into the existing generation flow at `App.tsx handleGenerate()`:
 
 ```
-services/
-  clipboardService.ts          # NEW: Paste event handling, format detection
-  cohesionService.ts           # NEW: Embedding generation, similarity calculation
-  geminiService.ts             # EXTEND: Add embedContent wrapper
+BEFORE (current single-pass):
+  handleGenerate()
+    -> provider.generateLessonSlides(input)
+    -> setSlides(result)
+
+AFTER (v5.0 multi-pass):
+  handleGenerate()
+    -> generationPipeline.execute({
+         provider,
+         lessonInput: GenerationInput,
+         resources?: ProcessedResource[],
+         enableAutoGapFilling: boolean,
+         onProgress: (PipelineState) => void
+       })
+    -> setSlides(result.slides)
 ```
 
----
+The pipeline internally calls existing `AIProviderInterface` methods:
+1. `provider.generateLessonSlides()` -- existing, unchanged
+2. `provider.analyzeGaps()` -- existing, unchanged
+3. `provider.generateSlideFromGap()` -- existing, called per critical/recommended gap
+4. Merge gap slides into deck at suggested positions, return combined result
 
-## Version Requirements
+### Resource Upload Integration
 
-| Package | Current | Required | Change Needed |
-|---------|---------|----------|---------------|
-| `@google/genai` | ^1.30.0 | ^1.30.0 | None (embedContent available) |
-| React | ^19.2.0 | ^19.2.0 | None |
-| TypeScript | ~5.8.2 | ~5.8.2 | None |
-| Vite | ^6.2.0 | ^6.2.0 | None |
+Upload panel on landing page extends the existing dual-PDF upload zones:
 
-**No package.json changes required.**
+```
+BEFORE (current):
+  [Lesson Plan Zone] + [Existing Presentation Zone]
 
----
+AFTER (v5.0):
+  [Lesson Plan Zone] + [Existing Presentation Zone] + [+ Add Resources]
+```
 
-## Browser Requirements
+Resources processed through existing `processUploadedFile()` in `uploadService.ts`, extended with:
+- New `pptxProcessor.ts` for PPTX files
+- Extended `ACCEPTED_TYPES` and `EXTENSION_MAP` to include `.pptx` MIME type
 
-| Feature | Minimum Browser | Notes |
-|---------|-----------------|-------|
-| Paste images | Chrome 66, Firefox 63, Safari 13.1 | `clipboardData.items` |
-| Paste HTML | Chrome 1, Firefox 1, Safari 4 | `clipboardData.getData()` |
-| Async clipboard (optional) | Chrome 76, Firefox 127, Safari 13.1 | Only if implementing paste button |
+### Slide Type Extension for Phases
 
-**Target browsers already meet requirements** - Cue targets modern browsers only.
+```typescript
+// Non-breaking addition to Slide interface in types.ts:
+export type LessonPhase =
+  | 'hook'
+  | 'i-do'
+  | 'we-do'
+  | 'we-do-together'
+  | 'you-do'
+  | 'plenary';
 
----
+export interface Slide {
+  // ... existing fields unchanged ...
+  lessonPhase?: LessonPhase;
+}
+```
+
+### CueFile Format Compatibility
+
+The `Slide` interface change is purely additive (new optional field). Existing .cue files will load without modification -- `lessonPhase` will be `undefined` for old slides. No file format version bump needed.
+
+## Version Pins (Current Working State)
+
+| Package | package.json | Installed | Action |
+|---------|-------------|-----------|--------|
+| `@google/genai` | ^1.30.0 | 1.37.0 | Keep |
+| `react` | ^19.2.0 | 19.2.0 | Keep |
+| `jszip` | ^3.10.1 | 3.10.1 | Keep (now also used for PPTX read) |
+| `mammoth` | ^1.11.0 | 1.11.0 | Keep |
+| `jspdf` | ^4.0.0 | 4.0.0 | Keep |
+| `html2canvas` | ^1.4.1 | 1.4.1 | Keep |
+| `typescript` | ~5.8.2 | 5.8.x | Keep |
+| `vite` | ^6.2.0 | 6.2.x | Keep |
+
+**No version bumps needed. No new packages needed.**
+
+## New Files to Create (Architecture Preview)
+
+| File | Purpose | Lines Est. |
+|------|---------|------------|
+| `services/generationPipeline.ts` | Multi-pass orchestration (generate -> analyze -> fill -> merge) | ~200 |
+| `services/documentProcessors/pptxProcessor.ts` | PPTX text/image extraction via JSZip + DOMParser | ~120 |
+| `services/phaseDetection/phaseDetector.ts` | Regex-based lesson phase detection | ~150 |
+| `services/phaseDetection/phasePatterns.ts` | Pattern dictionaries for phase labels | ~80 |
+| `services/prompts/pipelinePrompts.ts` | System prompts for phase-aware + resource-aware generation | ~100 |
+
+Estimated total: ~650 new lines across 5 new files, modifying ~5-8 existing files.
+
+## Existing Files to Modify
+
+| File | Change | Reason |
+|------|--------|--------|
+| `types.ts` | Add `LessonPhase` type, `lessonPhase?` to Slide, `ProcessedResource` type | New data model fields |
+| `services/aiProvider.ts` | Extend `GenerationInput` with `supplementaryResources?` | Resource integration |
+| `services/uploadService.ts` | Add PPTX MIME type to `ACCEPTED_TYPES` and `EXTENSION_MAP` | PPTX upload support |
+| `services/geminiService.ts` | Update system prompt to include resource context and phase assignments | Enhanced generation |
+| `services/providers/claudeProvider.ts` | Mirror geminiService prompt changes | Provider parity |
+| `services/prompts/gapAnalysisPrompts.ts` | Update to accept resource context alongside lesson plan | Resource-aware gap analysis |
+| `App.tsx` | Replace direct `generateLessonSlides()` with `generationPipeline.execute()` | Pipeline orchestration |
 
 ## Sources
 
-**Clipboard API:**
-- [MDN Clipboard API](https://developer.mozilla.org/en-US/docs/Web/API/Clipboard_API) - Official documentation
-- [MDN Paste Event](https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event) - Event handling
-- [web.dev Async Clipboard](https://web.dev/articles/async-clipboard) - Modern clipboard patterns
-- [web.dev Paste Images](https://web.dev/patterns/clipboard/paste-images) - Image paste patterns
-- [Can I Use Clipboard](https://caniuse.com/clipboard) - Browser compatibility (96.84% global support)
-- [Microsoft CF_HTML Format](https://learn.microsoft.com/en-us/windows/win32/dataxchg/html-clipboard-format) - PowerPoint clipboard format
-
-**Gemini Embeddings:**
-- [Gemini Embeddings API](https://ai.google.dev/gemini-api/docs/embeddings) - Official documentation
-- [@google/genai npm](https://www.npmjs.com/package/@google/genai) - SDK documentation (v1.39.0 latest)
-- [Google Developers Blog - Gemini Embedding](https://developers.googleblog.com/en/gemini-embedding-text-model-now-available-gemini-api/) - Model announcement
-
-**Semantic Similarity:**
-- [Hugging Face Sentence Similarity](https://huggingface.co/tasks/sentence-similarity) - Task overview
-- [IBM Cosine Similarity](https://www.ibm.com/think/topics/cosine-similarity) - Metric explanation
-- [Sentence Transformers STS](https://www.sbert.net/docs/sentence_transformer/usage/semantic_textual_similarity.html) - Implementation patterns
+- Codebase analysis: `package.json`, `services/aiProvider.ts`, `services/geminiService.ts`, `services/uploadService.ts`, `types.ts`, `App.tsx`
+- [@google/genai npm](https://www.npmjs.com/package/@google/genai) -- latest version 1.41.0, installed 1.37.0
+- [Gemini API structured output and function calling](https://ai.google.dev/gemini-api/docs/function-calling) -- confirms chained function calling available
+- [Gemini API multi-turn conversations](https://firebase.google.com/docs/ai-logic/chat) -- chat history management
+- [JSZip](https://www.npmjs.com/package/jszip) -- already installed ^3.10.1
+- [Office Open XML format (training data)](https://learn.microsoft.com/en-us/office/open-xml/understanding-the-open-xml-file-formats) -- PPTX = ZIP with XML, HIGH confidence
+- [pptx-content-extractor](https://github.com/Paul0908/pptx-content-extractor) -- reference for JSZip-based PPTX extraction approach
+- [I Do, We Do, You Do framework](https://study.com/academy/lesson/i-do-we-do-you-do-lesson-plan-template.html) -- GRR pedagogical structure
+- Existing codebase patterns from v4.0 (gap analysis, Phase 59) and v3.7 (document enhancement, Phases 43-47)
