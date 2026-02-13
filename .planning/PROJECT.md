@@ -165,14 +165,14 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Active
 
-## Current Milestone: v5.0 Smart Generation + Lesson Phases
+## Current Milestone: v5.0 Smart Generation
 
-**Goal:** Produce complete, thorough slide decks on the first generation by automatically cross-referencing against the lesson plan, and tag slides with lesson phase headers (I Do/We Do/You Do) so teachers know how to conduct each section.
+**Goal:** Produce 80% complete slide decks on the first generation by auto-filling gaps, integrating uploaded resources, and tagging lesson phases — so teachers rarely need manual fixes.
 
 **Target features:**
-- Auto gap analysis folded into initial generation pipeline (generate → cross-reference → fill gaps → deliver)
-- Lesson phase detection from lesson plan (I Do, We Do, We Do Together, You Do)
-- Phase labels visible on slides and in teleprompter
+- Resource upload alongside lesson plan (PDF, PowerPoint, images) — AI decides placement as slides or resources
+- Auto gap analysis folded into generation pipeline (generate → cross-reference → fill gaps → deliver)
+- Lesson phase detection (I Do, We Do, We Do Together, You Do) with labels on slides and teleprompter
 - Manual "Check for Gaps" button retained for post-edit re-checking
 
 ### Deferred
