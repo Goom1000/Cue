@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-14)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script that lets them sound knowledgeable and natural.
-**Current focus:** v5.0 Smart Generation -- Phase 65 (Foundation Types + Phase Detection)
+**Current focus:** v5.0 Smart Generation -- Phase 66 (Resource Processing + Upload)
 
 ## Current Position
 
-Phase: 65 of 68 (Foundation Types + Phase Detection)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-02-14 -- Completed 65-02-PLAN.md (Generation Wiring)
+Phase: 66 of 68 (Resource Processing + Upload)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-02-14 -- Phase 65 verified and complete
 
-Progress: [██░░░░░░░░] 20%
+Progress: [██░░░░░░░░] 25%
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 23 (v1.0 through v4.1)
-- Total phases completed: 64
-- Total plans completed: 218
+- Total phases completed: 65
+- Total plans completed: 219
 - Total LOC: ~35,000 TypeScript
 
 **Recent Milestones:**
@@ -57,9 +57,9 @@ See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Completed Phase 65 Plan 02 (Generation Wiring) -- Phase 65 complete
-Resume file: .planning/phases/65-foundation-types-phase-detection/65-02-SUMMARY.md
+Stopped at: Phase 65 verified and complete -- ready to plan Phase 66
+Resume file: .planning/ROADMAP.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-14 -- Phase 65 Plan 02 complete*
+*Last updated: 2026-02-14 -- Phase 65 verified complete*
