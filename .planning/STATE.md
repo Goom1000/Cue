@@ -5,16 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-08)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script that lets them sound knowledgeable and natural.
-**Current focus:** Planning next milestone
+**Current focus:** v5.0 Smart Generation + Lesson Phases
 
 ## Current Position
 
-Phase: 64 of 64 -- v4.1 SHIPPED
-Plan: Not started
-Status: Ready to plan next milestone
-Last activity: 2026-02-08 -- v4.1 milestone archived
-
-Progress: [██████████] v4.1 complete -- 23 milestones shipped
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-02-08 — Milestone v5.0 started
 
 ## Performance Metrics
 
@@ -38,7 +36,7 @@ See PROJECT.md Key Decisions table for full history.
 ### Pending Todos
 
 See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
-Notable: Slide Editor canvas mode (2026-02-07) for composing images on pasted slides.
+Notable: Slide annotation layer (2026-02-08) for image overlays + arrows on slides.
 
 ### Blockers/Concerns
 
@@ -47,9 +45,9 @@ Notable: Slide Editor canvas mode (2026-02-07) for composing images on pasted sl
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: v4.1 milestone archived, ready for next milestone
+Stopped at: Defining v5.0 requirements
 Resume file: .planning/PROJECT.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-08 -- v4.1 milestone archived*
+*Last updated: 2026-02-08 — v5.0 milestone started*
