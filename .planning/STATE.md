@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-14)
 ## Current Position
 
 Phase: 65 of 68 (Foundation Types + Phase Detection)
-Plan: 1 of TBD in current phase
-Status: In progress
-Last activity: 2026-02-14 -- Completed 65-01-PLAN.md (Foundation Types + Phase Detection)
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-02-14 -- Completed 65-02-PLAN.md (Generation Wiring)
 
-Progress: [█░░░░░░░░░] 10%
+Progress: [██░░░░░░░░] 20%
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 23 (v1.0 through v4.1)
 - Total phases completed: 64
-- Total plans completed: 216
+- Total plans completed: 218
 - Total LOC: ~35,000 TypeScript
 
 **Recent Milestones:**
@@ -40,6 +40,11 @@ See PROJECT.md Key Decisions table for full history.
 - "I Do" uses case-sensitive structural regex; longer synonyms use case-insensitive
 - PHASE_PATTERNS ordered: hook, i-do, we-do-together, we-do, you-do, plenary (longest match first)
 
+**Phase 65-02 decisions:**
+- Phase detection is pure client-side post-processing -- AI prompt and response schema are not modified
+- Mode guard uses explicit `fresh || blend` (not `!== refine`) for safety against future mode additions
+- Phase detection runs before content preservation detection to operate on full unprocessed lesson text
+
 ### Pending Todos
 
 See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
@@ -52,9 +57,9 @@ See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Completed Phase 65 Plan 01 (Foundation Types + Phase Detection)
-Resume file: .planning/phases/65-foundation-types-phase-detection/65-01-SUMMARY.md
+Stopped at: Completed Phase 65 Plan 02 (Generation Wiring) -- Phase 65 complete
+Resume file: .planning/phases/65-foundation-types-phase-detection/65-02-SUMMARY.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-14 -- Phase 65 Plan 01 complete*
+*Last updated: 2026-02-14 -- Phase 65 Plan 02 complete*
