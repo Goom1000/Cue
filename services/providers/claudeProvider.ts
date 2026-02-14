@@ -772,6 +772,14 @@ export class ClaudeProvider implements AIProviderInterface {
       });
     }
 
+    // Append supplementary resource text to user prompt (Pass 1 only)
+    if (input.supplementaryResourceText) {
+      const lastPart = contentParts[contentParts.length - 1];
+      if (lastPart.type === 'text') {
+        lastPart.text += input.supplementaryResourceText;
+      }
+    }
+
     // Helper to add images to content parts
     const addImages = (images: string[] | undefined, limit: number = 10) => {
       if (images && images.length > 0) {

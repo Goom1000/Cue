@@ -334,6 +334,11 @@ export const generateLessonSlides = async (
     contents.push({ text: `Combine this lesson plan:\n\n${input.lessonText}\n\n---\n\nWith this existing presentation:\n\n${input.presentationText || ''}\n\nCreate enhanced Cue-style slides that incorporate content from both sources.${verbosityInstruction}` });
   }
 
+  // Append supplementary resource text to user prompt (Pass 1 only)
+  if (input.supplementaryResourceText) {
+    contents[contents.length - 1].text += input.supplementaryResourceText;
+  }
+
   // Helper to add images to content parts
   const addImages = (images: string[] | undefined, limit: number = 10) => {
     if (images && images.length > 0) {
