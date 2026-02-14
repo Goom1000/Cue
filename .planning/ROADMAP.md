@@ -66,11 +66,12 @@ Plans:
   3. If gap analysis or gap filling fails mid-pipeline, the teacher still receives the Pass 1 slides with a warning toast -- no blank screen or error state
   4. Remaining nice-to-have gaps appear in the existing gap analysis panel for optional manual addition
   5. Gap slides insert at correct positions without corrupting existing slide order, and the teacher can cancel the pipeline at any point with partial results preserved
-**Plans:** 2 plans
+**Plans:** 3 plans
 
 Plans:
 - [x] 67-01-PLAN.md -- Pipeline service module and gap slide insertion utility
 - [x] 67-02-PLAN.md -- Wire pipeline into App.tsx with progress UI and cancel support
+- [ ] 67-03-PLAN.md -- Thread AbortSignal into generateLessonSlides for immediate Pass 1 cancellation (gap closure)
 
 ### Phase 68: Phase-Aware UI + Resource Injection
 **Goal**: Phase labels, coverage scores, and resource content are visible and actionable in the editor -- teachers see what phase each slide belongs to, how complete their deck is, and resource content woven into generated slides
@@ -91,9 +92,9 @@ Plans:
 |-------|---------------|--------|-----------|
 | 65. Foundation Types + Phase Detection | 2/2 | ✓ Complete | 2026-02-14 |
 | 66. Resource Processing + Upload | 2/2 | ✓ Complete | 2026-02-14 |
-| 67. Generation Pipeline | 2/2 | ✓ Complete | 2026-02-15 |
+| 67. Generation Pipeline | 2/3 | Gap closure | - |
 | 68. Phase-Aware UI + Resource Injection | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-02-14*
-*Last updated: 2026-02-15 -- Phase 67 complete*
+*Last updated: 2026-02-15 -- Phase 67 gap closure plan created*
