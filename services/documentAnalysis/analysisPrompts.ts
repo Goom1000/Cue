@@ -49,7 +49,7 @@ IMPORTANT:
  */
 export function buildAnalysisUserPrompt(
   filename: string,
-  documentType: 'pdf' | 'image' | 'docx',
+  documentType: 'pdf' | 'image' | 'docx' | 'pptx',
   extractedText: string,
   pageCount: number
 ): string {

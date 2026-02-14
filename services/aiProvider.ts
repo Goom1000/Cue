@@ -350,7 +350,7 @@ export interface AIProviderInterface {
   analyzeDocument(
     documentImages: string[],   // Base64 images (pages or single image, no data URL prefix)
     documentText: string,       // Extracted text (from pdf.js or mammoth)
-    documentType: 'pdf' | 'image' | 'docx',
+    documentType: 'pdf' | 'image' | 'docx' | 'pptx',
     filename: string,
     pageCount: number
   ): Promise<DocumentAnalysis>;

@@ -7,33 +7,36 @@ import { UploadedResource, UploadValidationError } from '../types';
 import { processPdf } from './documentProcessors/pdfProcessor';
 import { processImage } from './documentProcessors/imageProcessor';
 import { processDocx } from './documentProcessors/docxProcessor';
+import { processPptx } from './documentProcessors/pptxProcessor';
 
 // File size limit: 25MB
 const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024;
 
 // Accepted MIME types mapped to our resource types
-const ACCEPTED_TYPES: Record<string, 'pdf' | 'image' | 'docx'> = {
+const ACCEPTED_TYPES: Record<string, 'pdf' | 'image' | 'docx' | 'pptx'> = {
   'application/pdf': 'pdf',
   'image/png': 'image',
   'image/jpeg': 'image',
   'image/jpg': 'image',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx'
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'pptx'
 };
 
 // Accepted file extensions (fallback for MIME detection)
-const EXTENSION_MAP: Record<string, 'pdf' | 'image' | 'docx'> = {
+const EXTENSION_MAP: Record<string, 'pdf' | 'image' | 'docx' | 'pptx'> = {
   '.pdf': 'pdf',
   '.png': 'image',
   '.jpg': 'image',
   '.jpeg': 'image',
-  '.docx': 'docx'
+  '.docx': 'docx',
+  '.pptx': 'pptx'
 };
 
 /**
  * Detect file type from MIME type or extension fallback.
  * Returns null if unsupported.
  */
-export function getFileType(file: File): 'pdf' | 'image' | 'docx' | null {
+export function getFileType(file: File): 'pdf' | 'image' | 'docx' | 'pptx' | null {
   // Check MIME type first
   if (ACCEPTED_TYPES[file.type]) {
     return ACCEPTED_TYPES[file.type];
@@ -63,7 +66,7 @@ export function validateFile(file: File): UploadValidationError | null {
   if (!fileType) {
     return {
       code: 'UNSUPPORTED_TYPE',
-      message: `Unsupported file type. Please upload PDF, PNG, JPG, or DOCX files.`
+      message: `Unsupported file type. Please upload PDF, PNG, JPG, DOCX, or PPTX files.`
     };
   }
 
@@ -88,7 +91,7 @@ export async function processUploadedFile(file: File): Promise<UploadedResource>
   let result: {
     thumbnail: string;
     pageCount: number;
-    type: 'pdf' | 'image' | 'docx';
+    type: 'pdf' | 'image' | 'docx' | 'pptx';
     text?: string;
     base64?: string;
     images?: string[];  // For PDF page images
@@ -104,6 +107,9 @@ export async function processUploadedFile(file: File): Promise<UploadedResource>
         break;
       case 'docx':
         result = await processDocx(file);
+        break;
+      case 'pptx':
+        result = await processPptx(file);
         break;
     }
   } catch (err: any) {
@@ -132,6 +138,8 @@ export async function processUploadedFile(file: File): Promise<UploadedResource>
   // Attach extracted content if available (for AI processing)
   if (result.type === 'docx' && 'text' in result) {
     resource.content = { text: result.text };
+  } else if (result.type === 'pptx' && 'text' in result) {
+    resource.content = { text: result.text };
   } else if (result.type === 'image' && 'base64' in result) {
     resource.content = { images: [result.base64] };
   } else if (result.type === 'pdf') {
@@ -149,5 +157,5 @@ export async function processUploadedFile(file: File): Promise<UploadedResource>
  * Get accepted file extensions for input accept attribute.
  */
 export function getAcceptedExtensions(): string {
-  return '.pdf,.png,.jpg,.jpeg,.docx';
+  return '.pdf,.png,.jpg,.jpeg,.docx,.pptx';
 }

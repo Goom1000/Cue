@@ -270,7 +270,7 @@ export interface LessonResource {
 // ============================================================================
 
 // Uploaded resource file type
-export type UploadedResourceType = 'pdf' | 'image' | 'docx';
+export type UploadedResourceType = 'pdf' | 'image' | 'docx' | 'pptx';
 
 // Uploaded resource for AI enhancement
 export interface UploadedResource {

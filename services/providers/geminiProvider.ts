@@ -326,7 +326,7 @@ export class GeminiProvider implements AIProviderInterface {
   async analyzeDocument(
     documentImages: string[],
     documentText: string,
-    documentType: 'pdf' | 'image' | 'docx',
+    documentType: 'pdf' | 'image' | 'docx' | 'pptx',
     filename: string,
     pageCount: number
   ): Promise<DocumentAnalysis> {
