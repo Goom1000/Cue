@@ -4,6 +4,7 @@ import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import './styles/driver.css';
 import { Slide, AppState, SavedClass, StudentPair, EnhancedResourceState, UploadedResource } from './types';
 import { createAIProvider, AIProviderError, AIProviderInterface, GenerationInput, GenerationMode, AIErrorCode, VerbosityLevel, CondensationResult, GapAnalysisResult, IdentifiedGap, withRetry } from './services/aiProvider';
+import { runGenerationPipeline, PipelineProgress, PipelineResult } from './services/generationPipeline';
 import { useSettings } from './hooks/useSettings';
 import { useClassBank } from './hooks/useClassBank';
 import { exportToPowerPoint } from './services/pptxService';
@@ -316,9 +317,12 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState<{
-    phase: 'slides' | 'teleprompter';
+    phase: 'slides' | 'teleprompter' | 'checking-coverage' | 'filling-gaps';
     current: number;
     total: number;
+    stageLabel?: string;
+    stageIndex?: number;
+    totalStages?: number;
   } | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [showResourceHub, setShowResourceHub] = useState(false);
@@ -357,6 +361,10 @@ function App() {
   const [gapLessonPlanText, setGapLessonPlanText] = useState<string>('');
   const [gapLessonPlanImages, setGapLessonPlanImages] = useState<string[]>([]);
   const gapFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Pipeline state (Phase 67)
+  const pipelineControllerRef = useRef<AbortController | null>(null);
+  const [coveragePercentage, setCoveragePercentage] = useState<number | null>(null);
 
   // Class Bank state
   const { classes, saveClass, deleteClass, renameClass, updateClassStudents, updateStudentGrade } = useClassBank();
@@ -546,87 +554,132 @@ function App() {
       return;
     }
 
-    // Validation: need at least one input source
     const hasLessonContent = lessonText.trim() || pageImages.length > 0;
     const hasPptContent = existingPptImages.length > 0;
-
     if (!hasLessonContent && !hasPptContent) return;
 
     setIsGenerating(true);
     setAppState(AppState.PROCESSING_TEXT);
     setError(null);
+    setCoveragePercentage(null);
+
+    // Create AbortController for pipeline cancellation
+    const controller = new AbortController();
+    pipelineControllerRef.current = controller;
 
     try {
-      // Build GenerationInput based on uploadMode
-      // Debug: Log verbosity at generation time
-      console.log('[App] handleGenerate - deckVerbosity:', deckVerbosity);
-
       const generationInput: GenerationInput = {
         lessonText: lessonText,
         lessonImages: pageImages.length > 0 ? pageImages : undefined,
         presentationText: existingPptText || undefined,
         presentationImages: existingPptImages.length > 0 ? existingPptImages : undefined,
-        mode: uploadMode as GenerationMode, // Safe cast - we guard against 'none' above
+        mode: uploadMode as GenerationMode,
         verbosity: deckVerbosity,
-        gradeLevel: 'Year 6 (10-11 years old)',  // Default grade level for student-friendly content
+        gradeLevel: 'Year 6 (10-11 years old)',
       };
 
-      console.log('[App] generationInput.verbosity:', generationInput.verbosity);
+      // Map pipeline progress to generationProgress state
+      const handlePipelineProgress = (p: PipelineProgress) => {
+        setGenerationProgress({
+          phase: p.stage === 'generating' ? (p.detail?.includes('teleprompter') ? 'teleprompter' : 'slides') : p.stage,
+          current: p.subProgress ?? 0,
+          total: 100,
+          stageLabel: p.detail,
+          stageIndex: p.stageIndex,
+          totalStages: p.totalStages,
+        });
+      };
 
-      // Phase 1: Generate slides
-      setGenerationProgress({ phase: 'slides', current: 0, total: 0 });
-      let generatedSlides = await provider.generateLessonSlides(generationInput);
-
-      // Post-generation verbosity fix: Gemini's JSON mode ignores verbosity in system instruction
-      // If non-standard verbosity was requested, regenerate speakerNotes using text-based approach
-      if (deckVerbosity !== 'standard') {
-        console.log('[App] Non-standard verbosity requested, regenerating speakerNotes...');
-        const updatedSlides = [...generatedSlides];
-        const totalSlides = updatedSlides.length;
-
-        for (let i = 0; i < updatedSlides.length; i++) {
-          // Update progress for each slide
-          setGenerationProgress({ phase: 'teleprompter', current: i + 1, total: totalSlides });
-
-          const slide = updatedSlides[i];
-          const prevSlide = i > 0 ? updatedSlides[i - 1] : undefined;
-          const nextSlide = i < updatedSlides.length - 1 ? updatedSlides[i + 1] : undefined;
-          try {
-            const newSpeakerNotes = await provider.regenerateTeleprompter(slide, deckVerbosity, prevSlide, nextSlide);
-            updatedSlides[i] = { ...slide, speakerNotes: newSpeakerNotes };
-          } catch (err) {
-            console.error(`[App] Failed to regenerate speakerNotes for slide ${i}:`, err);
-            // Keep original speakerNotes on failure
-          }
+      const result: PipelineResult = await runGenerationPipeline(
+        provider,
+        generationInput,
+        {
+          lessonPlanText: lessonText,
+          lessonPlanImages: pageImages,
+          deckVerbosity,
+          gradeLevel: 'Year 6 (10-11 years old)',
+          signal: controller.signal,
+          onProgress: handlePipelineProgress,
         }
-        generatedSlides = updatedSlides;
-      }
+      );
 
       // Clear progress
       setGenerationProgress(null);
-      setSlides(generatedSlides);
-      setLessonTitle(generatedSlides[0]?.title || "New Lesson");
+      setSlides(result.slides);
+      setLessonTitle(result.slides[0]?.title || 'New Lesson');
       setActiveSlideIndex(0);
       setAppState(AppState.EDITING);
 
+      // Store coverage percentage
+      if (result.coveragePercentage != null) {
+        setCoveragePercentage(result.coveragePercentage);
+      }
+
+      // Wire remaining gaps to GapAnalysisPanel
+      if (result.remainingGaps.length > 0) {
+        setGapResult({
+          gaps: result.remainingGaps,
+          summary: result.wasPartial
+            ? 'Some gaps could not be auto-filled. You can add them manually below.'
+            : 'These optional gaps were not auto-filled. Add them if you like.',
+          coveragePercentage: result.coveragePercentage ?? 0,
+        });
+        // Store lesson plan data so manual re-analysis works
+        setGapLessonPlanText(lessonText);
+        setGapLessonPlanImages(pageImages);
+      } else if (result.coveragePercentage != null) {
+        // No remaining gaps -- clear any stale gap state but keep coverage info
+        setGapResult(null);
+      }
+
+      // Show warnings as toasts
+      for (const warning of result.warnings) {
+        addToast(warning, 5000, 'warning');
+      }
+
+      // Show coverage success toast if full pipeline completed
+      if (result.coveragePercentage != null && !result.wasPartial) {
+        addToast(
+          `Coverage: ${result.coveragePercentage}% of lesson plan covered`,
+          4000,
+          'success'
+        );
+      }
+
+      // Auto-generate images (unchanged from existing logic)
       if (autoGenerateImages) {
-        generatedSlides.forEach(async (s) => {
-            setSlides(curr => curr.map(item => item.id === s.id ? {...item, isGeneratingImage: true} : item));
-            const img = await provider.generateSlideImage(s.imagePrompt, s.layout);
-            setSlides(curr => curr.map(item => item.id === s.id ? {...item, imageUrl: img, isGeneratingImage: false} : item));
+        result.slides.forEach(async (s) => {
+          setSlides(curr => curr.map(item =>
+            item.id === s.id ? { ...item, isGeneratingImage: true } : item
+          ));
+          const img = await provider.generateSlideImage(s.imagePrompt, s.layout);
+          setSlides(curr => curr.map(item =>
+            item.id === s.id ? { ...item, imageUrl: img, isGeneratingImage: false } : item
+          ));
         });
       }
     } catch (err) {
       if (err instanceof AIProviderError) {
         setErrorModal({ title: 'Generation Failed', message: err.userMessage });
+      } else if ((err as Error)?.name === 'AbortError') {
+        // Pipeline was cancelled -- don't show error
+        addToast('Generation cancelled', 3000, 'info');
       } else {
         setErrorModal({ title: 'Error', message: 'An unexpected error occurred.' });
       }
-      setAppState(AppState.INPUT);
+      // Only go back to INPUT if we have no slides
+      if (slides.length === 0) {
+        setAppState(AppState.INPUT);
+      }
     } finally {
       setIsGenerating(false);
       setGenerationProgress(null);
+      pipelineControllerRef.current = null;
     }
+  };
+
+  const handleCancelPipeline = () => {
+    pipelineControllerRef.current?.abort();
   };
 
   const handleUpdateSlide = useCallback((id: string, updates: Partial<Slide>) => {
