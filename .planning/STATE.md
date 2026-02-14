@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-14)
 ## Current Position
 
 Phase: 68 of 68 (Phase-Aware UI + Resource Injection)
-Plan: 1 of TBD in current phase
+Plan: 2 of TBD in current phase
 Status: In progress
-Last activity: 2026-02-15 -- Completed 68-01-PLAN.md (phase-aware sidebar UI)
+Last activity: 2026-02-15 -- Completed 68-02-PLAN.md (resource injection pipeline)
 
-Progress: [████████░░] 75%
+Progress: [████████░░] 78%
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 23 (v1.0 through v4.1)
 - Total phases completed: 67
-- Total plans completed: 227
+- Total plans completed: 228
 - Total LOC: ~36,000 TypeScript
 
 **Recent Milestones:**
@@ -75,6 +75,12 @@ See PROJECT.md Key Decisions table for full history.
 - Phase badge uses native `<select>` styled as colored pill -- accessible by default, no custom dropdown needed
 - Balance indicator only renders when at least one slide has a lessonPhase assigned
 
+**Phase 68-02 decisions:**
+- Resource injection appended to user prompt (not system prompt) so AI sees resources as teacher-provided context
+- Both providers inject identically via shared buildResourceInjectionText -- ensures PROV-01/PROV-02 parity
+- ResourceHub deduplicates by resource ID on mount to handle overlap between enhancedResourceStates and supplementaryResources
+- generationPipeline.ts not modified -- supplementaryResourceText passes through automatically via GenerationInput
+
 ### Pending Todos
 
 See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
@@ -87,9 +93,9 @@ See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
 ## Session Continuity
 
 Last session: 2026-02-15
-Stopped at: Phase 68 Plan 01 complete -- phase-aware sidebar UI shipped
-Resume file: .planning/phases/68-phase-aware-ui-resource-injection/68-01-SUMMARY.md
+Stopped at: Phase 68 Plan 02 complete -- resource injection pipeline wired
+Resume file: .planning/phases/68-phase-aware-ui-resource-injection/68-02-SUMMARY.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-15 -- Phase 68 Plan 01 executed*
+*Last updated: 2026-02-15 -- Phase 68 Plan 02 executed*
