@@ -21,7 +21,7 @@ See MILESTONES.md for full history.
 
 - [x] **Phase 65: Foundation Types + Phase Detection** - Add LessonPhase type to Slide, build regex-based phase detection module, wire persistence
 - [x] **Phase 66: Resource Processing + Upload** - Build PPTX processor, extend landing page with supplementary resource upload, wire persistence
-- [ ] **Phase 67: Generation Pipeline** - Orchestrate multi-pass generation (generate, check coverage, fill gaps) with progress UI and graceful degradation
+- [x] **Phase 67: Generation Pipeline** - Orchestrate multi-pass generation (generate, check coverage, fill gaps) with progress UI and graceful degradation
 - [ ] **Phase 68: Phase-Aware UI + Resource Injection** - Surface phase badges, balance indicator, coverage score; inject resource content into generation prompts; dual-provider parity
 
 ## Phase Details
@@ -69,8 +69,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 67-01-PLAN.md -- Pipeline service module and gap slide insertion utility
-- [ ] 67-02-PLAN.md -- Wire pipeline into App.tsx with progress UI and cancel support
+- [x] 67-01-PLAN.md -- Pipeline service module and gap slide insertion utility
+- [x] 67-02-PLAN.md -- Wire pipeline into App.tsx with progress UI and cancel support
 
 ### Phase 68: Phase-Aware UI + Resource Injection
 **Goal**: Phase labels, coverage scores, and resource content are visible and actionable in the editor -- teachers see what phase each slide belongs to, how complete their deck is, and resource content woven into generated slides
@@ -91,9 +91,9 @@ Plans:
 |-------|---------------|--------|-----------|
 | 65. Foundation Types + Phase Detection | 2/2 | ✓ Complete | 2026-02-14 |
 | 66. Resource Processing + Upload | 2/2 | ✓ Complete | 2026-02-14 |
-| 67. Generation Pipeline | 0/2 | Planning complete | - |
+| 67. Generation Pipeline | 2/2 | ✓ Complete | 2026-02-15 |
 | 68. Phase-Aware UI + Resource Injection | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-02-14*
-*Last updated: 2026-02-14 -- Phase 67 planned*
+*Last updated: 2026-02-15 -- Phase 67 complete*

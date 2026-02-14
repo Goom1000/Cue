@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-14)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script that lets them sound knowledgeable and natural.
-**Current focus:** v5.0 Smart Generation -- Phase 67 (Generation Pipeline)
+**Current focus:** v5.0 Smart Generation -- Phase 68 (Phase-Aware UI + Resource Injection)
 
 ## Current Position
 
-Phase: 67 of 68 (Generation Pipeline)
-Plan: 2 of TBD in current phase
-Status: In progress
-Last activity: 2026-02-15 -- Completed 67-02-PLAN.md (pipeline UI integration, progress dots, cancel)
+Phase: 68 of 68 (Phase-Aware UI + Resource Injection)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-02-15 -- Phase 67 verified and complete
 
-Progress: [███████░░░] 70%
+Progress: [████████░░] 75%
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 23 (v1.0 through v4.1)
-- Total phases completed: 66
-- Total plans completed: 223
-- Total LOC: ~35,500 TypeScript
+- Total phases completed: 67
+- Total plans completed: 225
+- Total LOC: ~36,000 TypeScript
 
 **Recent Milestones:**
 - v4.1: 4 phases, 5 plans, 1 day (2026-02-08) - Script Mode
@@ -78,9 +78,9 @@ See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
 ## Session Continuity
 
 Last session: 2026-02-15
-Stopped at: Phase 67 Plan 02 complete -- pipeline UI integration with progress dots, cancel, gap wiring
-Resume file: .planning/phases/67-generation-pipeline/67-02-SUMMARY.md
+Stopped at: Phase 67 verified and complete -- ready to plan Phase 68
+Resume file: .planning/ROADMAP.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-15 -- Phase 67 Plan 02 complete*
+*Last updated: 2026-02-15 -- Phase 67 verified complete*
