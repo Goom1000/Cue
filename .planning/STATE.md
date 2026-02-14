@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-14)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script that lets them sound knowledgeable and natural.
-**Current focus:** v5.0 Smart Generation -- Phase 66 complete (Resource Processing + Upload)
+**Current focus:** v5.0 Smart Generation -- Phase 67 (Generation Pipeline)
 
 ## Current Position
 
-Phase: 66 of 68 (Resource Processing + Upload)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-02-14 -- Completed 66-02-PLAN.md
+Phase: 67 of 68 (Generation Pipeline)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-02-14 -- Phase 66 verified and complete
 
-Progress: [████░░░░░░] 40%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 23 (v1.0 through v4.1)
 - Total phases completed: 66
-- Total plans completed: 222
+- Total plans completed: 221
 - Total LOC: ~35,000 TypeScript
 
 **Recent Milestones:**
@@ -68,9 +68,9 @@ See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Phase 66 complete -- Resource processing, upload, and persistence all shipped
-Resume file: .planning/phases/66-resource-processing-upload/66-02-SUMMARY.md
+Stopped at: Phase 66 verified and complete -- ready to plan Phase 67
+Resume file: .planning/ROADMAP.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-14 -- Phase 66 complete*
+*Last updated: 2026-02-14 -- Phase 66 verified complete*

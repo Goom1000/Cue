@@ -20,7 +20,7 @@ See MILESTONES.md for full history.
 ## Phases
 
 - [x] **Phase 65: Foundation Types + Phase Detection** - Add LessonPhase type to Slide, build regex-based phase detection module, wire persistence
-- [ ] **Phase 66: Resource Processing + Upload** - Build PPTX processor, extend landing page with supplementary resource upload, wire persistence
+- [x] **Phase 66: Resource Processing + Upload** - Build PPTX processor, extend landing page with supplementary resource upload, wire persistence
 - [ ] **Phase 67: Generation Pipeline** - Orchestrate multi-pass generation (generate, check coverage, fill gaps) with progress UI and graceful degradation
 - [ ] **Phase 68: Phase-Aware UI + Resource Injection** - Surface phase badges, balance indicator, coverage score; inject resource content into generation prompts; dual-provider parity
 
@@ -53,8 +53,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 66-01-PLAN.md -- PPTX processor, upload service extension, content-capping utility
-- [ ] 66-02-PLAN.md -- Landing page UI, persistence (save/load v5), App state wiring
+- [x] 66-01-PLAN.md -- PPTX processor, upload service extension, content-capping utility
+- [x] 66-02-PLAN.md -- Landing page UI, persistence (save/load v5), App state wiring
 
 ### Phase 67: Generation Pipeline
 **Goal**: Slide generation automatically evaluates coverage against the lesson plan and fills gaps in a single flow, so teachers receive near-complete decks without manual gap checking
@@ -86,10 +86,10 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
 | 65. Foundation Types + Phase Detection | 2/2 | ✓ Complete | 2026-02-14 |
-| 66. Resource Processing + Upload | 0/2 | Planned | - |
+| 66. Resource Processing + Upload | 2/2 | ✓ Complete | 2026-02-14 |
 | 67. Generation Pipeline | 0/TBD | Not started | - |
 | 68. Phase-Aware UI + Resource Injection | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-02-14*
-*Last updated: 2026-02-14 -- Phase 65 complete*
+*Last updated: 2026-02-14 -- Phase 66 complete*
