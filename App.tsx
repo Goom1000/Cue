@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 // Tour styling
 import './styles/driver.css';
-import { Slide, AppState, SavedClass, StudentPair, EnhancedResourceState, UploadedResource } from './types';
+import { Slide, AppState, SavedClass, StudentPair, EnhancedResourceState, UploadedResource, LessonPhase } from './types';
 import { createAIProvider, AIProviderError, AIProviderInterface, GenerationInput, GenerationMode, AIErrorCode, VerbosityLevel, CondensationResult, GapAnalysisResult, IdentifiedGap, withRetry } from './services/aiProvider';
 import { runGenerationPipeline, PipelineProgress, PipelineResult } from './services/generationPipeline';
 import { useSettings } from './hooks/useSettings';
@@ -37,6 +37,8 @@ import CondensationPreview from './components/CondensationPreview';
 import GapAnalysisPanel from './components/GapAnalysisPanel';
 import UploadPanel from './components/UploadPanel';
 import { MAX_SUPPLEMENTARY_RESOURCES } from './utils/resourceCapping';
+import { PHASE_DISPLAY_LABELS, PHASE_COLORS } from './services/phaseDetection/phasePatterns';
+import { computePhaseDistribution, ALL_PHASES } from './utils/phaseDistribution';
 
 declare const pdfjsLib: any;
 
@@ -406,6 +408,9 @@ function App() {
     if (hasLesson) return 'fresh';
     return 'none';
   }, [uploadedFile, lessonText, existingPptFile]);
+
+  // Phase distribution for balance indicator (Phase 68)
+  const phaseDistribution = useMemo(() => computePhaseDistribution(slides), [slides]);
 
   const activeSlide = slides[activeSlideIndex];
 
@@ -2749,6 +2754,31 @@ function App() {
                         />
                     </div>
 
+                    {/* Phase Balance Indicator (Phase 68) */}
+                    {phaseDistribution.total > phaseDistribution.unassigned && (
+                      <div className="mb-3 px-1">
+                        <div className="flex h-3 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700">
+                          {ALL_PHASES.map((phase) => {
+                            const pct = phaseDistribution.percentages[phase];
+                            if (pct === 0) return null;
+                            return (
+                              <div
+                                key={phase}
+                                className={`min-w-[2px] ${PHASE_COLORS[phase].bg} ${PHASE_COLORS[phase].darkBg}`}
+                                style={{ width: `${pct}%` }}
+                                title={`${PHASE_DISPLAY_LABELS[phase]}: ${phaseDistribution.counts[phase]} slide${phaseDistribution.counts[phase] !== 1 ? 's' : ''} (${pct}%)`}
+                              />
+                            );
+                          })}
+                        </div>
+                        {phaseDistribution.missingPhases.length > 0 && (
+                          <p className="text-[9px] text-amber-600 dark:text-amber-400 mt-1">
+                            Missing: {phaseDistribution.missingPhases.map(p => PHASE_DISPLAY_LABELS[p]).join(', ')}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     <div className="space-y-0.5">
                         <InsertPoint
                             onClickBlank={() => handleInsertBlankSlide(-1)}
@@ -2792,9 +2822,29 @@ function App() {
                                      <div className="flex-1 min-w-0">
                                         <h4 className={`text-[11px] font-bold truncate ${activeSlideIndex === idx ? 'text-slate-700 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>{slide.title || 'Untitled Slide'}</h4>
                                         <p className="text-[9px] text-slate-400 dark:text-slate-500 truncate">{slide.content[0] || 'No content'}</p>
+                                        {/* Phase badge/select (Phase 68) */}
+                                        {(slide.lessonPhase || activeSlideIndex === idx) && (
+                                          <div className="mt-1">
+                                            <select
+                                              value={slide.lessonPhase || ''}
+                                              onChange={(e) => { e.stopPropagation(); handleUpdateSlide(slide.id, { lessonPhase: (e.target.value || undefined) as LessonPhase | undefined }); }}
+                                              onClick={(e) => e.stopPropagation()}
+                                              className={`text-[9px] font-bold uppercase tracking-wider rounded-md px-1.5 py-0.5 border cursor-pointer focus:outline-none focus:ring-1 ${
+                                                slide.lessonPhase
+                                                  ? `${PHASE_COLORS[slide.lessonPhase].bg} ${PHASE_COLORS[slide.lessonPhase].text} ${PHASE_COLORS[slide.lessonPhase].darkBg} ${PHASE_COLORS[slide.lessonPhase].darkText} border-transparent`
+                                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700'
+                                              }`}
+                                            >
+                                              <option value="">No Phase</option>
+                                              {Object.entries(PHASE_DISPLAY_LABELS).map(([key, label]) => (
+                                                <option key={key} value={key}>{label}</option>
+                                              ))}
+                                            </select>
+                                          </div>
+                                        )}
                                      </div>
                                   </div>
-                                  
+
                                   {/* Thumbnail preview bar */}
                                   <div className="mt-2 h-1 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden mb-1">
                                      <div className={`h-full ${activeSlideIndex === idx ? 'bg-indigo-500 dark:bg-amber-500' : 'bg-indigo-400/30 dark:bg-slate-600'}`} style={{ width: slide.imageUrl ? '100%' : '30%' }}></div>
