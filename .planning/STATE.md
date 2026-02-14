@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-14)
 Phase: 68 of 68 (Phase-Aware UI + Resource Injection)
 Plan: 0 of TBD in current phase
 Status: Ready to plan
-Last activity: 2026-02-15 -- Phase 67 verified and complete
+Last activity: 2026-02-15 -- Completed 67-03-PLAN.md (gap closure: abort signal threading)
 
 Progress: [████████░░] 75%
 
@@ -21,7 +21,7 @@ Progress: [████████░░] 75%
 **Velocity:**
 - Milestones shipped: 23 (v1.0 through v4.1)
 - Total phases completed: 67
-- Total plans completed: 225
+- Total plans completed: 226
 - Total LOC: ~36,000 TypeScript
 
 **Recent Milestones:**
@@ -66,6 +66,10 @@ See PROJECT.md Key Decisions table for full history.
 - Cancel preserves partial results: only returns to INPUT if slides.length === 0
 - Coverage percentage stored in separate state for future Phase 68 UI display, currently drives success toast only
 
+**Phase 67-03 decisions:**
+- Signal threads to generateLessonSlides only -- regenerateTeleprompter skipped since individual calls are fast (~2-3s) and per-iteration abort check is sufficient
+- Used undefined for pageImages parameter in pipeline call since GenerationInput carries images internally
+
 ### Pending Todos
 
 See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
@@ -78,9 +82,9 @@ See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
 ## Session Continuity
 
 Last session: 2026-02-15
-Stopped at: Phase 67 verified and complete -- ready to plan Phase 68
+Stopped at: Completed 67-03 gap closure plan -- Phase 67 fully complete, ready for Phase 68
 Resume file: .planning/ROADMAP.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-15 -- Phase 67 verified complete*
+*Last updated: 2026-02-15 -- Completed 67-03 gap closure*
