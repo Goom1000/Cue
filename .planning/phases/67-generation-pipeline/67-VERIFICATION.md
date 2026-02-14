@@ -1,20 +1,40 @@
 ---
 phase: 67-generation-pipeline
-verified: 2026-02-15T10:30:00Z
+verified: 2026-02-15T15:45:00Z
 status: passed
-score: 7/7 must-haves verified
-gaps: []
+score: 8/8 must-haves verified
+re_verification:
+  previous_status: passed
+  previous_score: 7/7
+  previous_verified: 2026-02-15T10:30:00Z
+  gaps_closed:
+    - "Cancel button immediately aborts pipeline during Pass 1 (UAT Test 3 gap)"
+  gaps_remaining: []
+  regressions: []
+  new_must_haves:
+    - "Clicking Cancel during Pass 1 (slide generation) immediately aborts the in-flight AI request"
 ---
 
-# Phase 67: Generation Pipeline Verification Report
+# Phase 67: Generation Pipeline Re-Verification Report
 
 **Phase Goal:** Slide generation automatically evaluates coverage against the lesson plan and fills gaps in a single flow, so teachers receive near-complete decks without manual gap checking
 
-**Verified:** 2026-02-15T10:30:00Z
+**Verified:** 2026-02-15T15:45:00Z
 
 **Status:** PASSED
 
-**Re-verification:** No — initial verification
+**Re-verification:** Yes — after gap closure (Plan 67-03: Abort Signal Threading)
+
+## Re-Verification Context
+
+**Previous Verification:** 2026-02-15T10:30:00Z
+- **Status:** Passed (7/7 truths verified)
+- **UAT Finding:** Test 3 failed — Cancel during Pass 1 was unresponsive
+- **Gap Identified:** AbortSignal not threaded to actual HTTP/SDK calls in generateLessonSlides
+- **Gap Closure Plan:** 67-03 (Thread AbortSignal through interface, providers, Gemini service)
+- **Gap Closure Execution:** Completed 2026-02-15T07:20:00Z
+
+**This Re-Verification:** Focused verification on gap closure with regression checks on original must-haves
 
 ## Goal Achievement
 
@@ -22,37 +42,41 @@ gaps: []
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | Clicking Generate runs the three-pass pipeline and delivers a deck with critical/recommended gaps filled | ✓ VERIFIED | `handleGenerate` calls `runGenerationPipeline` (App.tsx:593), pipeline executes Pass 1 (generate), Pass 2 (coverage analysis), Pass 3 (auto-fill up to 5 gaps) in sequence (generationPipeline.ts:90-326) |
-| 2 | A multi-stage progress indicator shows which pass is active with a progress bar | ✓ VERIFIED | Three-stage dots render with active/completed/pending states (App.tsx:2526-2563), progress bar shows during teleprompter and gap filling (App.tsx:2566-2578), dynamic heading/description update per stage (App.tsx:2502-2524) |
-| 3 | If gap analysis or gap filling fails, the teacher still receives Pass 1 slides with a warning toast | ✓ VERIFIED | Pass 2 failure returns Pass 1 slides with degradation warning (generationPipeline.ts:193-204), Pass 3 failures add per-gap warnings to array (generationPipeline.ts:286), warnings displayed as toasts (App.tsx:636-638) |
-| 4 | Remaining nice-to-have gaps appear in the existing GapAnalysisPanel for optional manual addition | ✓ VERIFIED | `remainingGaps` from pipeline wired to `setGapResult` (App.tsx:620-632), GapAnalysisPanel renders when `gapResult` exists (App.tsx:3051-3059), nice-to-have + failed + overflow gaps included in `adjustedRemainingGaps` (generationPipeline.ts:304-305) |
-| 5 | Gap slides insert at correct positions without corrupting slide order | ✓ VERIFIED | `insertGapSlides` sorts by position and uses cumulative offset (gapSlideInsertion.ts:25-51), `adjustGapPositions` shifts remaining gap positions after insertion (gapSlideInsertion.ts:65-90), merged deck with phases returned (generationPipeline.ts:298-311) |
-| 6 | The teacher can cancel the pipeline at any point with partial results preserved | ✓ VERIFIED | `pipelineControllerRef` stores AbortController (App.tsx:366), `handleCancelPipeline` aborts it (App.tsx:681-683), cancel button wired in UI (App.tsx:2581-2585), AbortSignal checked after Pass 1 (line 148), after Pass 2 (line 227), before each gap generation (line 256), partial results returned on abort (generationPipeline.ts:148-156, 227-235, 256-261) |
-| 7 | Manual gap analysis flow continues to work independently | ✓ VERIFIED | `handleGapPdfUpload` (App.tsx:911), `handleReanalyzeGaps` (App.tsx:965), `handleAddSlideFromGap` (App.tsx:990) all unchanged and functional, PDF upload input wired (App.tsx:2144), GapAnalysisPanel callbacks preserved (App.tsx:3054-3056) |
+| 1 | Clicking Generate runs the three-pass pipeline and delivers a deck with critical/recommended gaps filled | ✓ VERIFIED | `handleGenerate` calls `runGenerationPipeline` (App.tsx:593), pipeline executes Pass 1, Pass 2, Pass 3 in sequence (generationPipeline.ts:90-329) — **REGRESSION CHECK PASSED** |
+| 2 | A multi-stage progress indicator shows which pass is active with a progress bar | ✓ VERIFIED | Three-stage dots (App.tsx:2526-2563), dynamic heading/description (lines 2502-2524) — **REGRESSION CHECK PASSED** |
+| 3 | If gap analysis or gap filling fails, teacher receives Pass 1 slides with warning toast | ✓ VERIFIED | Pass 2 failure handler (generationPipeline.ts:193-204), Pass 3 per-gap try-catch (lines 273-287) — **REGRESSION CHECK PASSED** |
+| 4 | Remaining nice-to-have gaps appear in GapAnalysisPanel | ✓ VERIFIED | `setGapResult` wired with remainingGaps (App.tsx:620-632), GapAnalysisPanel renders (line 3051-3059) — **REGRESSION CHECK PASSED** |
+| 5 | Gap slides insert at correct positions without corrupting slide order | ✓ VERIFIED | `insertGapSlides` with cumulative offset (gapSlideInsertion.ts:25-51), `adjustGapPositions` shifts remaining gaps (lines 65-90) — **REGRESSION CHECK PASSED** |
+| 6 | Teacher can cancel the pipeline at any point with partial results preserved | ✓ VERIFIED | AbortSignal checked after Pass 1 (line 148), after Pass 2 (line 227), before each gap (line 256) — **REGRESSION CHECK PASSED** |
+| 7 | Manual gap analysis flow continues to work independently | ✓ VERIFIED | `handleGapPdfUpload`, `handleReanalyzeGaps`, `handleAddSlideFromGap` unchanged — **REGRESSION CHECK PASSED** |
+| 8 | **[NEW]** Clicking Cancel during Pass 1 immediately aborts the in-flight AI request | ✓ VERIFIED | Signal threaded: pipeline → interface (aiProvider.ts:290) → Claude fetch() (claudeProvider.ts:612) + Gemini SDK (geminiService.ts:397), verbosity loop abort check (generationPipeline.ts:122) — **GAP CLOSURE VERIFIED** |
 
-**Score:** 7/7 truths verified
+**Score:** 8/8 truths verified (7 original + 1 new from gap closure)
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `services/generationPipeline.ts` | Three-pass pipeline orchestrator with progress callbacks, AbortSignal support, graceful degradation | ✓ VERIFIED | Exists (326 lines), exports `runGenerationPipeline`, `PipelineProgress`, `PipelineResult`, implements all three passes with mode gating, retry logic, and phase detection re-run |
-| `utils/gapSlideInsertion.ts` | Pure utility functions for position-aware gap insertion | ✓ VERIFIED | Exists (90 lines), exports `insertGapSlides` and `adjustGapPositions`, pure functions with no mutations, handles edge cases |
-| `App.tsx` (handleGenerate) | Pipeline integration replacing direct provider call | ✓ VERIFIED | Modified (97 insertions, 44 deletions per commit 34abbb0), imports pipeline types (line 7), calls `runGenerationPipeline` (line 593), maps progress to state (lines 582-586), wires remaining gaps (lines 619-633), shows coverage toast (lines 641-647) |
-| `App.tsx` (progress state) | Extended state type with pipeline stages | ✓ VERIFIED | State type includes 'checking-coverage', 'filling-gaps', stageLabel, stageIndex, totalStages fields (lines 319-325) |
-| `App.tsx` (cancel support) | AbortController ref and handler | ✓ VERIFIED | `pipelineControllerRef` declared (line 366), created in handleGenerate (line 568), nulled in finally (line 677), `handleCancelPipeline` aborts it (lines 681-683) |
-| `App.tsx` (PROCESSING_TEXT UI) | Multi-stage progress indicator with cancel button | ✓ VERIFIED | Three-stage dots with labels (lines 2526-2563), dynamic heading (lines 2503-2507), dynamic description (lines 2510-2519), sub-progress bar (lines 2566-2578), cancel button (lines 2581-2585) |
+| `services/generationPipeline.ts` | Three-pass orchestrator with signal threading | ✓ VERIFIED | Exists (329 lines), Pass 1 signal passed (line 116), verbosity loop abort check (line 122), substantive + wired |
+| `utils/gapSlideInsertion.ts` | Position-aware gap insertion | ✓ VERIFIED | Exists (90 lines), exports `insertGapSlides` and `adjustGapPositions`, pure functions, substantive + wired |
+| `services/aiProvider.ts` | Interface with signal parameter | ✓ VERIFIED | `signal?: AbortSignal` added as 3rd param to `generateLessonSlides` (line 290) |
+| `services/providers/claudeProvider.ts` | Signal threaded to fetch() | ✓ VERIFIED | `callClaude` accepts signal (line 593), passes to fetch (line 612), `generateLessonSlides` forwards signal (line 809) |
+| `services/providers/geminiProvider.ts` | Signal forwarded to geminiService | ✓ VERIFIED | `generateLessonSlides` forwards signal to `geminiGenerateLessonSlides` (line 181) |
+| `services/geminiService.ts` | Signal threaded to SDK | ✓ VERIFIED | `generateLessonSlides` accepts signal (line 256), passed as `abortSignal` in SDK config (line 397) |
+| `App.tsx` (handleGenerate) | Pipeline integration with AbortController | ✓ VERIFIED | `pipelineControllerRef` created (line 567), signal passed to pipeline (line 601), nulled in finally (line 677) |
+| `App.tsx` (cancel button) | UI wired to abort handler | ✓ VERIFIED | `handleCancelPipeline` aborts controller (line 682), button onClick wired (line 2582) |
 
 ### Key Link Verification
 
 | From | To | Via | Status | Details |
 |------|------|-----|--------|---------|
-| App.tsx | services/generationPipeline.ts | import and call runGenerationPipeline | ✓ WIRED | Import on line 7, call on line 593, result stored and used (lines 607-647) |
-| App.tsx | GapAnalysisPanel | gapResult state populated from pipeline remainingGaps | ✓ WIRED | `setGapResult` called with pipeline result (line 620), conditional rendering (line 3051), callbacks passed (lines 3054-3056) |
-| generationPipeline.ts | insertGapSlides/adjustGapPositions | Batch insertion with position adjustment | ✓ WIRED | Import on line 31, `insertGapSlides` called (line 298), `adjustGapPositions` called (line 305), merged deck returned (line 320) |
-| generationPipeline.ts | phaseDetection | Re-run phase detection on merged deck | ✓ WIRED | Import on line 32, `detectPhasesInText` called (line 310), `assignPhasesToSlides` called (line 311), result returned (line 320) |
-| App.tsx progress UI | PipelineProgress | Progress callbacks drive UI updates | ✓ WIRED | `handlePipelineProgress` maps PipelineProgress to generationProgress state (lines 582-586), stageIndex drives dot states (line 2528), stageLabel shown in description (line 2516) and progress bar (line 2575) |
-| Cancel button | AbortController | onClick aborts pipeline | ✓ WIRED | Button onClick calls `handleCancelPipeline` (line 2582), handler aborts controller (line 682), signal checked in pipeline at 3 checkpoints (lines 148, 227, 256) |
+| App.tsx | runGenerationPipeline | import + call | ✓ WIRED | Import (line 7), call (line 593), signal passed (line 601), result used (lines 607-647) |
+| generationPipeline.ts | provider.generateLessonSlides | signal passthrough | ✓ WIRED | **[NEW]** Signal passed as 3rd param (line 116) — **GAP CLOSURE** |
+| claudeProvider.ts | fetch() | signal in options | ✓ WIRED | **[NEW]** Signal passed to fetch (line 612) — **GAP CLOSURE** |
+| geminiProvider.ts | geminiService | signal forwarding | ✓ WIRED | **[NEW]** Signal forwarded (line 181) — **GAP CLOSURE** |
+| geminiService.ts | ai.models.generateContent | abortSignal in config | ✓ WIRED | **[NEW]** Signal as `abortSignal` (line 397) — **GAP CLOSURE** |
+| generationPipeline.ts (verbosity loop) | signal.aborted check | abort before each iteration | ✓ WIRED | **[NEW]** Check before each teleprompter call (line 122) — **GAP CLOSURE** |
+| App.tsx cancel button | AbortController.abort() | onClick handler | ✓ WIRED | Button calls `handleCancelPipeline` (line 2582), aborts controller (line 682) |
 
 ### Requirements Coverage
 
@@ -60,15 +84,33 @@ Phase 67 requirements from ROADMAP.md:
 
 | Requirement | Status | Evidence |
 |-------------|--------|----------|
-| PIPE-01: Three-pass pipeline (generate, check coverage, fill gaps) | ✓ SATISFIED | Pass 1 (lines 109-156), Pass 2 (lines 176-235), Pass 3 (lines 240-293) |
-| PIPE-02: Multi-stage progress indicator | ✓ SATISFIED | Three-stage dots (lines 2526-2563), dynamic heading/description (lines 2502-2524) |
-| PIPE-03: Graceful degradation (Pass 2/3 failures return Pass 1 slides) | ✓ SATISFIED | Pass 2 failure handler (lines 193-204), Pass 3 per-gap try-catch (lines 273-287), warnings array collected and displayed |
-| PIPE-04: Remaining gaps in GapAnalysisPanel | ✓ SATISFIED | Remaining gaps wired to setGapResult (lines 619-633), GapAnalysisPanel renders (lines 3051-3059) |
-| PIPE-05: Gap slides insert at correct positions | ✓ SATISFIED | Position-aware insertion with cumulative offset (gapSlideInsertion.ts:25-51), position adjustment for remaining gaps (lines 65-90) |
-| PIPE-06: Cancellation support with partial results preserved | ✓ SATISFIED | AbortSignal checked at 3 points, partial results returned on abort (lines 148-156, 227-235, 256-261) |
-| PIPE-07: Manual gap analysis flow remains independent | ✓ SATISFIED | Handlers unchanged (handleGapPdfUpload, handleReanalyzeGaps, handleAddSlideFromGap), PDF upload input wired |
+| PIPE-01: Three-pass pipeline | ✓ SATISFIED | Pass 1 (lines 109-156), Pass 2 (lines 176-235), Pass 3 (lines 240-293) |
+| PIPE-02: Multi-stage progress indicator | ✓ SATISFIED | Three-stage dots, dynamic heading/description |
+| PIPE-03: Graceful degradation | ✓ SATISFIED | Pass 2/3 failure handlers return Pass 1 slides with warnings |
+| PIPE-04: Remaining gaps in panel | ✓ SATISFIED | Remaining gaps wired to `setGapResult` |
+| PIPE-05: Position-aware gap insertion | ✓ SATISFIED | `insertGapSlides` with cumulative offset |
+| PIPE-06: Cancellation support | ✓ SATISFIED | **[ENHANCED]** AbortSignal now threads to HTTP/SDK calls, not just checked between passes |
+| PIPE-07: Manual flow independence | ✓ SATISFIED | Manual handlers unchanged |
 
-All 7 requirements satisfied.
+All 7 requirements satisfied. Requirement PIPE-06 enhanced by gap closure.
+
+### Gap Closure Analysis
+
+**Gap from UAT Test 3:** "Cancel during Pass 1 doesn't immediately cancel or return to input screen. Button appeared unresponsive."
+
+**Root Cause:** AbortSignal was checked BETWEEN passes but never passed INTO the `generateLessonSlides` AI call. The HTTP request ran to completion before the signal was noticed.
+
+**Gap Closure (Plan 67-03):**
+
+1. ✓ Added `signal?: AbortSignal` to `AIProviderInterface.generateLessonSlides` (aiProvider.ts:290)
+2. ✓ Claude provider: `callClaude` helper accepts signal, passes to `fetch()` options (claudeProvider.ts:593, 612, 809)
+3. ✓ Gemini provider: Signal forwarded through `geminiGenerateLessonSlides` to SDK `abortSignal` config (geminiProvider.ts:181, geminiService.ts:256, 397)
+4. ✓ Pipeline: Signal passed from AbortController to `generateLessonSlides` call (generationPipeline.ts:116)
+5. ✓ Pipeline: Abort check added before each verbosity regeneration iteration (generationPipeline.ts:122)
+
+**Verification:** All 5 changes present and wired. TypeScript compiles cleanly (0 errors). Signal flows from UI → pipeline → interface → provider → HTTP/SDK call.
+
+**Status:** ✓ GAP CLOSED
 
 ### Anti-Patterns Found
 
@@ -77,93 +119,99 @@ All 7 requirements satisfied.
 | - | - | None found | - | - |
 
 **Analysis:**
-- No TODO/FIXME/PLACEHOLDER comments in pipeline or utility files
+- No TODO/FIXME/PLACEHOLDER comments in pipeline, gap insertion, or modified provider files
 - No empty return statements or stub implementations
 - No console.log-only handlers
 - All functions substantive with real implementations
-- Type checking passes without errors
+- TypeScript type checking passes with zero errors
+
+### Regression Check Summary
+
+**All 7 original truths:** ✓ VERIFIED (no regressions)
+**All original artifacts:** ✓ VERIFIED (no breaking changes)
+**All original key links:** ✓ WIRED (no disconnections)
+**All requirements:** ✓ SATISFIED (enhanced by gap closure)
 
 ### Human Verification Required
 
-#### 1. Multi-stage Progress Visual Flow
+#### 1. Cancel During Pass 1 (Re-test UAT Test 3)
 
 **Test:** 
 1. Upload a lesson plan PDF on the landing page
 2. Click "Generate"
-3. Observe the progress screen as it transitions through stages
+3. **Immediately** click the "Cancel (keep current results)" button during Pass 1 (while "Generating" stage is active and pulsing)
 
 **Expected:**
-- Spinner and "Deep Learning Architecture" heading appear immediately
-- Three stage dots appear: "Generating" (pulsing indigo/amber), "Checking Coverage" (grey), "Filling Gaps" (grey)
-- After Pass 1 completes, first dot turns green, second dot starts pulsing, heading changes to "Checking Coverage", description shows "Cross-referencing slides against your lesson plan..."
-- After Pass 2 completes, second dot turns green, third dot starts pulsing, heading changes to "Filling Gaps", description shows "Filling gap X of Y"
-- Sub-progress bar appears during teleprompter regen and gap filling
-- After Pass 3 completes, all three dots are green, user lands in editor with slides
-- Coverage toast appears showing "Coverage: X% of lesson plan covered"
+- The HTTP request to Claude/Gemini API is immediately aborted
+- The progress UI disappears within 1-2 seconds (not 30-60 seconds)
+- User sees info toast: "Generation cancelled"
+- User returns to landing page with lesson plan still loaded
+- No error modal appears
+- No slides generated (because Pass 1 was cancelled before completion)
 
-**Why human:** Visual timing, animation smoothness, color transitions, and UX flow can't be verified programmatically.
+**Why human:** Network timing, visual UX responsiveness, and real-time abort behavior can't be verified programmatically. This specifically re-tests the UAT failure that triggered gap closure.
 
-#### 2. Cancel Button Behavior
+#### 2. Cancel During Verbosity Regeneration
 
 **Test:**
-1. Upload a lesson plan and click "Generate"
-2. Wait for Pass 1 to complete (first dot green)
-3. Click "Cancel (keep current results)" button during Pass 2 or Pass 3
+1. Upload a lesson plan and select "Detailed" or "Concise" verbosity (not "Standard")
+2. Click "Generate"
+3. Wait for initial slide generation to complete (spinner disappears briefly)
+4. Click "Cancel" during the verbosity regeneration loop (sub-progress bar shows "Adjusting verbosity for slide X of Y")
 
 **Expected:**
-- Pipeline stops immediately
-- User lands in editor with Pass 1 slides (from before cancellation)
-- Info toast appears: "Generation cancelled"
-- No error modal shown
-- No blank screen or loss of slides
+- The verbosity loop exits immediately (doesn't wait for all slides to complete)
+- User lands in editor with slides from Pass 1
+- Slides processed before cancel have updated verbosity
+- Slides after cancel keep original speakerNotes
+- Info toast: "Generation cancelled"
 
-**Why human:** Timing-dependent behavior and user experience during interruption.
+**Why human:** Timing-dependent loop exit behavior and partial state verification.
 
-#### 3. Graceful Degradation Toast Display
+#### 3. Multi-Stage Progress Visual Flow (Regression Test)
+
+**Test:** 
+1. Upload a lesson plan PDF
+2. Click "Generate" with default settings
+3. **DO NOT CANCEL** — observe the full pipeline flow
+
+**Expected:**
+- All three stages complete: "Generating" → "Checking Coverage" → "Filling Gaps"
+- Stage dots transition: pulsing indigo/amber → green checkmark
+- Progress bar appears during teleprompter regen (if non-standard verbosity) and gap filling
+- Coverage toast appears at end: "Coverage: X% of lesson plan covered"
+- User lands in editor with merged deck (original slides + gap slides)
+
+**Why human:** Visual timing, animation smoothness, color transitions. Regression check to ensure gap closure didn't break existing flow.
+
+#### 4. Graceful Degradation Toast Display (Regression Test)
 
 **Test:**
-1. Simulate Pass 2 failure (disconnect network after Pass 1, or use a provider with quota exhausted)
-2. Observe the result
+1. Simulate Pass 2 failure (disconnect network after Pass 1, or use provider with quota exhausted)
+2. Observe result
 
 **Expected:**
-- User receives Pass 1 slides (lands in editor with generated deck)
-- Warning toast appears: "Coverage analysis encountered an issue. Your slides are ready -- you can run gap analysis manually later."
-- No error modal blocking the UI
-- GapAnalysisPanel does NOT appear (no gap data)
+- User receives Pass 1 slides (lands in editor)
+- Warning toast: "Coverage analysis encountered an issue. Your slides are ready -- you can run gap analysis manually later."
+- No error modal blocking UI
+- GapAnalysisPanel does NOT appear
 
-**Why human:** Simulating network failures and provider errors requires runtime environment manipulation.
+**Why human:** Simulating network failures and provider errors requires runtime manipulation.
 
-#### 4. Remaining Gaps Panel Population
+#### 5. Remaining Gaps Panel Population (Regression Test)
 
 **Test:**
-1. Upload a lesson plan with 8-10 clear topics
-2. Generate slides
-3. Wait for full pipeline completion
-4. Look for the GapAnalysisPanel in the editor (bottom-right floating panel)
+1. Upload a lesson plan with 8-10 topics
+2. Generate slides (full pipeline)
+3. Check GapAnalysisPanel in editor (bottom-right floating panel)
 
 **Expected:**
-- If critical/recommended gaps were auto-filled, panel may still show nice-to-have gaps
-- Panel summary text: "These optional gaps were not auto-filled. Add them if you like." (if full pipeline succeeded) OR "Some gaps could not be auto-filled. You can add them manually below." (if partial)
-- Each gap shows correct suggested position (accounting for already-inserted gap slides)
-- Clicking "Add Slide" on a gap inserts it at the correct position
+- Panel shows nice-to-have gaps (if any) that weren't auto-filled
+- Panel summary: "These optional gaps were not auto-filled. Add them if you like."
+- Suggested positions account for already-inserted gap slides
+- "Add Slide" button generates and inserts at correct position
 
-**Why human:** Gap analysis results vary by lesson plan content and AI provider output; verifying position accuracy requires manual deck inspection.
-
-#### 5. Manual Gap Analysis Independence
-
-**Test:**
-1. After pipeline generation completes, close any existing GapAnalysisPanel
-2. Click the "Analyze Gaps" button in the editor toolbar
-3. Upload the original lesson plan PDF
-
-**Expected:**
-- Gap analysis runs independently (shows spinner)
-- New GapAnalysisPanel appears with fresh gap analysis results
-- "Re-analyze" button works (re-runs analysis with same lesson plan)
-- "Add Slide" button generates gap slides and inserts them
-- No interference with pipeline-generated gaps
-
-**Why human:** Verifying complete independence requires testing both flows sequentially and checking state isolation.
+**Why human:** Gap analysis results vary by content and AI provider.
 
 ---
 
@@ -171,21 +219,28 @@ All 7 requirements satisfied.
 
 **All must-haves verified programmatically.**
 
-The generation pipeline successfully implements the three-pass flow (generate, check coverage, fill gaps) with:
+**Gap Closure Status:** ✓ CLOSED
 
-1. **Full pipeline integration**: `handleGenerate` calls `runGenerationPipeline` instead of direct `provider.generateLessonSlides`, orchestrating all three passes in sequence
-2. **Multi-stage progress UI**: Three stage indicator dots show active/completed/pending states, dynamic heading/description update per stage, sub-progress bar shows during teleprompter regen and gap filling
-3. **Graceful degradation**: Pass 2 failure returns Pass 1 slides with warning toast (no blank screen), Pass 3 per-gap failures add warnings without blocking
-4. **Remaining gaps wiring**: Pipeline `remainingGaps` (nice-to-have + failed + overflow) populate existing GapAnalysisPanel with adjusted positions
-5. **Position-aware gap insertion**: `insertGapSlides` uses cumulative offset for correct batch insertion, `adjustGapPositions` shifts remaining gap positions to account for inserted slides
-6. **Cancel support**: AbortController checked at 3 checkpoints (after Pass 1, after Pass 2, before each gap generation), partial results preserved
-7. **Manual flow independence**: PDF upload, re-analyze, and add-slide handlers unchanged and fully functional
+The generation pipeline successfully implements the three-pass flow with immediate cancellation support:
 
-**No gaps found. No anti-patterns detected. TypeScript type checking passes.**
+1. **Full pipeline integration:** `handleGenerate` calls `runGenerationPipeline` with AbortSignal from `pipelineControllerRef`
+2. **Multi-stage progress UI:** Three-stage dots, dynamic heading/description, sub-progress bar — **NO REGRESSIONS**
+3. **Graceful degradation:** Pass 2/3 failures return Pass 1 slides with warnings — **NO REGRESSIONS**
+4. **Remaining gaps wiring:** Pipeline `remainingGaps` populate GapAnalysisPanel — **NO REGRESSIONS**
+5. **Position-aware gap insertion:** `insertGapSlides` + `adjustGapPositions` — **NO REGRESSIONS**
+6. **Cancel support:** AbortSignal now threads to HTTP/SDK calls, not just checked between passes — **GAP CLOSED**
+7. **Manual flow independence:** PDF upload, re-analyze, add-slide handlers unchanged — **NO REGRESSIONS**
+8. **[NEW] Immediate abort during Pass 1:** Signal flows from UI → pipeline → interface → provider → fetch()/SDK → **GAP CLOSED**
 
-Human verification items focus on visual UX (stage transitions, toast timing), runtime simulation (network failures for degradation testing), and AI provider variability (gap analysis results).
+**No new gaps found. No anti-patterns detected. No regressions. TypeScript compiles cleanly.**
+
+Human verification items focus on:
+- **Re-testing UAT Test 3** (Cancel during Pass 1) to confirm gap closure
+- **Regression testing** visual UX (stage transitions, toast timing)
+- **Runtime behavior** (network failures, AI provider variability)
 
 ---
 
-_Verified: 2026-02-15T10:30:00Z_
+_Verified: 2026-02-15T15:45:00Z_
 _Verifier: Claude (gsd-verifier)_
+_Re-verification after gap closure: Plan 67-03 (Abort Signal Threading)_
