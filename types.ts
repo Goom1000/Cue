@@ -488,7 +488,7 @@ export const DEFAULT_SETTINGS: Settings = {
 };
 
 // File format version - increment on breaking changes
-export const CURRENT_FILE_VERSION = 4;
+export const CURRENT_FILE_VERSION = 5;
 
 // Content structure stored in .cue files
 export interface CueFileContent {
@@ -497,6 +497,7 @@ export interface CueFileContent {
   lessonText: string;
   studentGrades?: StudentWithGrade[];  // Optional for backward compatibility
   enhancedResources?: EnhancedResourceState[];  // NEW in v4
+  supplementaryResources?: UploadedResource[];  // NEW in v5: landing page supplementary resources
 }
 
 // .cue file format with version metadata

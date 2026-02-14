@@ -4,7 +4,8 @@ import {
   CURRENT_FILE_VERSION,
   StudentWithGrade,
   EnhancedResourceState,
-  SerializedEditState
+  SerializedEditState,
+  UploadedResource
 } from '../types';
 import { VerbosityLevel } from './aiProvider';
 
@@ -33,6 +34,7 @@ export function serializeEditState(
  * @param studentGrades - Optional array of student grade assignments
  * @param deckVerbosity - Optional deck-wide verbosity level
  * @param enhancedResources - Optional array of enhanced resource states
+ * @param supplementaryResources - Optional array of supplementary resources for landing page
  * @returns CueFile object ready for serialization
  */
 export function createCueFile(
@@ -43,7 +45,8 @@ export function createCueFile(
   existingFile?: CueFile,
   studentGrades?: StudentWithGrade[],
   deckVerbosity?: VerbosityLevel,
-  enhancedResources?: EnhancedResourceState[]
+  enhancedResources?: EnhancedResourceState[],
+  supplementaryResources?: UploadedResource[]
 ): CueFile {
   const now = new Date().toISOString();
 
@@ -59,6 +62,7 @@ export function createCueFile(
       lessonText,
       ...(studentGrades && studentGrades.length > 0 ? { studentGrades } : {}),
       ...(enhancedResources && enhancedResources.length > 0 ? { enhancedResources } : {}),
+      ...(supplementaryResources && supplementaryResources.length > 0 ? { supplementaryResources } : {}),
     },
   };
 }

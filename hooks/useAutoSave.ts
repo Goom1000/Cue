@@ -17,6 +17,7 @@ const AUTOSAVE_INTERVAL = 30000; // 30 seconds
  * Data structure for auto-save persistence.
  * Contains the essential presentation state for crash recovery.
  */
+// NOTE: Supplementary resources excluded to prevent localStorage overflow (binary thumbnails/content)
 export interface AutoSaveData {
   slides: Slide[];
   studentNames: string[];

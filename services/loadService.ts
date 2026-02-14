@@ -80,6 +80,17 @@ function migrateFile(data: CueFile): CueFile {
         }
       };
     }
+
+    // v4 -> v5: Added supplementaryResources to CueFileContent
+    if (data.version < 5) {
+      migrated = {
+        ...migrated,
+        content: {
+          ...migrated.content,
+          supplementaryResources: []  // Default empty array for older files
+        }
+      };
+    }
   }
 
   return {
