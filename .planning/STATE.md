@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-14)
 ## Current Position
 
 Phase: 66 of 68 (Resource Processing + Upload)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-02-14 -- Phase 65 verified and complete
+Plan: 1 of TBD in current phase
+Status: In progress
+Last activity: 2026-02-14 -- Completed 66-01-PLAN.md
 
 Progress: [██░░░░░░░░] 25%
 
@@ -21,7 +21,7 @@ Progress: [██░░░░░░░░] 25%
 **Velocity:**
 - Milestones shipped: 23 (v1.0 through v4.1)
 - Total phases completed: 65
-- Total plans completed: 219
+- Total plans completed: 220
 - Total LOC: ~35,000 TypeScript
 
 **Recent Milestones:**
@@ -45,6 +45,12 @@ See PROJECT.md Key Decisions table for full history.
 - Mode guard uses explicit `fresh || blend` (not `!== refine`) for safety against future mode additions
 - Phase detection runs before content preservation detection to operate on full unprocessed lesson text
 
+**Phase 66-01 decisions:**
+- PPTX extraction is text-only (no images from ppt/media/) to avoid save file bloat
+- Content capping is a pure view function applied at prompt construction time, not upload time
+- Per-resource cap 2000 chars, total cap 6000 chars, max 5 supplementary resources
+- Used getElementsByTagNameNS with full DrawingML namespace URI (not prefix-based)
+
 ### Pending Todos
 
 See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
@@ -57,9 +63,9 @@ See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Phase 65 verified and complete -- ready to plan Phase 66
-Resume file: .planning/ROADMAP.md
+Stopped at: Phase 66-01 complete -- PPTX processor and content capping utility shipped
+Resume file: .planning/phases/66-resource-processing-upload/66-01-SUMMARY.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-14 -- Phase 65 verified complete*
+*Last updated: 2026-02-14 -- Phase 66-01 complete*
