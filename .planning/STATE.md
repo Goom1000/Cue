@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-14)
 ## Current Position
 
 Phase: 67 of 68 (Generation Pipeline)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-02-14 -- Phase 66 verified and complete
+Plan: 1 of TBD in current phase
+Status: In progress
+Last activity: 2026-02-15 -- Completed 67-01-PLAN.md (pipeline orchestrator + gap insertion utility)
 
 Progress: [█████░░░░░] 50%
 
@@ -21,8 +21,8 @@ Progress: [█████░░░░░] 50%
 **Velocity:**
 - Milestones shipped: 23 (v1.0 through v4.1)
 - Total phases completed: 66
-- Total plans completed: 221
-- Total LOC: ~35,000 TypeScript
+- Total plans completed: 222
+- Total LOC: ~35,400 TypeScript
 
 **Recent Milestones:**
 - v4.1: 4 phases, 5 plans, 1 day (2026-02-08) - Script Mode
@@ -56,6 +56,11 @@ See PROJECT.md Key Decisions table for full history.
 - Supplementary resources persist through generate -- they are input context, not output
 - Amber/orange theme distinguishes supplementary section from green (lesson plan) and blue (presentation) zones
 
+**Phase 67-01 decisions:**
+- Phase detection re-runs on merged deck using detectPhasesInText + assignPhasesToSlides (same two-step pattern as providers)
+- Pipeline options use a flat interface rather than extending GenerationInput for clarity
+- wasPartial covers three cases: failed gaps, overflowed gaps (beyond 5-gap cap), and AbortSignal cancellation
+
 ### Pending Todos
 
 See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
@@ -67,10 +72,10 @@ See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
 
 ## Session Continuity
 
-Last session: 2026-02-14
-Stopped at: Phase 66 verified and complete -- ready to plan Phase 67
-Resume file: .planning/ROADMAP.md
+Last session: 2026-02-15
+Stopped at: Phase 67 Plan 01 complete -- pipeline orchestrator and gap insertion utility created
+Resume file: .planning/phases/67-generation-pipeline/67-01-SUMMARY.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-14 -- Phase 66 verified complete*
+*Last updated: 2026-02-15 -- Phase 67 Plan 01 complete*
