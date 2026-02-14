@@ -37,6 +37,7 @@ import CondensationPreview from './components/CondensationPreview';
 import GapAnalysisPanel from './components/GapAnalysisPanel';
 import UploadPanel from './components/UploadPanel';
 import { MAX_SUPPLEMENTARY_RESOURCES } from './utils/resourceCapping';
+import { buildResourceInjectionText } from './utils/resourceInjection';
 import { PHASE_DISPLAY_LABELS, PHASE_COLORS } from './services/phaseDetection/phasePatterns';
 import { computePhaseDistribution, ALL_PHASES } from './utils/phaseDistribution';
 
@@ -581,6 +582,7 @@ function App() {
         mode: uploadMode as GenerationMode,
         verbosity: deckVerbosity,
         gradeLevel: 'Year 6 (10-11 years old)',
+        supplementaryResourceText: buildResourceInjectionText(supplementaryResources),
       };
 
       // Map pipeline progress to generationProgress state
@@ -2174,6 +2176,7 @@ function App() {
                 onRequestAI={handleRequestAI}
                 enhancedResourceStates={enhancedResourceStates}
                 onEnhancedResourcesChange={setEnhancedResourceStates}
+                supplementaryResources={supplementaryResources}
             />
         )}
 

@@ -20,6 +20,8 @@ interface ResourceHubProps {
   // Persistence props for save/load
   enhancedResourceStates?: EnhancedResourceState[];
   onEnhancedResourcesChange?: (states: EnhancedResourceState[]) => void;
+  // Pre-populate with supplementary resources from landing page
+  supplementaryResources?: UploadedResource[];
 }
 
 const ResourceHub: React.FC<ResourceHubProps> = ({
@@ -31,7 +33,8 @@ const ResourceHub: React.FC<ResourceHubProps> = ({
   onError,
   onRequestAI,
   enhancedResourceStates = [],
-  onEnhancedResourcesChange
+  onEnhancedResourcesChange,
+  supplementaryResources = []
 }) => {
   const isAIAvailable = provider !== null;
   const [resources, setResources] = useState<LessonResource[]>([]);
@@ -84,6 +87,16 @@ const ResourceHub: React.FC<ResourceHubProps> = ({
         statesMap.set(state.resourceId, { result: state.enhancementResult, editState });
       });
       setEnhancementStates(statesMap);
+    }
+
+    // Pre-populate with supplementary resources from landing page (RES-06)
+    if (supplementaryResources.length > 0) {
+      setUploadedResources(prev => {
+        // Deduplicate by resource ID -- enhancedResourceStates may overlap
+        const existingIds = new Set(prev.map(r => r.id));
+        const newResources = supplementaryResources.filter(r => !existingIds.has(r.id));
+        return newResources.length > 0 ? [...prev, ...newResources] : prev;
+      });
     }
   }, []); // Only run on mount - enhancedResourceStates is initial data
 
