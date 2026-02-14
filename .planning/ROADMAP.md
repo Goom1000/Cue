@@ -50,7 +50,11 @@ Plans:
   2. Uploaded PPTX files are parsed for text and images without any new npm dependencies (JSZip + DOMParser)
   3. Each resource's extracted content is capped at 2,000 characters (6,000 total across all resources) to prevent token overflow
   4. Resources persist in the .cue save file and are fully restored on reload
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 66-01-PLAN.md -- PPTX processor, upload service extension, content-capping utility
+- [ ] 66-02-PLAN.md -- Landing page UI, persistence (save/load v5), App state wiring
 
 ### Phase 67: Generation Pipeline
 **Goal**: Slide generation automatically evaluates coverage against the lesson plan and fills gaps in a single flow, so teachers receive near-complete decks without manual gap checking
@@ -82,7 +86,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
 | 65. Foundation Types + Phase Detection | 2/2 | ✓ Complete | 2026-02-14 |
-| 66. Resource Processing + Upload | 0/TBD | Not started | - |
+| 66. Resource Processing + Upload | 0/2 | Planned | - |
 | 67. Generation Pipeline | 0/TBD | Not started | - |
 | 68. Phase-Aware UI + Resource Injection | 0/TBD | Not started | - |
 
