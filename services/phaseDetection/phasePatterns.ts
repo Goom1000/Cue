@@ -145,3 +145,17 @@ export const PHASE_DISPLAY_LABELS: Record<LessonPhase, string> = {
   'you-do': 'You Do (Independent)',
   'plenary': 'Plenary / Review',
 };
+
+/**
+ * Tailwind color classes for phase badges and indicators.
+ * Each phase has light and dark mode variants for background and text.
+ * darkBg and darkText use Tailwind's dark: prefix classes.
+ */
+export const PHASE_COLORS: Record<LessonPhase, { bg: string; text: string; darkBg: string; darkText: string }> = {
+  'hook':            { bg: 'bg-emerald-100', text: 'text-emerald-700', darkBg: 'dark:bg-emerald-900/40', darkText: 'dark:text-emerald-400' },
+  'i-do':            { bg: 'bg-blue-100',    text: 'text-blue-700',    darkBg: 'dark:bg-blue-900/40',    darkText: 'dark:text-blue-400' },
+  'we-do':           { bg: 'bg-violet-100',  text: 'text-violet-700',  darkBg: 'dark:bg-violet-900/40',  darkText: 'dark:text-violet-400' },
+  'we-do-together':  { bg: 'bg-purple-100',  text: 'text-purple-700',  darkBg: 'dark:bg-purple-900/40',  darkText: 'dark:text-purple-400' },
+  'you-do':          { bg: 'bg-amber-100',   text: 'text-amber-700',   darkBg: 'dark:bg-amber-900/40',   darkText: 'dark:text-amber-400' },
+  'plenary':         { bg: 'bg-rose-100',    text: 'text-rose-700',    darkBg: 'dark:bg-rose-900/40',    darkText: 'dark:text-rose-400' },
+};
