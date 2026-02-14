@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 // Tour styling
 import './styles/driver.css';
-import { Slide, AppState, SavedClass, StudentPair, EnhancedResourceState } from './types';
+import { Slide, AppState, SavedClass, StudentPair, EnhancedResourceState, UploadedResource } from './types';
 import { createAIProvider, AIProviderError, AIProviderInterface, GenerationInput, GenerationMode, AIErrorCode, VerbosityLevel, CondensationResult, GapAnalysisResult, IdentifiedGap, withRetry } from './services/aiProvider';
 import { useSettings } from './hooks/useSettings';
 import { useClassBank } from './hooks/useClassBank';
@@ -34,6 +34,8 @@ import { useTourState } from './hooks/useTourState';
 import PasteComparison from './components/PasteComparison';
 import CondensationPreview from './components/CondensationPreview';
 import GapAnalysisPanel from './components/GapAnalysisPanel';
+import UploadPanel from './components/UploadPanel';
+import { MAX_SUPPLEMENTARY_RESOURCES } from './utils/resourceCapping';
 
 declare const pdfjsLib: any;
 
@@ -331,6 +333,17 @@ function App() {
 
   // Enhanced resource state for persistence
   const [enhancedResourceStates, setEnhancedResourceStates] = useState<EnhancedResourceState[]>([]);
+
+  // Supplementary resources (landing page upload)
+  const [supplementaryResources, setSupplementaryResources] = useState<UploadedResource[]>([]);
+  const [showSupplementaryResources, setShowSupplementaryResources] = useState(false);
+
+  // Auto-expand supplementary resources section when resources exist (e.g., after file load)
+  useEffect(() => {
+    if (supplementaryResources.length > 0) {
+      setShowSupplementaryResources(true);
+    }
+  }, [supplementaryResources.length]);
 
   // Deck Condensation state (Phase 60, replaces Phase 58 cohesion)
   const [isProcessingCondensation, setIsProcessingCondensation] = useState(false);
@@ -1735,8 +1748,8 @@ function App() {
   // ============================================================================
 
   const handleSaveClick = useCallback(() => {
-    // Check file size first (use local studentGrades and enhancedResourceStates)
-    const file = createCueFile(lessonTitle, slides, studentNames, lessonText, undefined, studentGrades, deckVerbosity, enhancedResourceStates);
+    // Check file size first (use local studentGrades, enhancedResourceStates, supplementaryResources)
+    const file = createCueFile(lessonTitle, slides, studentNames, lessonText, undefined, studentGrades, deckVerbosity, enhancedResourceStates, supplementaryResources);
     const sizeInfo = checkFileSize(file);
 
     if (sizeInfo.exceeds50MB) {
@@ -1746,17 +1759,17 @@ function App() {
     // Open filename prompt with lesson title as default
     setPendingSaveFilename(lessonTitle || 'New Lesson');
     setShowFilenamePrompt(true);
-  }, [lessonTitle, slides, studentNames, lessonText, addToast, studentGrades, deckVerbosity]);
+  }, [lessonTitle, slides, studentNames, lessonText, addToast, studentGrades, deckVerbosity, supplementaryResources]);
 
   const handleSaveConfirm = useCallback(() => {
-    // Use local studentGrades and enhancedResourceStates
-    const file = createCueFile(lessonTitle, slides, studentNames, lessonText, undefined, studentGrades, deckVerbosity, enhancedResourceStates);
+    // Use local studentGrades, enhancedResourceStates, supplementaryResources
+    const file = createCueFile(lessonTitle, slides, studentNames, lessonText, undefined, studentGrades, deckVerbosity, enhancedResourceStates, supplementaryResources);
     downloadPresentation(file, pendingSaveFilename);
     addToast('Presentation saved successfully!', 3000, 'success');
     setHasUnsavedChanges(false);
     setShowFilenamePrompt(false);
     setPendingSaveFilename('');
-  }, [lessonTitle, slides, studentNames, lessonText, pendingSaveFilename, addToast, studentGrades, deckVerbosity]);
+  }, [lessonTitle, slides, studentNames, lessonText, pendingSaveFilename, addToast, studentGrades, deckVerbosity, supplementaryResources]);
 
   const handleSaveCancel = useCallback(() => {
     setShowFilenamePrompt(false);
@@ -1795,6 +1808,9 @@ function App() {
 
       // Restore enhanced resources if present (v4+)
       setEnhancedResourceStates(cueFile.content.enhancedResources || []);
+
+      // Restore supplementary resources if present (v5+)
+      setSupplementaryResources(cueFile.content.supplementaryResources || []);
 
       // Also save as class with grades if students present
       if (loadedGrades.length > 0 && loadedStudents.length > 0) {
@@ -2309,6 +2325,60 @@ function App() {
                   placeholder="Paste additional notes or curriculum details here..."
                   className="w-full h-48 p-6 rounded-2xl bg-slate-50 dark:bg-slate-800 border-0 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-amber-500/20 text-slate-700 dark:text-slate-300 text-lg transition-all mb-6 shadow-inner resize-none placeholder:text-slate-400 dark:placeholder:text-slate-600"
                 />
+
+                {/* Supplementary Resources (optional) */}
+                <div className="mb-6">
+                  <button
+                    onClick={() => setShowSupplementaryResources(!showSupplementaryResources)}
+                    className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 transition-all group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center text-amber-600 dark:text-amber-400 text-sm">
+                        {supplementaryResources.length > 0 ? supplementaryResources.length : '+'}
+                      </div>
+                      <div className="text-left">
+                        <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                          Supplementary Resources
+                          <span className="ml-2 text-xs font-normal text-slate-400 dark:text-slate-500">(optional)</span>
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-500">
+                          Attach worksheets, handouts, or reference materials for richer slide generation
+                        </p>
+                      </div>
+                    </div>
+                    <svg
+                      className={`w-5 h-5 text-slate-400 transition-transform ${showSupplementaryResources ? 'rotate-180' : ''}`}
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {showSupplementaryResources && (
+                    <div className="mt-3 p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
+                      {supplementaryResources.length >= MAX_SUPPLEMENTARY_RESOURCES && (
+                        <p className="text-xs text-amber-600 dark:text-amber-400 mb-3 font-medium">
+                          Maximum {MAX_SUPPLEMENTARY_RESOURCES} supplementary resources reached
+                        </p>
+                      )}
+                      <UploadPanel
+                        resources={supplementaryResources}
+                        onResourcesChange={(resources) => {
+                          // Enforce max resource limit
+                          if (resources.length > MAX_SUPPLEMENTARY_RESOURCES) {
+                            resources = resources.slice(0, MAX_SUPPLEMENTARY_RESOURCES);
+                          }
+                          setSupplementaryResources(resources);
+                        }}
+                      />
+                      {supplementaryResources.length > 0 && (
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 text-center">
+                          {supplementaryResources.length} of {MAX_SUPPLEMENTARY_RESOURCES} resources attached
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 mb-8">
                     <div className="flex items-center gap-3">
