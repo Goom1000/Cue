@@ -286,7 +286,8 @@ export interface AIProviderInterface {
   // Accepts either new GenerationInput or old (string, string[]) signature for backward compatibility
   generateLessonSlides(
     inputOrText: GenerationInput | string,
-    pageImages?: string[]
+    pageImages?: string[],
+    signal?: AbortSignal
   ): Promise<Slide[]>;
   generateSlideImage(imagePrompt: string, layout?: string): Promise<string | undefined>;
   generateResourceImage(imagePrompt: string): Promise<string | undefined>;

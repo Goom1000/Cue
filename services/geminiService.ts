@@ -252,7 +252,8 @@ LAYOUTS: Use 'split' for content with images, 'grid' or 'flowchart' for process 
 export const generateLessonSlides = async (
   apiKey: string,
   inputOrText: GenerationInput | string,
-  pageImages: string[] = []
+  pageImages: string[] = [],
+  signal?: AbortSignal
 ): Promise<Slide[]> => {
   // Normalize to GenerationInput for backward compatibility
   const input: GenerationInput = typeof inputOrText === 'string'
@@ -392,7 +393,8 @@ export const generateLessonSlides = async (
             },
             required: ['title', 'content', 'speakerNotes', 'imagePrompt']
           }
-        }
+        },
+        abortSignal: signal
       }
     });
 

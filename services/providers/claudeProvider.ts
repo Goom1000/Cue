@@ -589,7 +589,8 @@ async function callClaude(
   apiKey: string,
   messages: ClaudeMessage[],
   systemPrompt: string,
-  maxTokens: number = 4096
+  maxTokens: number = 4096,
+  signal?: AbortSignal
 ): Promise<string> {
   let response: Response;
 
@@ -608,6 +609,7 @@ async function callClaude(
         system: systemPrompt,
         messages,
       }),
+      signal,
     });
   } catch (fetchError) {
     // fetch() itself failed - network error, CORS preflight failure, etc.
@@ -691,7 +693,8 @@ export class ClaudeProvider implements AIProviderInterface {
    */
   async generateLessonSlides(
     inputOrText: GenerationInput | string,
-    pageImages?: string[]
+    pageImages?: string[],
+    signal?: AbortSignal
   ): Promise<Slide[]> {
     // Normalize to GenerationInput for backward compatibility
     const input: GenerationInput = typeof inputOrText === 'string'
@@ -803,7 +806,7 @@ export class ClaudeProvider implements AIProviderInterface {
     }
 
     const messages: ClaudeMessage[] = [{ role: 'user', content: contentParts }];
-    const response = await callClaude(this.apiKey, messages, systemPrompt, 8192);
+    const response = await callClaude(this.apiKey, messages, systemPrompt, 8192, signal);
     const data = extractJSON<any[]>(response);
 
     const slides = data.map((item: any, index: number) => ({

@@ -174,10 +174,11 @@ export class GeminiProvider implements AIProviderInterface {
 
   async generateLessonSlides(
     inputOrText: GenerationInput | string,
-    pageImages?: string[]
+    pageImages?: string[],
+    signal?: AbortSignal
   ): Promise<Slide[]> {
     try {
-      return await geminiGenerateLessonSlides(this.apiKey, inputOrText, pageImages || []);
+      return await geminiGenerateLessonSlides(this.apiKey, inputOrText, pageImages || [], signal);
     } catch (error) {
       throw this.wrapError(error);
     }
