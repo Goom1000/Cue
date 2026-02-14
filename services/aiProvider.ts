@@ -73,6 +73,7 @@ export interface GenerationInput {
   mode: GenerationMode;
   verbosity?: VerbosityLevel;
   gradeLevel?: string;  // e.g., "Year 6 (10-11 years old)"
+  supplementaryResourceText?: string;  // Capped resource text for prompt injection (Pass 1 only)
 }
 
 // Context from slides for question generation
