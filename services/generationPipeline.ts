@@ -113,11 +113,14 @@ export async function runGenerationPipeline(
   });
 
   // Pass 1 throws on failure -- no slides to fall back to
-  let slides = await provider.generateLessonSlides(input);
+  let slides = await provider.generateLessonSlides(input, undefined, signal);
 
   // If non-standard verbosity, regenerate teleprompter scripts per slide
   if (deckVerbosity !== 'standard') {
     for (let i = 0; i < slides.length; i++) {
+      // Check cancellation before each verbosity regeneration
+      if (signal?.aborted) break;
+
       const slide = slides[i];
       const prevSlide = i > 0 ? slides[i - 1] : undefined;
       const nextSlide = i < slides.length - 1 ? slides[i + 1] : undefined;
