@@ -13,7 +13,7 @@ See MILESTONES.md for full history.
 
 </details>
 
-### v5.0 Smart Generation (In Progress)
+### v5.0 Smart Generation (Complete)
 
 **Milestone Goal:** Produce 80% complete slide decks on the first generation by auto-filling gaps, integrating uploaded resources, and tagging lesson phases -- so teachers rarely need manual fixes.
 
@@ -22,7 +22,7 @@ See MILESTONES.md for full history.
 - [x] **Phase 65: Foundation Types + Phase Detection** - Add LessonPhase type to Slide, build regex-based phase detection module, wire persistence
 - [x] **Phase 66: Resource Processing + Upload** - Build PPTX processor, extend landing page with supplementary resource upload, wire persistence
 - [x] **Phase 67: Generation Pipeline** - Orchestrate multi-pass generation (generate, check coverage, fill gaps) with progress UI and graceful degradation
-- [ ] **Phase 68: Phase-Aware UI + Resource Injection** - Surface phase badges, balance indicator, coverage score; inject resource content into generation prompts; dual-provider parity
+- [x] **Phase 68: Phase-Aware UI + Resource Injection** - Surface phase badges, balance indicator, coverage score; inject resource content into generation prompts; dual-provider parity
 
 ## Phase Details
 
@@ -86,8 +86,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 68-01-PLAN.md -- Phase badges, balance indicator, and override dropdown on sidebar thumbnails
-- [ ] 68-02-PLAN.md -- Resource injection into generation pipeline and ResourceHub pre-population
+- [x] 68-01-PLAN.md -- Phase badges, balance indicator, and override dropdown on sidebar thumbnails
+- [x] 68-02-PLAN.md -- Resource injection into generation pipeline and ResourceHub pre-population
 
 ## Progress
 
@@ -98,8 +98,8 @@ Plans:
 | 65. Foundation Types + Phase Detection | 2/2 | ✓ Complete | 2026-02-14 |
 | 66. Resource Processing + Upload | 2/2 | ✓ Complete | 2026-02-14 |
 | 67. Generation Pipeline | 3/3 | ✓ Complete | 2026-02-15 |
-| 68. Phase-Aware UI + Resource Injection | 0/2 | In progress | - |
+| 68. Phase-Aware UI + Resource Injection | 2/2 | ✓ Complete | 2026-02-15 |
 
 ---
 *Roadmap created: 2026-02-14*
-*Last updated: 2026-02-15 -- Phase 68 planned (2 plans in 2 waves)*
+*Last updated: 2026-02-15 -- Phase 68 executed and verified. v5.0 milestone complete.*

@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-14)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script that lets them sound knowledgeable and natural.
-**Current focus:** v5.0 Smart Generation -- Phase 68 (Phase-Aware UI + Resource Injection)
+**Current focus:** v5.0 Smart Generation -- MILESTONE COMPLETE
 
 ## Current Position
 
 Phase: 68 of 68 (Phase-Aware UI + Resource Injection)
-Plan: 2 of TBD in current phase
-Status: In progress
-Last activity: 2026-02-15 -- Completed 68-02-PLAN.md (resource injection pipeline)
+Plan: 2 of 2 in current phase
+Status: ✓ Complete -- Milestone v5.0 finished
+Last activity: 2026-02-15 -- Phase 68 executed and verified
 
-Progress: [████████░░] 78%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 23 (v1.0 through v4.1)
-- Total phases completed: 67
-- Total plans completed: 228
+- Total phases completed: 68
+- Total plans completed: 230
 - Total LOC: ~36,000 TypeScript
 
 **Recent Milestones:**
@@ -93,9 +93,9 @@ See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
 ## Session Continuity
 
 Last session: 2026-02-15
-Stopped at: Phase 68 Plan 02 complete -- resource injection pipeline wired
-Resume file: .planning/phases/68-phase-aware-ui-resource-injection/68-02-SUMMARY.md
+Stopped at: v5.0 milestone complete -- all 4 phases (65-68) executed and verified
+Resume file: .planning/ROADMAP.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-15 -- Phase 68 Plan 02 executed*
+*Last updated: 2026-02-15 -- v5.0 milestone complete (Phase 68 executed and verified)*
