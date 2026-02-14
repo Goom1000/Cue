@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-14)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script that lets them sound knowledgeable and natural.
-**Current focus:** v5.0 Smart Generation -- Phase 66 (Resource Processing + Upload)
+**Current focus:** v5.0 Smart Generation -- Phase 66 complete (Resource Processing + Upload)
 
 ## Current Position
 
 Phase: 66 of 68 (Resource Processing + Upload)
-Plan: 1 of TBD in current phase
-Status: In progress
-Last activity: 2026-02-14 -- Completed 66-01-PLAN.md
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-02-14 -- Completed 66-02-PLAN.md
 
-Progress: [██░░░░░░░░] 25%
+Progress: [████░░░░░░] 40%
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 23 (v1.0 through v4.1)
-- Total phases completed: 65
-- Total plans completed: 220
+- Total phases completed: 66
+- Total plans completed: 222
 - Total LOC: ~35,000 TypeScript
 
 **Recent Milestones:**
@@ -51,6 +51,11 @@ See PROJECT.md Key Decisions table for full history.
 - Per-resource cap 2000 chars, total cap 6000 chars, max 5 supplementary resources
 - Used getElementsByTagNameNS with full DrawingML namespace URI (not prefix-based)
 
+**Phase 66-02 decisions:**
+- Auto-save explicitly excludes supplementary resources to prevent localStorage overflow (~5MB limit)
+- Supplementary resources persist through generate -- they are input context, not output
+- Amber/orange theme distinguishes supplementary section from green (lesson plan) and blue (presentation) zones
+
 ### Pending Todos
 
 See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
@@ -63,9 +68,9 @@ See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Phase 66-01 complete -- PPTX processor and content capping utility shipped
-Resume file: .planning/phases/66-resource-processing-upload/66-01-SUMMARY.md
+Stopped at: Phase 66 complete -- Resource processing, upload, and persistence all shipped
+Resume file: .planning/phases/66-resource-processing-upload/66-02-SUMMARY.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-14 -- Phase 66-01 complete*
+*Last updated: 2026-02-14 -- Phase 66 complete*
