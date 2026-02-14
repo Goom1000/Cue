@@ -2498,20 +2498,72 @@ function App() {
                 <div className="absolute inset-0 border-4 border-indigo-600 dark:border-amber-500 border-t-transparent dark:border-t-transparent rounded-full animate-spin"></div>
                 <div className="absolute inset-4 border-4 border-amber-400 dark:border-indigo-400 border-b-transparent dark:border-b-transparent rounded-full animate-spin [animation-direction:reverse]"></div>
               </div>
-              <h2 className="text-3xl font-bold text-slate-800 dark:text-white font-fredoka">Deep Learning Architecture</h2>
+
+              {/* Dynamic heading based on current stage */}
+              <h2 className="text-3xl font-bold text-slate-800 dark:text-white font-fredoka">
+                {generationProgress?.phase === 'checking-coverage' ? 'Checking Coverage'
+                  : generationProgress?.phase === 'filling-gaps' ? 'Filling Gaps'
+                  : 'Deep Learning Architecture'}
+              </h2>
+
+              {/* Dynamic description based on current stage */}
               <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg max-w-md">
-                Generating with {settings.provider === 'gemini' ? 'Gemini' :
-                                 settings.provider === 'claude' ? 'Claude' : 'AI'}...
-              </p>
-              <p className="text-slate-400 dark:text-slate-500 mt-1 text-sm">
                 {generationProgress?.phase === 'teleprompter'
                   ? `Generating ${deckVerbosity} teleprompter: slide ${generationProgress.current} of ${generationProgress.total}`
-                  : 'Mapping pedagogical phases and interpreting visual data from your document.'
+                  : generationProgress?.phase === 'checking-coverage'
+                  ? 'Cross-referencing slides against your lesson plan...'
+                  : generationProgress?.phase === 'filling-gaps'
+                  ? (generationProgress.stageLabel || 'Auto-filling content gaps...')
+                  : `Generating with ${settings.provider === 'gemini' ? 'Gemini' : settings.provider === 'claude' ? 'Claude' : 'AI'}...`
                 }
               </p>
+              {generationProgress?.phase === 'slides' && (
+                <p className="text-slate-400 dark:text-slate-500 mt-1 text-sm">
+                  Mapping pedagogical phases and interpreting visual data from your document.
+                </p>
+              )}
 
-              {/* Progress bar for teleprompter generation */}
-              {generationProgress?.phase === 'teleprompter' && generationProgress.total > 0 && (
+              {/* Pipeline stage dots */}
+              {(() => {
+                const stageIndex = generationProgress?.stageIndex ?? 0;
+                const stages = ['Generating', 'Checking Coverage', 'Filling Gaps'];
+                return (
+                  <div className="flex items-center gap-0 mt-8">
+                    {stages.map((label, i) => (
+                      <React.Fragment key={label}>
+                        {i > 0 && (
+                          <div className="w-8 h-px bg-slate-300 dark:bg-slate-600" />
+                        )}
+                        <div className="flex flex-col items-center">
+                          <div
+                            className={`w-3 h-3 rounded-full transition-colors ${
+                              stageIndex > i
+                                ? 'bg-green-500'
+                                : stageIndex === i
+                                ? 'bg-indigo-500 dark:bg-amber-500 animate-pulse'
+                                : 'bg-slate-300 dark:bg-slate-600'
+                            }`}
+                          />
+                          <span
+                            className={`text-xs mt-1.5 whitespace-nowrap transition-colors ${
+                              stageIndex > i
+                                ? 'text-green-600 dark:text-green-400'
+                                : stageIndex === i
+                                ? 'text-indigo-600 dark:text-amber-400 font-medium'
+                                : 'text-slate-400 dark:text-slate-500'
+                            }`}
+                          >
+                            {label}
+                          </span>
+                        </div>
+                      </React.Fragment>
+                    ))}
+                  </div>
+                );
+              })()}
+
+              {/* Sub-progress bar */}
+              {generationProgress && generationProgress.current > 0 && generationProgress.total > 0 && (
                 <div className="mt-6 w-64">
                   <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                     <div
@@ -2520,11 +2572,20 @@ function App() {
                     />
                   </div>
                   <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
-                    {Math.round((generationProgress.current / generationProgress.total) * 100)}% complete
+                    {generationProgress.stageLabel || `${Math.round((generationProgress.current / generationProgress.total) * 100)}% complete`}
                   </p>
                 </div>
               )}
 
+              {/* Cancel button */}
+              <button
+                onClick={handleCancelPipeline}
+                className="mt-8 px-4 py-2 text-sm font-medium text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                Cancel (keep current results)
+              </button>
+
+              {/* Page image preview strip */}
               <div className="mt-12 flex gap-4 overflow-hidden py-4 opacity-30">
                   {pageImages.map((img, i) => (
                       <img key={i} src={img} className="h-32 rounded-lg shadow-sm border border-slate-700 grayscale invert dark:invert-0" alt="Document context" />
