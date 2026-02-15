@@ -88,7 +88,7 @@ Plans:
 Plans:
 - [x] 68-01-PLAN.md -- Phase badges, balance indicator, and override dropdown on sidebar thumbnails
 - [x] 68-02-PLAN.md -- Resource injection into generation pipeline and ResourceHub pre-population
-- [ ] 68-03-PLAN.md -- Add resource awareness to system prompts for stronger AI integration (gap closure)
+- [x] 68-03-PLAN.md -- Add resource awareness to system prompts for stronger AI integration (gap closure)
 
 ## Progress
 
@@ -99,8 +99,8 @@ Plans:
 | 65. Foundation Types + Phase Detection | 2/2 | ✓ Complete | 2026-02-14 |
 | 66. Resource Processing + Upload | 2/2 | ✓ Complete | 2026-02-14 |
 | 67. Generation Pipeline | 3/3 | ✓ Complete | 2026-02-15 |
-| 68. Phase-Aware UI + Resource Injection | 2/3 | Gap closure | 2026-02-15 |
+| 68. Phase-Aware UI + Resource Injection | 3/3 | ✓ Complete | 2026-02-16 |
 
 ---
 *Roadmap created: 2026-02-14*
-*Last updated: 2026-02-15 -- Phase 68 gap closure plan added (UAT Test 6: resource awareness in system prompts).*
+*Last updated: 2026-02-16 -- Phase 68 gap closure complete (68-03: resource awareness in system prompts).*
