@@ -134,10 +134,21 @@ function getSystemInstructionForMode(
   gradeLevel: string = 'Year 6 (10-11 years old)',
   preservableContent?: PreservableContent,
   teachableMoments?: TeachableMoment[],
-  useVisualScaffolding: boolean = false
+  useVisualScaffolding: boolean = false,
+  hasResources: boolean = false
 ): string {
   const teleprompterRules = getTeleprompterRulesForVerbosity(verbosity);
   const studentFriendlyRules = getStudentFriendlyRules(gradeLevel);
+
+  // Conditionally include resource awareness directives when supplementary resources are present
+  const resourceAwarenessRules = hasResources ? `
+CRITICAL - SUPPLEMENTARY RESOURCES:
+The teacher has uploaded supplementary teaching resources that appear in the user prompt under "SUPPLEMENTARY TEACHING RESOURCES".
+- You MUST actively integrate content from these resources into relevant slides.
+- For each resource used, add a callout reference on the slide (e.g., "[See: filename]") so the teacher knows which slide relates to which resource.
+- Weave resource content naturally into slide bullet points and teleprompter scripts -- do NOT create a separate "Resources" slide.
+- If a resource contains examples, case studies, or data, use them to enrich the relevant topic slides.
+- Every uploaded resource MUST be referenced in at least one slide.` : '';
 
   // Build preservation rules if content detected
   const minConfidence = getMinConfidenceForMode(mode);
@@ -182,6 +193,8 @@ ${teleprompterPreservationRules}
 
 ${teachableMomentRules}
 
+${resourceAwarenessRules}
+
 LAYOUTS: Use 'split' for content with images, 'grid' or 'flowchart' for process stages, 'full-image' for hooks, and 'grid' for Success Criteria/Differentiation.
 `;
 
@@ -217,6 +230,8 @@ ${teleprompterPreservationRules}
 
 ${teachableMomentRules}
 
+${resourceAwarenessRules}
+
 LAYOUTS: Use 'split' for content with images, 'grid' or 'flowchart' for process stages, 'full-image' for hooks.
 `;
 
@@ -243,6 +258,8 @@ ${teleprompterRules}
 ${teleprompterPreservationRules}
 
 ${teachableMomentRules}
+
+${resourceAwarenessRules}
 
 LAYOUTS: Use 'split' for content with images, 'grid' or 'flowchart' for process stages, 'full-image' for hooks.
 `;
@@ -312,7 +329,7 @@ export const generateLessonSlides = async (
   // Debug: Log verbosity being used for generation
   console.log('[GeminiService] generateLessonSlides - verbosity:', input.verbosity || 'undefined (defaulting to standard)');
 
-  const systemInstruction = getSystemInstructionForMode(input.mode, input.verbosity, input.gradeLevel, detectedContent, teachableMoments, useVisualScaffolding);
+  const systemInstruction = getSystemInstructionForMode(input.mode, input.verbosity, input.gradeLevel, detectedContent, teachableMoments, useVisualScaffolding, !!input.supplementaryResourceText);
 
   // Build contents array based on mode
   const contents: any[] = [];
