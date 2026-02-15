@@ -83,11 +83,12 @@ Plans:
   3. Resources uploaded on the landing page appear pre-populated in ResourceHub without re-uploading
   4. AI weaves resource content into relevant slides with callout references (e.g., "[See: Case Study]") using the same prompt structure for both Gemini and Claude
   5. All pipeline features (coverage score, gap filling, phase detection, resource injection) produce identical results on both Gemini and Claude providers
-**Plans:** 2 plans
+**Plans:** 3 plans
 
 Plans:
 - [x] 68-01-PLAN.md -- Phase badges, balance indicator, and override dropdown on sidebar thumbnails
 - [x] 68-02-PLAN.md -- Resource injection into generation pipeline and ResourceHub pre-population
+- [ ] 68-03-PLAN.md -- Add resource awareness to system prompts for stronger AI integration (gap closure)
 
 ## Progress
 
@@ -98,8 +99,8 @@ Plans:
 | 65. Foundation Types + Phase Detection | 2/2 | ✓ Complete | 2026-02-14 |
 | 66. Resource Processing + Upload | 2/2 | ✓ Complete | 2026-02-14 |
 | 67. Generation Pipeline | 3/3 | ✓ Complete | 2026-02-15 |
-| 68. Phase-Aware UI + Resource Injection | 2/2 | ✓ Complete | 2026-02-15 |
+| 68. Phase-Aware UI + Resource Injection | 2/3 | Gap closure | 2026-02-15 |
 
 ---
 *Roadmap created: 2026-02-14*
-*Last updated: 2026-02-15 -- Phase 68 executed and verified. v5.0 milestone complete.*
+*Last updated: 2026-02-15 -- Phase 68 gap closure plan added (UAT Test 6: resource awareness in system prompts).*
