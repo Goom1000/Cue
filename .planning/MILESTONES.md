@@ -1,5 +1,33 @@
 # Project Milestones: Cue
 
+## v5.0 Smart Generation (Shipped: 2026-02-16)
+
+**Delivered:** Slide generation now runs a three-pass pipeline (generate → check coverage → fill gaps) that automatically produces near-complete decks, accepts supplementary resources (PDF, PPTX, DOCX, images) for AI to weave into slides, and tags every slide with its lesson phase (Hook, I Do, We Do, We Do Together, You Do, Plenary) — so teachers rarely need manual fixes after generation.
+
+**Phases completed:** 65-68 (10 plans total)
+
+**Key accomplishments:**
+
+- Lesson phase detection with regex-based UK/Australian terminology matching, wired into both Gemini and Claude providers
+- Supplementary resource upload (PDF, images, DOCX, PPTX) with PPTX text extraction via JSZip/DOMParser and content-capping (2000/6000 chars)
+- Three-pass generation pipeline (Generate → Check Coverage → Fill Gaps) with AbortController cancellation and graceful degradation
+- Phase-aware UI with color-coded badges, balance indicator, and manual override dropdown on sidebar thumbnails
+- Resource injection into AI prompts with system prompt directives for dual-provider parity
+- Multi-stage progress UI with pipeline stage dots, cancel support, and coverage score toast
+
+**Stats:**
+
+- 54 files created/modified (+7,703 lines)
+- ~36,860 lines of TypeScript (project total)
+- 4 phases, 10 plans, 23 requirements
+- 3 days (2026-02-14 → 2026-02-16)
+
+**Git range:** `feat(65-01)` → `feat(68-03)`
+
+**What's next:** TBD with /gsd:new-milestone
+
+---
+
 ## v4.1 Script Mode (Shipped: 2026-02-08)
 
 **Delivered:** Teachers can now export any Cue deck as a self-contained presentation for colleagues — AI transforms teleprompter scripts into expanded talking-point bullets, exports as PPTX or PDF with images, via a share dialog with progress tracking and preview.
@@ -553,3 +581,13 @@
 **What's next:** v2 enhancements (elapsed time, fullscreen recovery) or new features
 
 ---
+
+## v5.0 Smart Generation (Shipped: 2026-02-15)
+
+**Phases completed:** 75 phases, 166 plans, 19 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+

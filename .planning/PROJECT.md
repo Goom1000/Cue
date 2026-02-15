@@ -4,11 +4,11 @@
 
 A presentation tool for teachers that transforms PDF lesson plans into interactive slideshows with AI-generated content, a teleprompter script for the teacher, and progressive bullet reveal. Teachers upload their existing lesson plans, select student age/grade level, and the AI creates an engaging presentation with speaker notes that guide the teacher through natural, conversational delivery.
 
-**v4.1 shipped:** Script Mode (Share with Colleague) — Teachers can export any Cue deck as a self-contained presentation for colleagues. AI transforms teleprompter scripts into expanded talking-point bullets, exports as PPTX or PDF with images. Deployed at https://goom1000.github.io/Cue/
+**v5.0 shipped:** Smart Generation — Three-pass pipeline (generate → check coverage → fill gaps) produces near-complete decks automatically. Teachers can upload supplementary resources (PDF, PPTX, DOCX, images) that AI weaves into slides. Lesson phase detection tags slides with pedagogical stages (Hook, I Do, We Do, You Do, Plenary). Deployed at https://goom1000.github.io/Cue/
 
 ## Current State
 
-Shipped v4.1 with ~35,000 LOC TypeScript. v4.1 delivered Script Mode: AI transformation service converts teleprompter scripts into expanded talking-point bullets with batched processing and cross-slide context coherence, PPTX and PDF export with dedicated script-mode layouts, ShareModal with 4-phase state machine (transform → preview → export → download), and dual-provider support (Gemini + Claude). 23 milestones shipped, 64 phases completed, 215 plans executed.
+Shipped v5.0 with ~36,860 LOC TypeScript. v5.0 delivered Smart Generation: three-pass generation pipeline (generate → check coverage → fill gaps) for near-complete decks, supplementary resource upload with PPTX text extraction and content-capping, lesson phase detection with GRR methodology tagging, phase-aware sidebar UI with color-coded badges and balance indicator, and resource injection into AI prompts with dual-provider parity. 24 milestones shipped, 68 phases completed, 225 plans executed.
 
 ## Core Value
 
@@ -162,18 +162,29 @@ Students see only the presentation; teachers see the presentation plus a telepro
 - ✓ "Share with colleague" button with export dialog (PPTX / PDF format choice) — v4.1
 - ✓ Exported deck includes images alongside expanded text — v4.1
 - ✓ Optional preview of script version before download — v4.1
+- ✓ Three-pass generation pipeline (generate → check coverage → fill gaps) for near-complete decks — v5.0
+- ✓ Coverage score display after generation — v5.0
+- ✓ Multi-stage progress UI with pipeline stage dots and cancel support — v5.0
+- ✓ Graceful pipeline degradation (Pass 2/3 failure → Pass 1 slides with warning) — v5.0
+- ✓ Position-aware gap slide insertion without corrupting slide order — v5.0
+- ✓ AbortController cancellation with partial results preserved — v5.0
+- ✓ Supplementary resource upload (PDF, images, DOCX, PPTX) on landing page — v5.0
+- ✓ PPTX text extraction via JSZip + DOMParser (no new dependencies) — v5.0
+- ✓ Content capping (2000 chars/resource, 6000 total) for token safety — v5.0
+- ✓ AI resource injection with callout references woven into slides — v5.0
+- ✓ ResourceHub pre-population from landing page uploads — v5.0
+- ✓ Resource persistence in .cue save file (v5 format) — v5.0
+- ✓ Lesson phase detection (Hook, I Do, We Do, We Do Together, You Do, Plenary) — v5.0
+- ✓ Regex-based phase patterns with UK/Australian teaching terminology — v5.0
+- ✓ Color-coded phase badges on sidebar slide cards — v5.0
+- ✓ Phase balance indicator with distribution visualization — v5.0
+- ✓ Manual phase override via badge dropdown — v5.0
+- ✓ Phase label persistence in .cue save file — v5.0
+- ✓ Phase detection scoped to Fresh/Blend modes only — v5.0
+- ✓ Dual-provider parity for all pipeline features (Gemini + Claude) — v5.0
+- ✓ Resource injection uses same prompt structure for both providers — v5.0
 
 ### Active
-
-## Current Milestone: v5.0 Smart Generation
-
-**Goal:** Produce 80% complete slide decks on the first generation by auto-filling gaps, integrating uploaded resources, and tagging lesson phases — so teachers rarely need manual fixes.
-
-**Target features:**
-- Resource upload alongside lesson plan (PDF, PowerPoint, images) — AI decides placement as slides or resources
-- Auto gap analysis folded into generation pipeline (generate → cross-reference → fill gaps → deliver)
-- Lesson phase detection (I Do, We Do, We Do Together, You Do) with labels on slides and teleprompter
-- Manual "Check for Gaps" button retained for post-edit re-checking
 
 ### Deferred
 
@@ -202,18 +213,18 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Current State
 
-Shipped v4.1 with ~35,000 LOC TypeScript.
+Shipped v5.0 with ~36,860 LOC TypeScript.
 Tech stack: React 19, Vite, Gemini/Claude API, Tailwind CSS, react-rnd, jsPDF, html2canvas, mammoth.js, react-diff-viewer-continued, JSZip, PptxGenJS, Jest 30.
 Client-side only (no backend).
 Deployed at: https://goom1000.github.io/Cue/
 
-v4.1 delivered Script Mode (Share with Colleague):
-- AI transformation service with batched processing and cross-slide context coherence
-- Dual-provider support (Gemini + Claude) with progress callbacks
-- Script-mode PPTX export with dedicated layout (16-18pt text, thumbnails, shrink-to-fit)
-- ShareModal with 4-phase state machine (transform → preview → export → download)
-- PDF export with jsPDF vector text, cue marker styling, print-friendly A4 layout
-- End-to-end share workflow with no cloud dependencies
+v5.0 delivered Smart Generation:
+- Three-pass generation pipeline (generate → check coverage → fill gaps) with AbortController cancellation
+- Supplementary resource upload (PDF, PPTX, DOCX, images) with content-capping and prompt injection
+- Lesson phase detection with regex-based UK/Australian terminology matching
+- Phase-aware sidebar UI with color-coded badges, balance indicator, and manual override
+- Resource injection into AI prompts with system prompt directives for dual-provider parity
+- Coverage score toast, multi-stage progress UI, and graceful degradation
 
 ### Technical Environment
 
@@ -358,6 +369,22 @@ v4.1 delivered Script Mode (Share with Colleague):
 | Text-based preview cards | Transformed data is bullets, not full Slide objects | ✓ Good — v4.1 |
 | Temperature 0.7 for transformation | Creative delivery text, not analytical output | ✓ Good — v4.1 |
 | Sequential chunk iteration | Cross-chunk context coherence over parallel speed | ✓ Good — v4.1 |
+| Structural + content regex for phase detection | Structural patterns (headings) take priority, content patterns add coverage | ✓ Good — v5.0 |
+| Case-sensitive structural, case-insensitive content | Short patterns like "I Do" need exact case; longer synonyms don't | ✓ Good — v5.0 |
+| Client-side post-processing for phases | No AI prompt modification needed; regex runs in 0ms | ✓ Good — v5.0 |
+| Explicit mode guard (fresh \|\| blend) | Safer than !refine against future mode additions | ✓ Good — v5.0 |
+| PPTX text-only extraction | No images from ppt/media/ to avoid save file bloat | ✓ Good — v5.0 |
+| Content capping at prompt time | Applied during construction, not upload — preserves original data | ✓ Good — v5.0 |
+| DrawingML namespace URI (not prefix) | getElementsByTagNameNS with full URI for reliable XML parsing | ✓ Good — v5.0 |
+| Auto-save excludes supplementary resources | Prevents localStorage overflow (~5MB limit) | ✓ Good — v5.0 |
+| Three-pass pipeline with flat options | PipelineOptions interface separate from GenerationInput for clarity | ✓ Good — v5.0 |
+| wasPartial flag for degraded results | Covers failed gaps, overflow gaps (>5), and AbortSignal cancellation | ✓ Good — v5.0 |
+| Signal threads to generateLessonSlides only | Individual regeneration calls are fast (~2-3s), per-iteration check sufficient | ✓ Good — v5.0 |
+| Phase percentages relative to assigned slides | Unassigned slides don't dilute distribution calculation | ✓ Good — v5.0 |
+| Native select styled as phase badge | Accessible by default, no custom dropdown needed | ✓ Good — v5.0 |
+| Resource injection in user prompt (not system) | AI sees resources as teacher-provided context, not system rules | ✓ Good — v5.0 |
+| Shared buildResourceInjectionText | Single function ensures PROV-01/PROV-02 parity | ✓ Good — v5.0 |
+| Copy-paste system prompt directives | Character-level parity between providers, no shared module abstraction | ✓ Good — v5.0 |
 
 ---
-*Last updated: 2026-02-08 after v5.0 milestone started*
+*Last updated: 2026-02-16 after v5.0 milestone*

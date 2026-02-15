@@ -2,32 +2,32 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-14)
+See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script that lets them sound knowledgeable and natural.
-**Current focus:** v5.0 Smart Generation -- MILESTONE COMPLETE
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 68 of 68 (Phase-Aware UI + Resource Injection)
-Plan: 3 of 3 in current phase
-Status: ✓ Complete -- Phase 68 gap closure verified, milestone v5.0 finished
-Last activity: 2026-02-16 -- Phase 68 gap closure (68-03) executed and verified
+Phase: 68 of 68 (all complete)
+Plan: N/A — between milestones
+Status: ✓ v5.0 Smart Generation shipped
+Last activity: 2026-02-16 — v5.0 milestone archived
 
-Progress: [██████████] 100% (231 plans completed)
+Progress: [██████████] 100% (225 plans completed)
 
 ## Performance Metrics
 
 **Velocity:**
-- Milestones shipped: 23 (v1.0 through v4.1)
+- Milestones shipped: 24 (v1.0 through v5.0)
 - Total phases completed: 68
-- Total plans completed: 231
-- Total LOC: ~36,000 TypeScript
+- Total plans completed: 225
+- Total LOC: ~36,860 TypeScript
 
 **Recent Milestones:**
+- v5.0: 4 phases, 10 plans, 3 days (2026-02-16) - Smart Generation
 - v4.1: 4 phases, 5 plans, 1 day (2026-02-08) - Script Mode
 - v4.0: 6 phases, 18 plans, 21 days (2026-02-07) - Clipboard Builder
-- v3.9: 4 phases, 8 plans, 14 days (2026-02-01) - Delay Answer Reveal
 
 ## Accumulated Context
 
@@ -35,71 +35,21 @@ Progress: [██████████] 100% (231 plans completed)
 
 See PROJECT.md Key Decisions table for full history.
 
-**Phase 65-01 decisions:**
-- Content patterns skipped when structural (high confidence) match exists for same phase -- prevents duplicate detections
-- "I Do" uses case-sensitive structural regex; longer synonyms use case-insensitive
-- PHASE_PATTERNS ordered: hook, i-do, we-do-together, we-do, you-do, plenary (longest match first)
-
-**Phase 65-02 decisions:**
-- Phase detection is pure client-side post-processing -- AI prompt and response schema are not modified
-- Mode guard uses explicit `fresh || blend` (not `!== refine`) for safety against future mode additions
-- Phase detection runs before content preservation detection to operate on full unprocessed lesson text
-
-**Phase 66-01 decisions:**
-- PPTX extraction is text-only (no images from ppt/media/) to avoid save file bloat
-- Content capping is a pure view function applied at prompt construction time, not upload time
-- Per-resource cap 2000 chars, total cap 6000 chars, max 5 supplementary resources
-- Used getElementsByTagNameNS with full DrawingML namespace URI (not prefix-based)
-
-**Phase 66-02 decisions:**
-- Auto-save explicitly excludes supplementary resources to prevent localStorage overflow (~5MB limit)
-- Supplementary resources persist through generate -- they are input context, not output
-- Amber/orange theme distinguishes supplementary section from green (lesson plan) and blue (presentation) zones
-
-**Phase 67-01 decisions:**
-- Phase detection re-runs on merged deck using detectPhasesInText + assignPhasesToSlides (same two-step pattern as providers)
-- Pipeline options use a flat interface rather than extending GenerationInput for clarity
-- wasPartial covers three cases: failed gaps, overflowed gaps (beyond 5-gap cap), and AbortSignal cancellation
-
-**Phase 67-02 decisions:**
-- Pipeline progress maps PipelineStage to extended generationProgress.phase via detail string matching for teleprompter vs slides distinction
-- Cancel preserves partial results: only returns to INPUT if slides.length === 0
-- Coverage percentage stored in separate state for future Phase 68 UI display, currently drives success toast only
-
-**Phase 67-03 decisions:**
-- Signal threads to generateLessonSlides only -- regenerateTeleprompter skipped since individual calls are fast (~2-3s) and per-iteration abort check is sufficient
-- Used undefined for pageImages parameter in pipeline call since GenerationInput carries images internally
-
-**Phase 68-01 decisions:**
-- Phase percentages calculated relative to assigned slides only (not total), so unassigned slides don't dilute distribution
-- Phase badge uses native `<select>` styled as colored pill -- accessible by default, no custom dropdown needed
-- Balance indicator only renders when at least one slide has a lessonPhase assigned
-
-**Phase 68-02 decisions:**
-- Resource injection appended to user prompt (not system prompt) so AI sees resources as teacher-provided context
-- Both providers inject identically via shared buildResourceInjectionText -- ensures PROV-01/PROV-02 parity
-- ResourceHub deduplicates by resource ID on mount to handle overlap between enhancedResourceStates and supplementaryResources
-- generationPipeline.ts not modified -- supplementaryResourceText passes through automatically via GenerationInput
-
-**Phase 68-03 decisions:**
-- Resource awareness rules placed before LAYOUTS line alongside other CRITICAL/MANDATORY directives
-- Directive text copy-pasted between providers for character-level parity (not abstracted to shared module)
-
 ### Pending Todos
 
 See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
 
 ### Blockers/Concerns
 
-- Phase detection regex needs validation against real Australian lesson plan templates (research flag from SUMMARY)
-- PPTX edge cases (SmartArt, charts, grouped shapes) may not extract cleanly -- needs testing with real teacher files
+- Phase detection regex needs validation against real Australian lesson plan templates
+- PPTX edge cases (SmartArt, charts, grouped shapes) may not extract cleanly
 
 ## Session Continuity
 
 Last session: 2026-02-16
-Stopped at: v5.0 milestone complete -- all 4 phases (65-68) executed, gap closure verified
+Stopped at: v5.0 milestone archived — ready for /gsd:new-milestone
 Resume file: .planning/ROADMAP.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-16 -- Phase 68 gap closure complete, v5.0 milestone verified*
+*Last updated: 2026-02-16 — v5.0 milestone archived*
