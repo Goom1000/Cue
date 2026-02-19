@@ -388,12 +388,14 @@ Say: Day three has content.`;
   });
 
   it('stats.implicitSayCount is subset of stats.sayCount', () => {
-    const text = `Say: Explicit say block one.
-This is implicit say content that exceeds twenty characters easily.
+    // Implicit Say only triggers when there is no current block.
+    // Place implicit text BEFORE any marker so it starts its own block.
+    const text = `This is implicit say content that exceeds twenty characters easily.
+Say: Explicit say block one.
 Say: Explicit say block two.`;
     const result = parseScriptedLessonPlan(text);
 
-    expect(result.stats.sayCount).toBe(3); // 2 explicit + 1 implicit
+    expect(result.stats.sayCount).toBe(3); // 1 implicit + 2 explicit
     expect(result.stats.implicitSayCount).toBe(1);
     expect(result.stats.implicitSayCount).toBeLessThanOrEqual(result.stats.sayCount);
   });
