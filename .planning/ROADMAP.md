@@ -29,7 +29,7 @@ See MILESTONES.md for full history.
 - Integer phases (69, 70, 71...): Planned milestone work
 - Decimal phases (70.1, 70.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 69: Scripted Parser** - Pure-function parser extracts typed blocks from marker-annotated lesson plans
+- [x] **Phase 69: Scripted Parser** - Pure-function parser extracts typed blocks from marker-annotated lesson plans (completed 2026-02-19)
 - [ ] **Phase 70: Slide Mapper + Pipeline Integration** - Converts parsed blocks to slides and wires scripted mode into the generation pipeline
 - [ ] **Phase 71: AI Image Prompts + Layout Assignment** - Minimal AI enrichment call adds image prompts and layout selection to scripted slides
 - [ ] **Phase 72: Day Picker UI + Mode Selector** - Teacher-facing UI for multi-day selection and scripted import mode toggle
@@ -47,7 +47,7 @@ See MILESTONES.md for full history.
   3. A multi-day lesson plan with ## Day 1 / ## Day 2 headers is split into separate day sections with accurate block counts per day
   4. Unmarked prose between markers is captured as implicit Say: blocks rather than silently dropped
   5. Section headings (## Hook, ### I Do, ### We Do, ### You Do, ### Plenary) are detected as slide boundary markers with lesson phase labels
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 69-01-PLAN.md — Types + parser TDD (all 8 PARSE requirements)
@@ -120,7 +120,7 @@ Phases execute in numeric order: 69 -> 70 -> 71 -> 72 -> 73
 | 66. Resource Processing + Upload | v5.0 | 2/2 | Complete | 2026-02-14 |
 | 67. Generation Pipeline | v5.0 | 3/3 | Complete | 2026-02-15 |
 | 68. Phase-Aware UI + Resource Injection | v5.0 | 3/3 | Complete | 2026-02-16 |
-| 69. Scripted Parser | v6.0 | 0/? | Not started | - |
+| 69. Scripted Parser | 1/1 | Complete   | 2026-02-19 | - |
 | 70. Slide Mapper + Pipeline Integration | v6.0 | 0/? | Not started | - |
 | 71. AI Image Prompts + Layout Assignment | v6.0 | 0/? | Not started | - |
 | 72. Day Picker UI + Mode Selector | v6.0 | 0/? | Not started | - |

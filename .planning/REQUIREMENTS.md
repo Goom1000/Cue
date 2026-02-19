@@ -9,14 +9,14 @@ Requirements for Scripted Import milestone. Each maps to roadmap phases.
 
 ### Scripted Parser
 
-- [ ] **PARSE-01**: Parser detects `Say:` markers and extracts verbatim teacher script (including multi-line continuation)
-- [ ] **PARSE-02**: Parser detects `Ask:` markers and extracts questions with expected answers
-- [ ] **PARSE-03**: Parser detects `Write on board:` markers and extracts student-facing content
-- [ ] **PARSE-04**: Parser detects `Activity:` markers and extracts activity instructions
-- [ ] **PARSE-05**: Parser detects section headings (## Hook, ### I Do, ### We Do, ### You Do, ### Plenary) as slide boundaries
-- [ ] **PARSE-06**: Parser treats unmarked prose (20+ chars between markers) as implicit Say: blocks rather than dropping content
-- [ ] **PARSE-07**: Parser splits multi-day lesson plans on `## Day N` boundaries into separate day sections
-- [ ] **PARSE-08**: Parser returns typed `ScriptedParseResult` with blocks, days, and parse statistics
+- [x] **PARSE-01**: Parser detects `Say:` markers and extracts verbatim teacher script (including multi-line continuation)
+- [x] **PARSE-02**: Parser detects `Ask:` markers and extracts questions with expected answers
+- [x] **PARSE-03**: Parser detects `Write on board:` markers and extracts student-facing content
+- [x] **PARSE-04**: Parser detects `Activity:` markers and extracts activity instructions
+- [x] **PARSE-05**: Parser detects section headings (## Hook, ### I Do, ### We Do, ### You Do, ### Plenary) as slide boundaries
+- [x] **PARSE-06**: Parser treats unmarked prose (20+ chars between markers) as implicit Say: blocks rather than dropping content
+- [x] **PARSE-07**: Parser splits multi-day lesson plans on `## Day N` boundaries into separate day sections
+- [x] **PARSE-08**: Parser returns typed `ScriptedParseResult` with blocks, days, and parse statistics
 
 ### Slide Mapper
 
@@ -85,14 +85,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PARSE-01 | Phase 69 | Pending |
-| PARSE-02 | Phase 69 | Pending |
-| PARSE-03 | Phase 69 | Pending |
-| PARSE-04 | Phase 69 | Pending |
-| PARSE-05 | Phase 69 | Pending |
-| PARSE-06 | Phase 69 | Pending |
-| PARSE-07 | Phase 69 | Pending |
-| PARSE-08 | Phase 69 | Pending |
+| PARSE-01 | Phase 69 | Complete |
+| PARSE-02 | Phase 69 | Complete |
+| PARSE-03 | Phase 69 | Complete |
+| PARSE-04 | Phase 69 | Complete |
+| PARSE-05 | Phase 69 | Complete |
+| PARSE-06 | Phase 69 | Complete |
+| PARSE-07 | Phase 69 | Complete |
+| PARSE-08 | Phase 69 | Complete |
 | MAP-01 | Phase 70 | Pending |
 | MAP-02 | Phase 70 | Pending |
 | MAP-03 | Phase 70 | Pending |
