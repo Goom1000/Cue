@@ -120,7 +120,7 @@ Phases execute in numeric order: 69 -> 70 -> 71 -> 72 -> 73
 | 66. Resource Processing + Upload | v5.0 | 2/2 | Complete | 2026-02-14 |
 | 67. Generation Pipeline | v5.0 | 3/3 | Complete | 2026-02-15 |
 | 68. Phase-Aware UI + Resource Injection | v5.0 | 3/3 | Complete | 2026-02-16 |
-| 69. Scripted Parser | 1/1 | Complete   | 2026-02-19 | - |
+| 69. Scripted Parser | 1/1 | Complete    | 2026-02-19 | - |
 | 70. Slide Mapper + Pipeline Integration | v6.0 | 0/? | Not started | - |
 | 71. AI Image Prompts + Layout Assignment | v6.0 | 0/? | Not started | - |
 | 72. Day Picker UI + Mode Selector | v6.0 | 0/? | Not started | - |
