@@ -47,11 +47,10 @@ See MILESTONES.md for full history.
   3. A multi-day lesson plan with ## Day 1 / ## Day 2 headers is split into separate day sections with accurate block counts per day
   4. Unmarked prose between markers is captured as implicit Say: blocks rather than silently dropped
   5. Section headings (## Hook, ### I Do, ### We Do, ### You Do, ### Plenary) are detected as slide boundary markers with lesson phase labels
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 69-01: TBD
-- [ ] 69-02: TBD
+- [ ] 69-01-PLAN.md — Types + parser TDD (all 8 PARSE requirements)
 
 ### Phase 70: Slide Mapper + Pipeline Integration
 **Goal**: Parsed blocks convert into valid Cue slides and the scripted mode is wired into the generation pipeline without breaking existing modes
