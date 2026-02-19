@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-19)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script that lets them sound knowledgeable and natural.
-**Current focus:** v6.0 Scripted Import — defining requirements
+**Current focus:** v6.0 Scripted Import -- Phase 69: Scripted Parser
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-02-19 — Milestone v6.0 started
+Phase: 69 of 73 (Scripted Parser)
+Plan: --
+Status: Ready to plan
+Last activity: 2026-02-19 -- v6.0 roadmap created (5 phases, 31 requirements)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -41,15 +41,14 @@ See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
 
 ### Blockers/Concerns
 
-- Phase detection regex needs validation against real Australian lesson plan templates
-- PPTX edge cases (SmartArt, charts, grouped shapes) may not extract cleanly
+None for v6.0. Research confidence is HIGH across all areas. Zero new dependencies.
 
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: v6.0 milestone started — defining requirements
+Stopped at: v6.0 roadmap created -- ready to plan Phase 69
 Resume file: .planning/ROADMAP.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-19 — Milestone v6.0 started*
+*Last updated: 2026-02-19 -- v6.0 roadmap created*

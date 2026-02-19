@@ -73,7 +73,7 @@ Explicitly excluded. Documented to prevent scope creep.
 
 | Feature | Reason |
 |---------|--------|
-| AI rewriting of scripted content | Defeats the feature's purpose — verbatim preservation is the core value |
+| AI rewriting of scripted content | Defeats the feature's purpose -- verbatim preservation is the core value |
 | Gap analysis in scripted mode | Teacher's script is authoritative, not incomplete |
 | Verbosity variants for scripted mode | Requires AI rewriting, contradicts verbatim preservation |
 | Claude API integration in-app | Tips page only, no automated Claude API calls for lesson plan generation |
@@ -85,43 +85,43 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PARSE-01 | — | Pending |
-| PARSE-02 | — | Pending |
-| PARSE-03 | — | Pending |
-| PARSE-04 | — | Pending |
-| PARSE-05 | — | Pending |
-| PARSE-06 | — | Pending |
-| PARSE-07 | — | Pending |
-| PARSE-08 | — | Pending |
-| MAP-01 | — | Pending |
-| MAP-02 | — | Pending |
-| MAP-03 | — | Pending |
-| MAP-04 | — | Pending |
-| MAP-05 | — | Pending |
-| PIPE-01 | — | Pending |
-| PIPE-02 | — | Pending |
-| PIPE-03 | — | Pending |
-| PIPE-04 | — | Pending |
-| PIPE-05 | — | Pending |
-| DAY-01 | — | Pending |
-| DAY-02 | — | Pending |
-| DAY-03 | — | Pending |
-| DAY-04 | — | Pending |
-| DAY-05 | — | Pending |
-| MODE-01 | — | Pending |
-| MODE-02 | — | Pending |
-| MODE-03 | — | Pending |
-| TIPS-01 | — | Pending |
-| TIPS-02 | — | Pending |
-| TIPS-03 | — | Pending |
-| TIPS-04 | — | Pending |
-| TIPS-05 | — | Pending |
+| PARSE-01 | Phase 69 | Pending |
+| PARSE-02 | Phase 69 | Pending |
+| PARSE-03 | Phase 69 | Pending |
+| PARSE-04 | Phase 69 | Pending |
+| PARSE-05 | Phase 69 | Pending |
+| PARSE-06 | Phase 69 | Pending |
+| PARSE-07 | Phase 69 | Pending |
+| PARSE-08 | Phase 69 | Pending |
+| MAP-01 | Phase 70 | Pending |
+| MAP-02 | Phase 70 | Pending |
+| MAP-03 | Phase 70 | Pending |
+| MAP-04 | Phase 70 | Pending |
+| MAP-05 | Phase 70 | Pending |
+| PIPE-01 | Phase 70 | Pending |
+| PIPE-02 | Phase 70 | Pending |
+| PIPE-03 | Phase 71 | Pending |
+| PIPE-04 | Phase 71 | Pending |
+| PIPE-05 | Phase 70 | Pending |
+| DAY-01 | Phase 72 | Pending |
+| DAY-02 | Phase 72 | Pending |
+| DAY-03 | Phase 72 | Pending |
+| DAY-04 | Phase 72 | Pending |
+| DAY-05 | Phase 72 | Pending |
+| MODE-01 | Phase 72 | Pending |
+| MODE-02 | Phase 72 | Pending |
+| MODE-03 | Phase 72 | Pending |
+| TIPS-01 | Phase 73 | Pending |
+| TIPS-02 | Phase 73 | Pending |
+| TIPS-03 | Phase 73 | Pending |
+| TIPS-04 | Phase 73 | Pending |
+| TIPS-05 | Phase 73 | Pending |
 
 **Coverage:**
 - v6.0 requirements: 31 total
-- Mapped to phases: 0
-- Unmapped: 31 ⚠️
+- Mapped to phases: 31
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-19*
-*Last updated: 2026-02-19 after initial definition*
+*Last updated: 2026-02-19 -- traceability updated with phase mappings*
