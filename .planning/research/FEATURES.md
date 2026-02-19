@@ -1,342 +1,294 @@
-# Feature Landscape: AI Resource Enhancement (v3.7)
+# Feature Landscape: Scripted Import, Day Picker, Claude Chat Tips
 
-**Project:** Cue - Teacher Presentation Tool
-**Domain:** AI-powered worksheet/resource enhancement for K-12 teachers
-**Researched:** 2026-01-29
-**Confidence:** MEDIUM (based on competitor analysis and educational technology patterns)
+**Domain:** Structured lesson plan import for teaching presentation app
+**Researched:** 2026-02-19
+**Overall confidence:** HIGH (deep codebase review + ecosystem survey)
 
 ---
 
-## Executive Summary
+## Context: Why This Milestone Exists
 
-AI resource enhancement in education follows a consistent pattern: teachers upload existing materials, AI adapts them while preserving intent, and outputs are differentiated for student needs. The market leaders (Diffit, MagicSchool, Eduaide.ai) focus on three core capabilities: **text leveling/differentiation**, **format transformation**, and **standards alignment**. Cue's unique advantage is **lesson context awareness**—the AI can align enhanced resources with the adapted presentation, creating cohesive lesson materials rather than isolated worksheets.
+Cue has three generation modes (Fresh, Refine, Blend) that all run a full AI pipeline. This works well for unstructured or lightly structured lesson plans. But a growing workflow pattern exists: teachers use Claude (or ChatGPT) in chat to generate highly structured, scripted lesson plans with explicit markers (`Say:`, `Write on board:`, `Ask:`), then want to turn those into presentations. Running these through the AI pipeline dilutes the carefully chosen wording. The teacher's exact script is the value -- AI should not rewrite it.
+
+**The three new features address this workflow:**
+1. **Scripted Import** -- parse structured markers, map directly to slides, preserve verbatim
+2. **Day Picker** -- multi-day lesson plans are common; let teacher select which day(s) to import
+3. **Claude Chat Tips** -- close the loop: give teachers a prompt template that produces Cue-optimized output
 
 ---
 
 ## Table Stakes
 
-Features teachers expect. Missing = product feels incomplete or unusable.
+Features users expect when a scripted import mode exists. Missing any of these = the feature feels broken.
 
-| Feature | Why Expected | Complexity | Cue Dependencies | Notes |
-|---------|--------------|------------|------------------|-------|
-| Multi-format upload (PDF, image, Word/Docs) | Teachers have resources in various formats; excluding any major format blocks adoption | MEDIUM | Existing PDF parsing infrastructure | PDF.js already handles lesson plans; extend for general documents |
-| Preview before enhancement | Teachers must see what AI will work with before committing | LOW | None | Critical for trust—teacher sees extracted content/image |
-| Original intent preservation | Teachers chose this resource for a reason; AI shouldn't rewrite from scratch | HIGH | AI prompting | Most common complaint about AI tools—over-generation |
-| Differentiation output (2-3 versions) | Universal design principle; every classroom has mixed abilities | MEDIUM | Verbosity infrastructure | Reuse existing concise/standard/detailed pattern |
-| Print-ready PDF export | Resources must be usable immediately; teachers print daily | LOW | Working Wall export infrastructure | jsPDF/html2canvas already proven |
-| Editable output | Teachers always want to tweak AI results | MEDIUM | None | Not just preview—actual editing capability |
-| Cancel/regenerate | AI output won't always match expectations | LOW | Existing regenerate patterns | "Try again" is expected in any AI tool |
-
-### Table Stakes Details
-
-#### Multi-format Upload
-
-**What teachers expect:**
-- Drag-and-drop or click-to-upload
-- Accept PDF, PNG, JPG, JPEG, DOCX, Google Docs link
-- Clear visual feedback when file accepted
-- Error message if format unsupported
-
-**Competitor behavior:**
-- Diffit: PDF, text paste, URL, YouTube video
-- MagicSchool: Text paste primarily, some file upload
-- Canva: Full document import with format preservation
-- Eduaide.ai: Topic, article, URL, or document upload
-
-**Cue approach:** PDF + image is minimum viable; Word/Docs is stretch goal. Focus on image upload (photo of worksheet) as primary use case since teachers often have physical resources.
-
-#### Original Intent Preservation
-
-**Critical differentiator between useful and annoying AI.**
-
-Teachers report frustration when AI:
-- Rewrites content entirely instead of enhancing
-- Adds content not in original
-- Changes the learning objective
-- Removes key elements teacher deliberately included
-
-**What preservation means:**
-- Keep same questions/activities, improve clarity
-- Keep same learning objective, improve scaffolding
-- Keep same content, improve visual hierarchy
-- Add differentiation WITHOUT changing core content
-
-**Implementation:** AI prompt must emphasize "enhance and preserve" not "recreate."
-
-#### Differentiation Output
-
-**Universal expectation in 2025-2026 educational AI.**
-
-Every teacher serves students at different levels. The standard pattern is 3 levels:
-- **Simplified/Scaffold** (ELL, SEN, struggling readers): Reduced text complexity, visual supports, sentence starters
-- **Standard** (grade-level): Original content with enhanced clarity
-- **Extended/Challenge** (advanced): Additional depth, open-ended questions
-
-**Competitor implementations:**
-- Diffit: Reading level selector (grades 2-11+, Lexile)
-- MagicSchool: Text leveler tool, assignment scaffolder
-- Eduaide.ai: One-click differentiation button
-- Canva: Magic Write rewords for different reading levels
-
-**Cue advantage:** Already has verbosity system (concise/standard/detailed) for teleprompter. Resource differentiation can reuse this UX pattern.
-
----
+| Feature | Why Expected | Complexity | Depends On | Notes |
+|---------|--------------|------------|------------|-------|
+| Verbatim script preservation | The entire value proposition. `Say:` blocks must appear word-for-word in `speakerNotes`. If the AI rewrites the teacher's script, the feature has failed. | Med | New parser, pipeline mode gate | Direct mapping: `say` blocks -> `speakerNotes` segments. No AI content generation. |
+| Automatic marker detection | Teacher uploads a DOCX/PDF. Cue recognizes `Say:`, `Ask:`, `Write on board:`, section headings without teacher intervention. | Med | New `scriptedParser.ts` | ~15 marker patterns following `phasePatterns.ts` architecture. See Marker Catalogue below. |
+| Slide boundary detection | A scripted plan has natural slide boundaries at section headings, phase transitions, and topic shifts. The parser must identify where one slide ends and another begins. | Med | Parser + section heading detection | Combination of: `## Section` headings, phase markers (`### I Do`), and blank-line-separated marker groups. Fallback: each major section heading starts a new slide. |
+| Progressive disclosure mapping | `Say:` blocks within a slide must map to teleprompter segments separated by the existing pointing-right delimiter, so presentation mode works normally. | Low | Parser -> mapper | Each `say` block within a slide = one teleprompter segment. First segment = intro context. Identical to how AI-generated `speakerNotes` already work. |
+| AI image prompts | Slides need images. The teacher's script doesn't include image descriptions. AI generates one-sentence `imagePrompt` per slide based on slide content. | Low | Existing provider interface | Small, cheap AI call (~50 tokens per slide). Same API used for gap slide generation. |
+| AI layout assignment | Each slide needs a `layout` value from the existing enum. AI picks the best match based on content type. | Low | Same AI call as image prompts | Piggyback on image prompt call. `layout` is a single enum value per slide. |
+| Phase detection on imported content | Scripted slides should get lesson phase labels (Hook, I Do, We Do, You Do, Plenary) exactly like AI-generated decks. | None | `detectPhasesInText()` already exists | Zero new work. Existing phase detector runs on any text. Section headings like `### I Do` are already detected as structural patterns. |
+| Question flag detection | `Ask:` blocks should set `hasQuestionFlag: true` on the slide. | Low | Parser marker type | Direct mapping during block-to-slide conversion. One line of code. |
+| Mode selector on landing page | Teacher needs a way to choose Scripted Import mode (alongside Fresh/Refine/Blend). | Low | UI change in `App.tsx` landing page | Extend the existing mode indicator. Currently mode is auto-detected from file uploads; scripted mode needs an explicit toggle or auto-detection from marker density. |
 
 ## Differentiators
 
-Features that set Cue apart. Not expected, but high value when present.
+Features that elevate scripted import beyond "paste text into a notes app."
 
-| Feature | Value Proposition | Complexity | Cue Dependencies | Notes |
-|---------|-------------------|------------|------------------|-------|
-| Lesson context awareness | Enhanced resource aligns with adapted lesson content | MEDIUM | Existing lesson state | UNIQUE: No competitor does this |
-| Content alignment suggestions | AI suggests how resource connects to current slide | MEDIUM | Slide context | "This worksheet supports slide 3's learning objective" |
-| Visual clarity enhancement | Improve layout, spacing, hierarchy of existing resource | HIGH | Image processing | Beyond text—actual visual design improvement |
-| Answer key generation | Automatically create teacher answer version | LOW | AI prompting | Common ask, easy win |
-| Per-slide resource linking | Resources appear contextually with relevant slides | LOW | Slide/resource association | Presentation flow integration |
-| Batch differentiation | Create all 3 levels at once | MEDIUM | Parallel AI calls | Time saver vs. one-at-a-time |
-| Resource library persistence | Save enhanced resources for future lessons | LOW | .cue file format | Already planning this |
-
-### Differentiator Details
-
-#### Lesson Context Awareness (PRIMARY DIFFERENTIATOR)
-
-**What makes this unique:**
-
-Current tools (Diffit, MagicSchool, Eduaide) enhance resources in isolation. They don't know:
-- What lesson is being taught
-- What age/grade the students are
-- What content came before/after in the lesson
-- What vocabulary has been introduced
-
-**Cue's advantage:** The teacher already uploaded a lesson plan and generated slides. The AI has full context:
-- Topic and learning objectives
-- Grade level and student age
-- Vocabulary and key terms from slides
-- Content flow and progression
-
-**Implementation:**
-```
-When enhancing resource, include in prompt:
-- Current lesson topic
-- Grade level
-- Key vocabulary from slides
-- Learning objectives
-- Slide content for alignment suggestions
-```
-
-**Teacher benefit:** "The worksheet now uses the same vocabulary as my presentation" instead of generic enhancement.
-
-#### Visual Clarity Enhancement
-
-**Beyond text-only enhancement.**
-
-Teachers often upload:
-- Scanned worksheets (grainy, tilted)
-- Screenshots from other resources
-- Photos of textbook pages
-- Hand-drawn diagrams
-
-**Enhancement opportunities:**
-- Improve text readability
-- Straighten/deskew scanned images
-- Enhance contrast
-- Improve layout spacing
-- Add visual hierarchy (headers, sections)
-
-**Complexity reality check:** Full image enhancement requires vision AI capabilities. For v3.7 MVP, focus on:
-- Text extraction and reformatting (achievable)
-- Layout suggestions via structured prompts (achievable)
-- Actual image manipulation (defer to v4.0+)
-
-#### Answer Key Generation
-
-**Common teacher request, easy implementation.**
-
-Pattern:
-1. AI identifies questions in resource
-2. Generates answers based on lesson content
-3. Creates "Teacher Version" with answers shown
-
-**Already solved:** MagicSchool and Eduaide both offer this. Standard capability.
-
----
+| Feature | Value Proposition | Complexity | Depends On | Notes |
+|---------|-------------------|------------|------------|-------|
+| Multi-day lesson plan splitting (Day Picker) | Teachers often write 3-5 day lesson plans as a single document. Selecting "Day 2" and importing just that day's slides is unique -- no other presentation tool does this. Common Planner offers day-level views but not import-time splitting. | Med | Day boundary detection in parser + `DayPicker.tsx` component | Day boundaries detected by regex (`## Day 1`, `Day 2:`, `--- Day 3 ---`). Teacher selects day(s) via clickable cards. Default: first day selected. |
+| Claude chat prompt template | Creates a complete content pipeline: teacher prompts Claude with Cue-optimized template -> Claude outputs structured plan -> teacher pastes into Cue -> Scripted Import preserves perfectly. No competitor offers this bridge. | Low | Independent of parser | Static JSX page with copy button (`navigator.clipboard.writeText()`). No API integration needed. |
+| Italic text as teacher action detection | In DOCX lesson plans, italic text often indicates teacher actions (e.g., *point to the number line*, *distribute worksheets*). Detecting these and mapping to teleprompter action cues adds context that raw text extraction misses. | Med | Switch DOCX processing from `mammoth.extractRawText()` to `mammoth.convertToHtml()` | **Critical discovery:** The existing `docxProcessor.ts` uses `extractRawText()` which strips all formatting. Italic teacher actions are lost. For scripted mode, need HTML output to detect `<em>` tags. See Pitfalls section in PITFALLS.md. |
+| Mixed-marker tolerance | Real lesson plans mix explicit markers (`Say:`) with unmarked prose. The parser handles partially-marked documents gracefully -- detecting what it can, treating unmarked text as general slide content. | Med | Parser fallback logic | Unmarked text between markers becomes slide `content` bullets. No hard failure if document only has some markers. |
+| Content-type slide mapping | `Ask:` blocks auto-set question-optimized layouts. `Activity:` blocks auto-set `work-together` slide type. Gives scripted imports slide variety without AI. | Low | Parser marker types -> layout lookup table | Lookup table: `ask` -> `hasQuestionFlag: true`, `activity` -> `slideType: 'work-together'`, `write-on-board` -> primary content bullets. |
+| Import preview | Before generating, show the teacher what was detected: "Found 3 days, 12 sections, 45 script blocks. Day 1 has Hook, I Do, We Do, You Do, Plenary." Builds confidence in the parser. | Med | `ScriptedParseResult` rendered as summary card | Teacher confirms before proceeding. Optional -- can show a simple toast initially and add full preview later. |
+| Timing annotation extraction | `(5 min)` or `Time: 10 minutes` annotations stored as metadata on slides and surfaced in teleprompter or UI. | Low | Regex pattern in parser | Nice for teacher reference. Low effort, adds professional polish. |
+| "What to watch for" metadata | Many scripted plans include `What to watch for:` monitoring notes. Surface these in the teleprompter as teacher alerts. | Low | Parser marker + teleprompter segment | Maps to a distinct teleprompter segment type (could use a visual indicator like a callout). |
 
 ## Anti-Features
 
-Features to explicitly NOT build. Common mistakes in this domain.
+Features to explicitly NOT build. Each would add complexity without proportional value.
 
 | Anti-Feature | Why Avoid | What to Do Instead |
 |--------------|-----------|-------------------|
-| Full resource recreation | Destroys original intent; teachers feel replaced | Enhance existing content, preserve structure |
-| Automatic standards tagging | Scope creep; complex and often wrong | Let teachers specify standards if needed |
-| Real-time student interaction | Out of scope; changes product category | Stay focused on resource preparation, not delivery |
-| Cloud resource library | Requires auth, storage, sync infrastructure | Local-first with .cue file persistence |
-| AI-generated images for resources | Distraction from core value; quality inconsistent | Use existing images, improve layout/text only |
-| Gamification of resources | Scope creep; different product category | Resources are print materials, not interactive games |
-| Plagiarism/originality checking | Scope creep; complex, contentious | Out of scope—trust teacher |
-| Complex formatting (tables, multi-column) | High complexity, fragile | Start with simple layouts, add complexity later |
-
-### Anti-Feature Details
-
-#### Full Resource Recreation
-
-**The #1 mistake in educational AI tools.**
-
-Teachers report (from research on AI tool frustrations):
-- "It rewrote my entire worksheet instead of improving it"
-- "I lost the specific examples I had chosen"
-- "It changed my questions to something generic"
-
-**Why it happens:** AI tools default to "generation" mode, not "enhancement" mode.
-
-**How to avoid:**
-- Explicit prompt engineering: "Preserve all original content, questions, and structure"
-- Show diff/comparison: "Here's what changed"
-- Allow selective enhancement: "Improve section 2 only"
-
-#### Automatic Standards Tagging
-
-**Tempting but problematic.**
-
-Why it seems like a good idea:
-- Teachers need standards alignment
-- AI can match content to standards
-- Other tools advertise this feature
-
-Why to avoid for Cue:
-- Standards vary by state/country/school
-- Incorrect tagging is worse than no tagging
-- Adds significant complexity
-- Teacher still has to verify anyway
-
-**Better approach:** Let teacher specify standards if they want, don't auto-detect.
-
-#### AI-Generated Images for Resources
-
-**Distraction from core value.**
-
-Why to avoid:
-- Image generation is unreliable for educational accuracy
-- Adds cost (image APIs expensive)
-- Quality varies wildly
-- Teachers have images they want to use
-- Focus should be on text/layout enhancement
-
-**Exception:** If teacher explicitly asks "add an illustration of X," that's different. But don't auto-generate.
+| AI rewriting of scripted content | Defeats the entire purpose. If the teacher wanted AI paraphrasing, they would use Fresh mode. The `Say:` marker means "this is my exact wording." | Preserve verbatim. AI touches only image prompts and layouts. |
+| Gap analysis for scripted mode | The teacher's script IS the authority. Running gap analysis implies the script is incomplete, which is disrespectful to the teacher's preparation. | Skip Pass 2/3 entirely (same gate as Refine mode in pipeline). |
+| Verbosity variants for scripted mode | Scripted text is the teacher's chosen verbosity. Concise/standard/detailed variants would require AI rewriting, contradicting verbatim preservation. | Use teacher's text as-is. Hide verbosity toggle when scripted mode is active. |
+| Claude API integration from within Cue | Connecting to Claude's API for automatic lesson plan generation would require API key management, a second provider flow, and blur the boundary between generation and import. | Provide a copyable prompt template. Teacher uses their own Claude chat session, pastes the output into Cue. Simple, no auth needed, no additional API costs. |
+| Automatic day import without confirmation | Auto-importing all days without letting the teacher choose creates unwanted content. A 5-day plan imported in full would produce 40-60+ slides. | Always show day picker when multi-day detected. Default to Day 1 selected. |
+| Custom marker configuration UI | Letting teachers define their own markers via a settings interface. | Support 15+ common variants out of the box. Expand based on user feedback. The marker set covers UK, US, and Australian conventions. |
+| Rich-text rendering in slides | Converting Markdown bold/italic/links to styled slide content. Slides use plain text arrays and Tailwind styling. | Strip formatting during parsing for slide content. Use italic detection only for classification (teacher actions vs. student-facing content), not for rendering. |
+| Real-time drag-and-drop editing of parsed structure | Allowing the teacher to reorder blocks, reassign sections before import. | Parse, preview, import. Post-import editing uses the existing slide editor which already supports reordering. |
 
 ---
 
 ## Feature Dependencies
 
 ```
-Upload Infrastructure
-    |
-    v
-Content Extraction (PDF parsing / OCR / text extraction)
-    |
-    v
-Preview & Confirmation
-    |
-    v
-Enhancement Selection (differentiation level, enhancement options)
-    |
-    +------------------+
-    |                  |
-    v                  v
-AI Enhancement    Lesson Context Injection
-    |                  |
-    +------------------+
-    |
-    v
-Output Generation (differentiated versions)
-    |
-    v
-Preview & Edit
-    |
-    v
-Export (PDF) + Persist (.cue file)
+DOCX/PDF Upload
+  |
+  v
+scriptedParser.ts (marker detection + day splitting + italic detection)
+  |
+  +-> DayPicker.tsx (UI for multi-day selection)
+  |     |
+  |     +-> scriptedMapper.ts (selected blocks -> Slide[])
+  |           |
+  |           +-> AI image/layout call (minimal, per-slide)
+  |           |
+  |           +-> phaseDetector.ts (assign lesson phases - already built)
+  |           |
+  |           +-> generationPipeline.ts (scripted branch, return slides)
+  |
+  +-> Import preview card (summary of detected structure)
+  |
+  +-> ClaudeTips.tsx (independent, no dependencies on parser)
 ```
 
-### Existing Cue Infrastructure to Leverage
-
-| Existing Feature | How It Supports v3.7 |
-|------------------|----------------------|
-| PDF.js integration | Document parsing for uploaded PDFs |
-| Working Wall export | PDF generation infrastructure |
-| Verbosity system | Differentiation UX pattern |
-| AI provider abstraction | Gemini/Claude for enhancement |
-| Lesson state | Context for lesson-aware enhancement |
-| .cue file format | Resource persistence structure |
-| Slide context in AI prompts | Pattern for including lesson context |
+**Critical path:** `scriptedParser.ts` -> `scriptedMapper.ts` -> pipeline integration -> landing page mode selector
+**Independent:** `ClaudeTips.tsx` can be built at any time
+**Dependent on parser:** `DayPicker.tsx` needs `ScriptedParseResult` type from parser
 
 ---
 
 ## MVP Recommendation
 
-For v3.7 MVP, prioritize:
+**Phase 1: Core Scripted Import (parser + mapper + pipeline)**
+1. Scripted parser with marker detection -- the foundation everything depends on
+2. Block-to-slide mapper with verbatim `speakerNotes` preservation
+3. Generation pipeline scripted branch (skip AI content generation, skip gap analysis)
+4. AI image prompt + layout assignment (minimal call per slide)
+5. Phase detection integration (free -- already built)
+6. Mode selector on landing page
 
-### Must Have (Week 1-2)
-1. **Image upload** - Photo of worksheet (PNG, JPG)
-2. **PDF upload** - Digital worksheets
-3. **Text extraction preview** - Show what AI sees
-4. **Basic enhancement** - Improve clarity, fix formatting
-5. **Differentiation** - Simple/Standard/Detailed versions
-6. **PDF export** - Print-ready output
-7. **Lesson context injection** - Use topic, grade from lesson
+**Phase 2: Multi-Day Support (day picker)**
+7. Day boundary detection in parser
+8. Day picker UI component (clickable cards with section preview)
+9. Selected-day filtering before block-to-slide mapping
 
-### Should Have (Week 3)
-8. **In-app editing** - Tweak AI output before export
-9. **Regenerate** - Try again with different approach
-10. **Resource persistence** - Save in .cue file
-11. **Answer key generation** - Teacher version with answers
+**Phase 3: Claude Chat Integration Tips**
+10. Prompt template page with copy button
+11. Example output showing expected Cue-compatible format
+12. Link from landing page or settings
 
-### Defer to Post-MVP
-- Word/Docs upload (requires additional parsing)
-- Visual layout enhancement (complex image processing)
-- Per-slide resource linking (UX complexity)
-- Batch operations (multi-resource enhancement)
+**Defer to post-launch:**
+- Timing annotation extraction: Low-effort but not core value. Add after launch.
+- Import preview panel: Start with a toast ("Found 12 sections in 3 days"), upgrade to full preview later.
+- "What to watch for" metadata: Enrichment feature, not blocking.
+- Italic teacher action detection: Requires DOCX processing change. Can be Phase 1 if scope allows, or Phase 2 if not.
 
 ---
 
-## Competitive Landscape Summary
+## Marker Catalogue
 
-| Tool | Primary Strength | Weakness vs. Cue |
-|------|------------------|------------------|
-| [Diffit](https://web.diffit.me) | Reading level adaptation, one-click leveling | No lesson context, standalone tool |
-| [MagicSchool](https://www.magicschool.ai) | 80+ tools, comprehensive suite | No lesson context, overwhelming options |
-| [Eduaide.ai](https://www.eduaide.ai) | Deep differentiation, scaffolding tools | No lesson context, subscription required |
-| [Canva for Education](https://www.canva.com/education/) | Visual design, templates | Not education-first, no differentiation |
-| [Nearpod](https://nearpod.com) | Interactive delivery | Not resource enhancement, delivery focused |
+The scripted parser should detect these markers. Each has structural (line-anchored) and content (inline) variants, following the `phasePatterns.ts` architecture.
 
-**Cue's positioning:** "Enhance resources that align with your adapted lesson" vs. competitors' "Enhance resources in isolation."
+### Teacher Speech Markers
+| Marker | Variants | Maps To |
+|--------|----------|---------|
+| `Say:` | "Say:", "Teacher says:", "Script:", "Read aloud:", "Read out:", "Tell students:" | `speakerNotes` segment (verbatim) |
+
+### Board Work Markers
+| Marker | Variants | Maps To |
+|--------|----------|---------|
+| `Write on board:` | "Write on board:", "Board:", "Board work:", "Write:", "Display:", "Show:" | `content` bullet (student-facing) |
+
+### Question Markers
+| Marker | Variants | Maps To |
+|--------|----------|---------|
+| `Ask:` | "Ask:", "Ask students:", "Ask the class:", "Question:", "Q:", "Check for understanding:" | `content` bullet + `hasQuestionFlag: true` |
+
+### Activity Markers
+| Marker | Variants | Maps To |
+|--------|----------|---------|
+| `Activity:` | "Activity:", "Task:", "Do:", "Students do:", "Independent practice:", "Group work:", "Partner task:" | Slide with `slideType: 'work-together'` |
+
+### Resource Reference Markers
+| Marker | Variants | Maps To |
+|--------|----------|---------|
+| `Resource:` | "Resource:", "Handout:", "Worksheet:", "See:", "Use:", "Distribute:" | `speakerNotes` action cue |
+
+### Teacher Action Markers
+| Marker | Variants | Maps To |
+|--------|----------|---------|
+| Italic text | `<em>...</em>` from DOCX HTML, `*...*` from Markdown | `speakerNotes` action cue (e.g., "[Action: point to the number line]") |
+| Explicit | "Teacher action:", "Do:", "Model:" | `speakerNotes` action cue |
+
+### Timing Markers
+| Marker | Variants | Maps To |
+|--------|----------|---------|
+| Timing | "(5 min)", "(5 minutes)", "Time: 10 min", "[10 minutes]", "5 mins" | Slide metadata / teleprompter timing note |
+
+### Monitoring Markers
+| Marker | Variants | Maps To |
+|--------|----------|---------|
+| `What to watch for:` | "What to watch for:", "Look for:", "Monitor:", "Check that:" | `speakerNotes` teacher alert segment |
+
+### Objective Markers
+| Marker | Variants | Maps To |
+|--------|----------|---------|
+| Target emoji | Lines starting with target emoji | Slide title annotation or first slide objective |
+
+### Day/Session Boundaries
+| Marker | Variants | Maps To |
+|--------|----------|---------|
+| Day boundary | "## Day 1", "Day 1:", "--- Day 1 ---", "LESSON 1", "Session 1:" | `DaySection` boundary in parser |
+
+### Section Headings (reuse existing phase detection)
+| Marker | Variants | Maps To |
+|--------|----------|---------|
+| Phase heading | "## Hook", "### I Do", "We Do:", "Independent Practice:", "Define & Recall" | Slide `title` + `lessonPhase` assignment |
+
+---
+
+## Claude Chat Output Format Specification
+
+The prompt template should instruct Claude to output lesson plans in this exact format, which the scripted parser handles natively:
+
+```markdown
+## Day 1: [Topic Title]
+
+### Hook (5 min)
+Say: [Teacher's opening script -- energetic, sets context]
+Ask: [Engagement question to hook student interest]
+
+### I Do / Modelling (10 min)
+Say: [Teacher explanation of the concept]
+Write on board: [Key content students see on screen]
+Say: [Continue explanation, refer to what's on board]
+*point to the first example on the board*
+
+### We Do / Guided Practice (15 min)
+Say: [Set up the guided practice activity]
+Ask: [Check for understanding question] (Answer: [expected answer])
+Activity: [Description of what students do together with the teacher]
+What to watch for: [Common misconceptions or things to monitor]
+
+### You Do / Independent Practice (15 min)
+Say: [Instructions for independent work]
+Activity: [Description of independent task]
+Resource: [Any worksheets or materials needed]
+(15 min)
+
+### Plenary (5 min)
+Ask: [Reflection question about what was learned]
+Say: [Summary of lesson and preview of next session]
+
+---
+
+## Day 2: [Next Topic Title]
+...
+```
+
+This format:
+- Uses standard Markdown headings (detected by existing phase patterns)
+- Uses explicit markers (detected by scripted parser)
+- Separates days with `---` + `## Day N` (detected by day boundary regex)
+- Includes timing annotations in parentheses
+- Uses italic text for teacher actions
+- Is human-readable even without Cue
+- Is unambiguous for machine parsing
+
+---
+
+## Ecosystem Context
+
+### How Other Tools Handle This Space
+
+**No direct competitor** offers a scripted import mode that preserves teacher scripts verbatim while generating presentations. The closest analogues:
+
+| Tool | What It Does | How Cue Differs |
+|------|--------------|-----------------|
+| **Eduaide.ai** (Lesson Builder) | Generates structured lesson plans with 5E or Gagne's Nine Events frameworks. Exports to Google Docs/Word. | Eduaide generates plans but does not import them into presentations. Cue does the reverse: imports plans into presentations. |
+| **Common Planner** | Calendar-based planner with day/week/month/unit views. Supports multi-day stretching and lesson reordering. | Common Planner is a planning tool, not a presentation tool. Its day-level navigation pattern informs our day picker UX (selectable days, preview of sections). |
+| **Monsha AI** | Generates full lesson plans from topic/file/standard, exports to Docs/Slides/Word/PPT. | Monsha generates both plans and slides, but always through AI -- no verbatim preservation mode. |
+| **Brisk AI** | Generates slides from articles/videos/topics. Also builds unit plans. | Brisk is AI-all-the-way. No import-without-rewriting mode. |
+| **ChatGPT for Teachers** | Free workspace for K-12 educators with custom GPTs for lesson planning. | Generates plans in chat, but no bridge to presentation tools. Teachers copy-paste manually. Cue's Claude tips fill this gap. |
+
+**The unique value:** Cue sits at the intersection of structured lesson plan OUTPUT (from Claude/ChatGPT) and presentation INPUT (for classroom delivery). The scripted import mode is the bridge no one else has built.
+
+### Multi-Day UX Patterns from Ed-Tech
+
+From ecosystem research, multi-day interfaces in education tools follow these patterns:
+- **Clickable day cards** with content preview (Common Planner, Class Planner)
+- **Single-select default** with multi-select option (most calendar apps)
+- **Content preview** showing section count or topic names per day
+- **Persistent selection** -- chosen day stays selected after import
+
+Our day picker should follow these conventions: clickable cards showing day label + section preview, single day selected by default (Day 1), with option to select multiple days.
+
+---
+
+## Key Technical Discovery: DOCX Formatting Loss
+
+The existing `docxProcessor.ts` (line 31) uses `mammoth.extractRawText()` which discards all formatting. This means italic teacher actions from DOCX files are silently lost. For scripted import to detect teacher actions marked with italics, the processor needs to use `mammoth.convertToHtml()` instead, which preserves bold (`<strong>`), italic (`<em>`), and heading structure (`<h1>`-`<h6>`).
+
+**Impact:** This is a medium-complexity change to the DOCX processing pipeline. It affects the upstream data that feeds into the scripted parser. The parser would scan for `<em>` tags in HTML output and classify their content as teacher actions.
+
+**Important caveat from mammoth.js docs:** Mammoth matches text that has had italic explicitly applied to it, but will not match text that is italic because of its paragraph or run style. This means if a Word template applies italic via a named style (e.g., "Teacher Action" style), mammoth may not detect it. Explicitly formatted italic text (the common case for teacher-authored documents) works correctly.
 
 ---
 
 ## Sources
 
-- [MagicSchool Teacher Tools](https://www.magicschool.ai/magic-tools) - Feature survey
-- [Diffit for Teachers](https://web.diffit.me) - Differentiation patterns
-- [Eduaide Content Generator](https://www.eduaide.ai/solutions/content-generator) - Enhancement workflows
-- [Canva AI for Teachers](https://www.canva.com/ai-for-teachers/) - Visual enhancement patterns
-- [Nearpod Back to School 2025](https://nearpod.com/blog/updates-back-to-school-2025/) - AI feature trends
-- [7 Best AI Worksheet Generator Tools](https://monsha.ai/blog/7-best-ai-worksheet-generator-tools-for-teachers) - Competitor analysis
-- [AI Tools for Teachers 2025](https://www.chiangraitimes.com/ai/ai-tools-for-teachers-in-2025/) - Differentiation expectations
-- [Differentiated Instruction Strategies](https://www.prodigygame.com/main-en/blog/differentiated-instruction-strategies-examples-download) - Pedagogical patterns
-- [Truth For Teachers - AI for Differentiation](https://truthforteachers.com/truth-for-teachers-podcast/ai-for-scaffolds-supports-and-differentiated-tasks/) - Teacher workflow expectations
-- [EdWeek - AI in Schools Downsides](https://www.edweek.org/technology/rising-use-of-ai-in-schools-comes-with-big-downsides-for-students/2025/10) - Problem patterns to avoid
-
----
-
-## Confidence Notes
-
-| Area | Confidence | Rationale |
-|------|------------|-----------|
-| Table stakes features | HIGH | Consistent across all competitors, well-documented expectations |
-| Differentiation patterns | HIGH | Universal in educational AI, well-established UX |
-| Lesson context advantage | MEDIUM | Novel approach, no direct competitor validation |
-| Visual enhancement complexity | LOW | Requires deeper technical research for v4.0 |
-| Anti-features | HIGH | Documented complaints and failed patterns |
-
----
-
-*Research completed: 2026-01-29*
+- **Codebase analysis** (HIGH confidence): Feature landscape derived from extensive source code review
+  - `phaseDetection/phaseDetector.ts` -- 289 lines, regex phase detection architecture
+  - `phaseDetection/phasePatterns.ts` -- 161 lines, marker pattern definitions
+  - `contentPreservation/detector.ts` -- 672 lines, question/activity/instruction detection (Ask: patterns exist)
+  - `generationPipeline.ts` -- 329 lines, three-pass pipeline with mode gating at line 164
+  - `geminiService.ts` + `claudeProvider.ts` -- generation prompts, mode handling
+  - `docxProcessor.ts` -- current `extractRawText()` usage (formatting loss identified)
+  - `types.ts` -- Slide interface, GenerationMode, CueFile format
+  - `App.tsx` -- landing page mode derivation (`uploadMode` useMemo)
+- **Ecosystem research** (MEDIUM confidence): Competitor landscape from web search
+  - [Eduaide.ai Lesson Builder](https://www.eduaide.ai/solutions/lesson-builder) -- structured lesson plan generation
+  - [Common Planner Day Views](https://www.commonplanner.com/) -- multi-day navigation patterns
+  - [Monsha AI](https://monsha.ai/) -- AI lesson plan to presentation generation
+  - [Brisk AI Tools for Teachers](https://www.briskteaching.com/ai-tools-for-teachers) -- AI slide generation from content
+  - [mammoth.js README](https://github.com/mwilliamson/mammoth.js) -- `convertToHtml()` vs `extractRawText()` capabilities confirmed
+  - [Claude Prompt Engineering](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview) -- structured output format guidance
+  - [Common Planner Help - Day Views](https://www.commonplanner.com/help/en/articles/11943008-5-adjusting-your-lesson-calendar) -- multi-day UX patterns
+  - [ChatGPT for Teachers](https://www.educatorstechnology.com/2026/02/chatgpt-for-education-teachers-guide.html) -- AI chat for education workflows
