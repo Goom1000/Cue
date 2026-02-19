@@ -2,19 +2,19 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-16)
+See: .planning/PROJECT.md (updated 2026-02-19)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script that lets them sound knowledgeable and natural.
-**Current focus:** Planning next milestone
+**Current focus:** v6.0 Scripted Import — defining requirements
 
 ## Current Position
 
-Phase: 68 of 68 (all complete)
-Plan: N/A — between milestones
-Status: ✓ v5.0 Smart Generation shipped
-Last activity: 2026-02-16 — v5.0 milestone archived
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-02-19 — Milestone v6.0 started
 
-Progress: [██████████] 100% (225 plans completed)
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -46,10 +46,10 @@ See `.planning/todos/pending/` - run `/gsd:check-todos` to review.
 
 ## Session Continuity
 
-Last session: 2026-02-16
-Stopped at: v5.0 milestone archived — ready for /gsd:new-milestone
+Last session: 2026-02-19
+Stopped at: v6.0 milestone started — defining requirements
 Resume file: .planning/ROADMAP.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-16 — v5.0 milestone archived*
+*Last updated: 2026-02-19 — Milestone v6.0 started*

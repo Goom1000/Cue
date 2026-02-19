@@ -186,6 +186,15 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Active
 
+**Current Milestone: v6.0 Scripted Import**
+
+**Goal:** Enable teachers to import pre-scripted lesson plans (with explicit Say:/Write on board:/Ask: markers) directly into Cue with minimal AI transformation, preserving the teacher's exact words as the teleprompter script.
+
+**Target features:**
+- Scripted Import generation mode — 4th mode alongside Fresh/Refine/Blend where lesson plan markers map directly to slide structure
+- Day picker for multi-day lesson plans — teachers select which day to generate a deck for
+- Claude chat integration tips — guidance for generating Cue-optimised lesson plans in Claude chat
+
 ### Deferred
 
 - [ ] Tooltips and onboarding walkthrough (v3.6 deferred — Phase 41 infrastructure complete)
@@ -387,4 +396,4 @@ v5.0 delivered Smart Generation:
 | Copy-paste system prompt directives | Character-level parity between providers, no shared module abstraction | ✓ Good — v5.0 |
 
 ---
-*Last updated: 2026-02-16 after v5.0 milestone*
+*Last updated: 2026-02-19 after v6.0 milestone started*
