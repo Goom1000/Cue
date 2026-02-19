@@ -46,9 +46,9 @@ None for v6.0. Research confidence is HIGH across all areas. Zero new dependenci
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: v6.0 roadmap created -- ready to plan Phase 69
-Resume file: .planning/ROADMAP.md
+Stopped at: Phase 69 context gathered
+Resume file: .planning/phases/69-scripted-parser/69-CONTEXT.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-19 -- v6.0 roadmap created*
+*Last updated: 2026-02-19 -- Phase 69 context gathered*
