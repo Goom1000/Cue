@@ -184,7 +184,8 @@ describe('MAP-02: Segment Count Invariant', () => {
     expect(segments[3]).toBe(''); // trailing empty
   });
 
-  test('More Say: blocks than content+1 slots merges excess into last segment', () => {
+  test('More Say: blocks than content+1 slots merges all at their position', () => {
+    // 4 Say blocks all before 1 Write block: they all land in segment 0 (intro)
     const blocks: ScriptedBlock[] = [
       makeBlock({ type: 'say', content: 'Segment 1' }),
       makeBlock({ type: 'say', content: 'Segment 2' }),
@@ -197,13 +198,14 @@ describe('MAP-02: Segment Count Invariant', () => {
     expect(slides[0].content.length).toBe(1);
     const segments = slides[0].speakerNotes.split(SEGMENT_DELIMITER);
     expect(segments.length).toBe(2); // content.length + 1
-    // First segment gets first say
-    expect(segments[0]).toBe('Segment 1');
-    // Remaining 3 say blocks merge into last segment
-    expect(segments[1]).toContain('Segment 2');
-    expect(segments[1]).toContain('Segment 3');
-    expect(segments[1]).toContain('Segment 4');
-    expect(segments[1]).toContain('\n\n'); // paragraph breaks
+    // All 4 Say blocks merge into intro segment (position before the bullet)
+    expect(segments[0]).toContain('Segment 1');
+    expect(segments[0]).toContain('Segment 2');
+    expect(segments[0]).toContain('Segment 3');
+    expect(segments[0]).toContain('Segment 4');
+    expect(segments[0]).toContain('\n\n'); // paragraph breaks between merged segments
+    // Trailing segment is empty (no Say after the bullet)
+    expect(segments[1]).toBe('');
   });
 
   test('Empty segments are valid when no Say: block precedes a content bullet', () => {
