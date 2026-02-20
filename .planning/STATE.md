@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 70 of 73 (Slide Mapper + Pipeline Integration)
-Plan: 1 of 2 complete
-Status: Plan 70-01 complete (slide mapper)
-Last activity: 2026-02-21 -- Phase 70 Plan 01 complete (slide mapper)
+Plan: 2 of 2 complete
+Status: Phase 70 complete (slide mapper + pipeline integration)
+Last activity: 2026-02-21 -- Phase 70 Plan 02 complete (pipeline integration)
 
-Progress: [████░░░░░░] 40% (2/5 phases)
+Progress: [██████░░░░] 60% (3/5 phases)
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 24 (v1.0 through v5.0)
 - Total phases completed: 68
-- Total plans completed: 226
+- Total plans completed: 228
 - Total LOC: ~37,950 TypeScript
 
 **Recent Milestones:**
@@ -41,6 +41,8 @@ See PROJECT.md Key Decisions table for full history.
 - Phase 70-01: Positional segment groups instead of flat Say list for correct teleprompter alignment
 - Phase 70-01: Ask flush only when more blocks follow to prevent empty trailing slides
 - Phase 70-01: Consecutive section headings collapse into single slide
+- Phase 70-02: Early-return before Pass 1 for scripted mode ensures zero regression risk on existing AI code paths
+- Phase 70-02: Unreachable provider switch cases return empty string with comment for TypeScript exhaustiveness
 
 ### Pending Todos
 
@@ -53,9 +55,9 @@ None for v6.0. Research confidence is HIGH across all areas. Zero new dependenci
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 70-01-PLAN.md (slide mapper)
-Resume file: .planning/phases/70-slide-mapper-pipeline-integration/70-01-SUMMARY.md
+Stopped at: Completed 70-02-PLAN.md (pipeline integration)
+Resume file: .planning/phases/70-slide-mapper-pipeline-integration/70-02-SUMMARY.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-21 -- Phase 70 Plan 01 complete*
+*Last updated: 2026-02-21 -- Phase 70 complete (pipeline integration)*
