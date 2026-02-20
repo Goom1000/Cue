@@ -20,11 +20,11 @@ Requirements for Scripted Import milestone. Each maps to roadmap phases.
 
 ### Slide Mapper
 
-- [ ] **MAP-01**: Mapper converts `ScriptedBlock[]` to `Slide[]` with correct field mapping (Say: → speakerNotes, Write on board: → content[], Ask: → content[] with hasQuestionFlag)
-- [ ] **MAP-02**: Mapper enforces segment count invariant: speakerNotes has exactly (content.length + 1) 👉-delimited segments per slide
-- [ ] **MAP-03**: Mapper creates slide boundaries only on section headings and phase transitions (not per-marker)
-- [ ] **MAP-04**: Mapper assigns lessonPhase from section headings using existing phase detection patterns
-- [ ] **MAP-05**: Mapper sets `slideType: 'work-together'` on slides generated from Activity: blocks
+- [x] **MAP-01**: Mapper converts `ScriptedBlock[]` to `Slide[]` with correct field mapping (Say: → speakerNotes, Write on board: → content[], Ask: → content[] with hasQuestionFlag)
+- [x] **MAP-02**: Mapper enforces segment count invariant: speakerNotes has exactly (content.length + 1) 👉-delimited segments per slide
+- [x] **MAP-03**: Mapper creates slide boundaries only on section headings and phase transitions (not per-marker)
+- [x] **MAP-04**: Mapper assigns lessonPhase from section headings using existing phase detection patterns
+- [x] **MAP-05**: Mapper sets `slideType: 'work-together'` on slides generated from Activity: blocks
 
 ### Pipeline Integration
 
@@ -93,11 +93,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PARSE-06 | Phase 69 | Complete |
 | PARSE-07 | Phase 69 | Complete |
 | PARSE-08 | Phase 69 | Complete |
-| MAP-01 | Phase 70 | Pending |
-| MAP-02 | Phase 70 | Pending |
-| MAP-03 | Phase 70 | Pending |
-| MAP-04 | Phase 70 | Pending |
-| MAP-05 | Phase 70 | Pending |
+| MAP-01 | Phase 70 | Complete |
+| MAP-02 | Phase 70 | Complete |
+| MAP-03 | Phase 70 | Complete |
+| MAP-04 | Phase 70 | Complete |
+| MAP-05 | Phase 70 | Complete |
 | PIPE-01 | Phase 70 | Pending |
 | PIPE-02 | Phase 70 | Pending |
 | PIPE-03 | Phase 71 | Pending |

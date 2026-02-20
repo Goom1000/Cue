@@ -62,7 +62,7 @@ Plans:
   3. Slide boundaries are created only on section headings and phase transitions -- not per-marker -- so a detailed lesson plan does not explode into 50+ slides
   4. Scripted mode bypasses all three AI generation passes (generate, gap analysis, auto-fill) and returns slides directly from the mapper
   5. Existing Fresh, Refine, and Blend modes produce identical output before and after the scripted mode addition (regression-safe)
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 70-01-PLAN.md — Slide mapper TDD (MAP-01 through MAP-05)
@@ -121,7 +121,7 @@ Phases execute in numeric order: 69 -> 70 -> 71 -> 72 -> 73
 | 67. Generation Pipeline | v5.0 | 3/3 | Complete | 2026-02-15 |
 | 68. Phase-Aware UI + Resource Injection | v5.0 | 3/3 | Complete | 2026-02-16 |
 | 69. Scripted Parser | 1/1 | Complete    | 2026-02-19 | - |
-| 70. Slide Mapper + Pipeline Integration | v6.0 | 0/2 | Planned | - |
+| 70. Slide Mapper + Pipeline Integration | 1/2 | In Progress|  | - |
 | 71. AI Image Prompts + Layout Assignment | v6.0 | 0/? | Not started | - |
 | 72. Day Picker UI + Mode Selector | v6.0 | 0/? | Not started | - |
 | 73. Claude Chat Tips | v6.0 | 0/? | Not started | - |
