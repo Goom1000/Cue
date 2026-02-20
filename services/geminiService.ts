@@ -113,6 +113,8 @@ function getDetectionSource(input: GenerationInput): string {
       return input.presentationText || '';
     case 'blend':
       return input.lessonText; // Lesson plan is authoritative
+    case 'scripted':
+      return ''; // Unreachable: pipeline early-returns before calling provider for scripted mode
   }
 }
 
@@ -263,6 +265,9 @@ ${resourceAwarenessRules}
 
 LAYOUTS: Use 'split' for content with images, 'grid' or 'flowchart' for process stages, 'full-image' for hooks.
 `;
+
+    case 'scripted':
+      return ''; // Unreachable: pipeline early-returns before calling provider for scripted mode
   }
 }
 
