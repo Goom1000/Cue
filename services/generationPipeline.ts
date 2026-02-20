@@ -30,6 +30,8 @@ import {
 } from './aiProvider';
 import { insertGapSlides, adjustGapPositions } from '../utils/gapSlideInsertion';
 import { detectPhasesInText, assignPhasesToSlides } from './phaseDetection/phaseDetector';
+import { parseScriptedLessonPlan } from './scriptedParser/scriptedParser';
+import { mapBlocksToSlides } from './scriptedParser/scriptedMapper';
 
 // =============================================================================
 // Types
@@ -67,7 +69,7 @@ interface PipelineOptions {
 // =============================================================================
 
 /** Maximum number of gaps to auto-fill in Pass 3 to keep pipeline duration reasonable */
-const MAX_AUTO_FILL_GAPS = 5;
+const MAX_AUTO_FILL_GAPS = 8;
 
 /** Delay between gap generations to avoid rate limiting (ms) */
 const GAP_GENERATION_DELAY_MS = 500;
@@ -102,6 +104,30 @@ export async function runGenerationPipeline(
   } = options;
 
   const warnings: string[] = [];
+
+  // =========================================================================
+  // Scripted mode: bypass all AI passes, map directly from parsed blocks
+  // =========================================================================
+  if (input.mode === 'scripted') {
+    onProgress?.({
+      stage: 'generating',
+      stageIndex: 0,
+      totalStages: 1,
+    });
+
+    const parseResult = parseScriptedLessonPlan(lessonPlanText);
+    // Flatten all days' blocks (day selection is Phase 72)
+    const allBlocks = parseResult.days.flatMap(day => day.blocks);
+    const slides = mapBlocksToSlides(allBlocks);
+
+    return {
+      slides,
+      coveragePercentage: null,
+      remainingGaps: [],
+      warnings: parseResult.warnings,
+      wasPartial: false,
+    };
+  }
 
   // =========================================================================
   // Pass 1: Generate slides

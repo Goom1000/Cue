@@ -63,7 +63,7 @@ export interface GapAnalysisResult {
 }
 
 // Generation mode types for multi-source slide generation
-export type GenerationMode = 'fresh' | 'refine' | 'blend';
+export type GenerationMode = 'fresh' | 'refine' | 'blend' | 'scripted';
 
 export interface GenerationInput {
   lessonText: string;
