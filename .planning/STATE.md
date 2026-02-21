@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-19)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script that lets them sound knowledgeable and natural.
-**Current focus:** v6.0 Scripted Import -- Phase 72: Day Picker UI + Mode Selector
+**Current focus:** v6.0 Scripted Import -- Phase 73: Claude Chat Tips
 
 ## Current Position
 
-Phase: 72 of 73 (Day Picker UI + Mode Selector)
-Plan: 1 of 2 complete
-Status: Plan 01 complete (backend infrastructure for mode detection + day filtering)
-Last activity: 2026-02-21 -- Phase 72 Plan 01 complete (detectScriptedMarkers + selectedDays filtering)
+Phase: 73 of 73 (Claude Chat Tips)
+Plan: 0 of ? complete
+Status: Phase 72 complete (Day Picker UI + Mode Selector), ready for Phase 73
+Last activity: 2026-02-21 -- Phase 72 Plan 02 complete (mode banner + day picker + multi-format upload + import stats)
 
-Progress: [████████░░] 80% (4/5 phases)
+Progress: [█████████░] 90% (4.5/5 phases)
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 24 (v1.0 through v5.0)
 - Total phases completed: 68
-- Total plans completed: 230
+- Total plans completed: 231
 - Total LOC: ~37,950 TypeScript
 
 **Recent Milestones:**
@@ -49,6 +49,9 @@ See PROJECT.md Key Decisions table for full history.
 - Phase 71-01: Theme assignment included in batch call (trivial token cost, already on Slide type)
 - Phase 72-01: Reuse existing MARKER_PATTERNS for detection instead of creating separate regex set
 - Phase 72-01: Set-based day filtering for O(1) lookup per day instead of array.includes()
+- Phase 72-02: Scripted mode override uses nullable boolean (null = auto, true/false = manual) for clean toggle semantics
+- Phase 72-02: Day picker positioned inline on landing page between banner and verbosity selector
+- Phase 72-02: Verbosity selector hidden in scripted mode since scripted preserves verbatim text
 
 ### Pending Todos
 
@@ -61,9 +64,9 @@ None for v6.0. Research confidence is HIGH across all areas. Zero new dependenci
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 72-01-PLAN.md (backend infrastructure for mode detection + day filtering)
-Resume file: .planning/phases/72-day-picker-ui-mode-selector/72-01-SUMMARY.md
+Stopped at: Completed 72-02-PLAN.md (mode banner + day picker + multi-format upload + import stats)
+Resume file: .planning/phases/72-day-picker-ui-mode-selector/72-02-SUMMARY.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-21 -- Phase 72 Plan 01 complete (detectScriptedMarkers + selectedDays filtering)*
+*Last updated: 2026-02-21 -- Phase 72 complete (day picker UI + mode selector)*

@@ -36,17 +36,17 @@ Requirements for Scripted Import milestone. Each maps to roadmap phases.
 
 ### Day Picker
 
-- [ ] **DAY-01**: Day picker UI appears between upload and generation when 2+ days detected
-- [ ] **DAY-02**: Day cards show day number, title, and section/block count preview
-- [ ] **DAY-03**: User can select one or more days to generate decks for
-- [ ] **DAY-04**: Select-all option available for importing all days
-- [ ] **DAY-05**: Cross-day reference warning shown when importing a subset of days
+- [x] **DAY-01**: Day picker UI appears between upload and generation when 2+ days detected
+- [x] **DAY-02**: Day cards show day number, title, and section/block count preview
+- [x] **DAY-03**: User can select one or more days to generate decks for
+- [x] **DAY-04**: Select-all option available for importing all days
+- [x] **DAY-05**: Cross-day reference warning shown when importing a subset of days
 
 ### Mode Selector
 
 - [x] **MODE-01**: Landing page provides explicit toggle between AI generation and scripted import after lesson plan upload
 - [x] **MODE-02**: Scripted mode available for DOCX, PDF, and plain text uploads
-- [ ] **MODE-03**: Import preview displays detected statistics (days, sections, script blocks) before generation
+- [x] **MODE-03**: Import preview displays detected statistics (days, sections, script blocks) before generation
 
 ### Claude Chat Tips
 
@@ -103,14 +103,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PIPE-03 | Phase 71 | Complete |
 | PIPE-04 | Phase 71 | Complete |
 | PIPE-05 | Phase 70 | Complete |
-| DAY-01 | Phase 72 | Pending |
-| DAY-02 | Phase 72 | Pending |
-| DAY-03 | Phase 72 | Pending |
-| DAY-04 | Phase 72 | Pending |
-| DAY-05 | Phase 72 | Pending |
+| DAY-01 | Phase 72 | Complete |
+| DAY-02 | Phase 72 | Complete |
+| DAY-03 | Phase 72 | Complete |
+| DAY-04 | Phase 72 | Complete |
+| DAY-05 | Phase 72 | Complete |
 | MODE-01 | Phase 72 | Complete |
 | MODE-02 | Phase 72 | Complete |
-| MODE-03 | Phase 72 | Pending |
+| MODE-03 | Phase 72 | Complete |
 | TIPS-01 | Phase 73 | Pending |
 | TIPS-02 | Phase 73 | Pending |
 | TIPS-03 | Phase 73 | Pending |
