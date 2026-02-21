@@ -1,4 +1,4 @@
-import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, VerbosityLevel, ChatContext, CondensationResult, GapAnalysisResult, IdentifiedGap, ColleagueTransformationResult, TransformedSlide } from '../aiProvider';
+import { AIProviderInterface, AIProviderError, AIErrorCode, USER_ERROR_MESSAGES, GenerationInput, GenerationMode, GameQuestionRequest, BLOOM_DIFFICULTY_MAP, shuffleQuestionOptions, VerbosityLevel, ChatContext, CondensationResult, GapAnalysisResult, IdentifiedGap, ColleagueTransformationResult, TransformedSlide, SlideEnrichmentInput, SlideEnrichmentResult, buildEnrichmentPrompt } from '../aiProvider';
 import { Slide, LessonResource, PosterLayout, DocumentAnalysis, EnhancementResult, EnhancementOptions } from '../../types';
 import { QuizQuestion, QuestionWithAnswer } from '../geminiService';
 import { getStudentFriendlyRules } from '../prompts/studentFriendlyRules';
@@ -110,6 +110,42 @@ Each slide object must have these properties:
 - layout (one of: 'split', 'full-image', 'center-text', 'flowchart', 'grid', 'tile-overlap')
 - theme (one of: 'default', 'purple', 'blue', 'green', 'warm')
 `.replace(/pointing_right/g, '\u{1F449}');
+
+/**
+ * Tool schema for batch slide enrichment (Phase 71).
+ * Forces Claude to return structured JSON with imagePrompt, layout, and theme per slide.
+ */
+const ENRICHMENT_TOOL = {
+  name: 'enrich_slides',
+  description: 'Assign image prompts, layouts, and themes to scripted slides',
+  input_schema: {
+    type: 'object' as const,
+    properties: {
+      slides: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            index: { type: 'integer', description: 'Slide index' },
+            imagePrompt: { type: 'string', description: 'Image generation prompt (1-2 sentences)' },
+            layout: {
+              type: 'string',
+              enum: ['split', 'full-image', 'center-text'],
+              description: 'Visual layout type',
+            },
+            theme: {
+              type: 'string',
+              enum: ['default', 'purple', 'blue', 'green', 'warm'],
+              description: 'Color theme',
+            },
+          },
+          required: ['index', 'imagePrompt', 'layout', 'theme'],
+        },
+      },
+    },
+    required: ['slides'],
+  },
+};
 
 // Poster generation system prompt for AI Working Wall export
 const POSTER_GENERATION_SYSTEM_PROMPT = `
@@ -2281,6 +2317,60 @@ Generate the poster layout now.
         : USER_ERROR_MESSAGES[code];
     } catch {
       return USER_ERROR_MESSAGES[code];
+    }
+  }
+
+  /**
+   * Enrich scripted slides with AI-generated image prompts, layouts, and themes (Phase 71).
+   * Single batch call using Claude's tool_use for guaranteed valid JSON structure.
+   * Uses direct fetch (not callClaude) per RESEARCH.md Pitfall 5.
+   */
+  async enrichScriptedSlides(
+    slides: SlideEnrichmentInput[],
+    gradeLevel: string
+  ): Promise<SlideEnrichmentResult[]> {
+    try {
+      const prompt = buildEnrichmentPrompt(slides, gradeLevel);
+
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': this.apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: this.model,
+          max_tokens: 2048,
+          system: 'You are a slide enrichment assistant. Assign image prompts, layouts, and themes to educational slides.',
+          tools: [ENRICHMENT_TOOL],
+          tool_choice: { type: 'tool', name: 'enrich_slides' },
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new AIProviderError(
+          `Enrichment failed: ${data.error?.message || response.statusText}`,
+          response.status === 429 ? 'RATE_LIMIT' : 'SERVER_ERROR',
+          data
+        );
+      }
+
+      const toolUse = data.content?.find((c: any) => c.type === 'tool_use');
+      return toolUse?.input?.slides || [];
+    } catch (error) {
+      if (error instanceof AIProviderError) {
+        throw error;
+      }
+      console.error('[ClaudeProvider] enrichScriptedSlides error:', error);
+      throw new AIProviderError(
+        USER_ERROR_MESSAGES.UNKNOWN_ERROR,
+        'UNKNOWN_ERROR',
+        error
+      );
     }
   }
 

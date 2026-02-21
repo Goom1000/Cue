@@ -23,6 +23,60 @@ export interface ColleagueTransformationResult {
   skippedCount: number;      // Slides with no teleprompter content
 }
 
+// Scripted slide enrichment types (Phase 71)
+export interface SlideEnrichmentInput {
+  index: number;
+  title: string;
+  firstBullet: string;       // First content bullet, truncated to ~50 chars
+  hasQuestion: boolean;
+  lessonPhase?: string;       // 'hook' | 'i-do' | 'we-do' | 'you-do' | 'plenary'
+  layoutLocked: boolean;      // true for work-together/class-challenge (non-split)
+}
+
+export interface SlideEnrichmentResult {
+  index: number;
+  imagePrompt: string;
+  layout: 'split' | 'full-image' | 'center-text';
+  theme?: 'default' | 'purple' | 'blue' | 'green' | 'warm';
+}
+
+/**
+ * Build a compact prompt for batch slide enrichment (shared by both providers).
+ * Lists each slide compactly with hints for the AI to generate imagePrompts,
+ * layouts, and themes.
+ */
+export function buildEnrichmentPrompt(
+  slides: SlideEnrichmentInput[],
+  gradeLevel: string
+): string {
+  const slideList = slides.map(s => {
+    const hints: string[] = [];
+    if (s.hasQuestion) hints.push('QUESTION');
+    if (s.lessonPhase) hints.push(s.lessonPhase);
+    if (s.layoutLocked) hints.push('LAYOUT_LOCKED');
+    const hintStr = hints.length > 0 ? ` [${hints.join(', ')}]` : '';
+    return `${s.index}. "${s.title}" -- ${s.firstBullet}${hintStr}`;
+  }).join('\n');
+
+  return `Audience: ${gradeLevel}
+
+For each slide below, generate:
+1. imagePrompt: A concise description for an educational illustration (1-2 sentences, specific to slide topic, suitable for AI image generation)
+2. layout: One of 'split', 'full-image', 'center-text'
+3. theme: One of 'default', 'purple', 'blue', 'green', 'warm'
+
+Rules:
+- Image prompts should be age-appropriate for the audience
+- For LAYOUT_LOCKED slides, still generate an imagePrompt and theme but set layout to 'split'
+- QUESTION slides may suit 'center-text' (large text focus) but this is a suggestion, not a rule
+- Hook/plenary slides may suit 'full-image' for visual impact
+- Vary themes across the deck for visual interest
+- Return exactly ${slides.length} results in order
+
+SLIDES:
+${slideList}`;
+}
+
 // Deck Condensation types for lesson-plan-aware slide reduction (Phase 60)
 export type CondensationAction = 'keep' | 'remove' | 'merge';
 
@@ -407,6 +461,12 @@ export interface AIProviderInterface {
     options: EnhancementOptions,
     signal?: AbortSignal        // For cancellation support (ENHANCE-05)
   ): Promise<EnhancementResult>;
+
+  // Enrich scripted slides with AI-generated image prompts, layouts, and themes (Phase 71)
+  enrichScriptedSlides(
+    slides: SlideEnrichmentInput[],
+    gradeLevel: string
+  ): Promise<SlideEnrichmentResult[]>;
 }
 
 // Factory function to create the appropriate provider instance

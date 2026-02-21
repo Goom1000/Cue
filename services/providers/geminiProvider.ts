@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES, GenerationInput, GameQuestionRequest, VerbosityLevel, ChatContext, CondensationResult, GapAnalysisResult, IdentifiedGap, ColleagueTransformationResult, TransformedSlide } from '../aiProvider';
+import { AIProviderInterface, AIProviderError, USER_ERROR_MESSAGES, GenerationInput, GameQuestionRequest, VerbosityLevel, ChatContext, CondensationResult, GapAnalysisResult, IdentifiedGap, ColleagueTransformationResult, TransformedSlide, SlideEnrichmentInput, SlideEnrichmentResult, buildEnrichmentPrompt } from '../aiProvider';
 import { Slide, LessonResource, DocumentAnalysis, EnhancementResult, EnhancementOptions } from '../../types';
 import { DOCUMENT_ANALYSIS_SYSTEM_PROMPT, buildAnalysisUserPrompt } from '../documentAnalysis/analysisPrompts';
 import { ENHANCEMENT_SYSTEM_PROMPT, buildEnhancementUserPrompt } from '../documentEnhancement/enhancementPrompts';
@@ -153,6 +153,30 @@ const ANSWER_KEYS_SCHEMA = {
     }
   },
   required: ['answerKeys']
+};
+
+/**
+ * Response schema for batch slide enrichment (Phase 71).
+ * Forces Gemini to return structured JSON with imagePrompt, layout, and theme per slide.
+ */
+const ENRICHMENT_RESPONSE_SCHEMA = {
+  type: Type.ARRAY,
+  items: {
+    type: Type.OBJECT,
+    properties: {
+      index: { type: Type.INTEGER },
+      imagePrompt: { type: Type.STRING },
+      layout: {
+        type: Type.STRING,
+        enum: ['split', 'full-image', 'center-text'],
+      },
+      theme: {
+        type: Type.STRING,
+        enum: ['default', 'purple', 'blue', 'green', 'warm'],
+      },
+    },
+    required: ['index', 'imagePrompt', 'layout', 'theme'],
+  },
 };
 
 // Default model to use if none is selected
@@ -880,6 +904,36 @@ RULES:
         throw new AIProviderError(USER_ERROR_MESSAGES.SERVER_ERROR, 'SERVER_ERROR', error);
       }
 
+      throw this.wrapError(error);
+    }
+  }
+
+  /**
+   * Enrich scripted slides with AI-generated image prompts, layouts, and themes (Phase 71).
+   * Single batch call using Gemini's responseSchema for guaranteed valid JSON.
+   */
+  async enrichScriptedSlides(
+    slides: SlideEnrichmentInput[],
+    gradeLevel: string
+  ): Promise<SlideEnrichmentResult[]> {
+    try {
+      const ai = new GoogleGenAI({ apiKey: this.apiKey });
+      const prompt = buildEnrichmentPrompt(slides, gradeLevel);
+
+      const response = await ai.models.generateContent({
+        model: this.model,
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: ENRICHMENT_RESPONSE_SCHEMA,
+          temperature: 0.7,
+        },
+      });
+
+      const text = response.text || '[]';
+      return JSON.parse(text);
+    } catch (error) {
+      console.error('[GeminiProvider] enrichScriptedSlides error:', error);
       throw this.wrapError(error);
     }
   }
