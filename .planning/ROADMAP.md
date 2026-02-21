@@ -31,7 +31,7 @@ See MILESTONES.md for full history.
 
 - [x] **Phase 69: Scripted Parser** - Pure-function parser extracts typed blocks from marker-annotated lesson plans (completed 2026-02-19)
 - [x] **Phase 70: Slide Mapper + Pipeline Integration** - Converts parsed blocks to slides and wires scripted mode into the generation pipeline (completed 2026-02-20)
-- [ ] **Phase 71: AI Image Prompts + Layout Assignment** - Minimal AI enrichment call adds image prompts and layout selection to scripted slides
+- [x] **Phase 71: AI Image Prompts + Layout Assignment** - Minimal AI enrichment call adds image prompts and layout selection to scripted slides (completed 2026-02-21)
 - [ ] **Phase 72: Day Picker UI + Mode Selector** - Teacher-facing UI for multi-day selection and scripted import mode toggle
 - [ ] **Phase 73: Claude Chat Tips** - Static tips page with copyable prompt template for generating Cue-compatible lesson plans
 
@@ -122,7 +122,7 @@ Phases execute in numeric order: 69 -> 70 -> 71 -> 72 -> 73
 | 68. Phase-Aware UI + Resource Injection | v5.0 | 3/3 | Complete | 2026-02-16 |
 | 69. Scripted Parser | 1/1 | Complete    | 2026-02-19 | - |
 | 70. Slide Mapper + Pipeline Integration | 2/2 | Complete    | 2026-02-21 | - |
-| 71. AI Image Prompts + Layout Assignment | v6.0 | 0/1 | Planned | - |
+| 71. AI Image Prompts + Layout Assignment | 1/1 | Complete   | 2026-02-21 | - |
 | 72. Day Picker UI + Mode Selector | v6.0 | 0/? | Not started | - |
 | 73. Claude Chat Tips | v6.0 | 0/? | Not started | - |
 

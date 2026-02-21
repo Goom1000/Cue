@@ -30,8 +30,8 @@ Requirements for Scripted Import milestone. Each maps to roadmap phases.
 
 - [x] **PIPE-01**: `GenerationMode` type extended with `'scripted'` value across all providers and switch sites
 - [x] **PIPE-02**: Scripted mode bypasses all three AI passes (generate, gap analysis, auto-fill) in generation pipeline
-- [ ] **PIPE-03**: Scripted mode calls AI only for batch image prompt generation and layout assignment (~700 tokens)
-- [ ] **PIPE-04**: AI image prompt failure does not block slide import (fallback: synthesized prompts from slide titles)
+- [x] **PIPE-03**: Scripted mode calls AI only for batch image prompt generation and layout assignment (~700 tokens)
+- [x] **PIPE-04**: AI image prompt failure does not block slide import (fallback: synthesized prompts from slide titles)
 - [x] **PIPE-05**: Existing Fresh/Refine/Blend modes unaffected by scripted mode addition (regression-safe)
 
 ### Day Picker
@@ -100,8 +100,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MAP-05 | Phase 70 | Complete |
 | PIPE-01 | Phase 70 | Complete |
 | PIPE-02 | Phase 70 | Complete |
-| PIPE-03 | Phase 71 | Pending |
-| PIPE-04 | Phase 71 | Pending |
+| PIPE-03 | Phase 71 | Complete |
+| PIPE-04 | Phase 71 | Complete |
 | PIPE-05 | Phase 70 | Complete |
 | DAY-01 | Phase 72 | Pending |
 | DAY-02 | Phase 72 | Pending |
