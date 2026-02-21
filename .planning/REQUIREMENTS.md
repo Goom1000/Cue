@@ -44,8 +44,8 @@ Requirements for Scripted Import milestone. Each maps to roadmap phases.
 
 ### Mode Selector
 
-- [ ] **MODE-01**: Landing page provides explicit toggle between AI generation and scripted import after lesson plan upload
-- [ ] **MODE-02**: Scripted mode available for DOCX, PDF, and plain text uploads
+- [x] **MODE-01**: Landing page provides explicit toggle between AI generation and scripted import after lesson plan upload
+- [x] **MODE-02**: Scripted mode available for DOCX, PDF, and plain text uploads
 - [ ] **MODE-03**: Import preview displays detected statistics (days, sections, script blocks) before generation
 
 ### Claude Chat Tips
@@ -108,8 +108,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DAY-03 | Phase 72 | Pending |
 | DAY-04 | Phase 72 | Pending |
 | DAY-05 | Phase 72 | Pending |
-| MODE-01 | Phase 72 | Pending |
-| MODE-02 | Phase 72 | Pending |
+| MODE-01 | Phase 72 | Complete |
+| MODE-02 | Phase 72 | Complete |
 | MODE-03 | Phase 72 | Pending |
 | TIPS-01 | Phase 73 | Pending |
 | TIPS-02 | Phase 73 | Pending |

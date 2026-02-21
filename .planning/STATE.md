@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-19)
 
 **Core value:** Students see only the presentation; teachers see the teleprompter script that lets them sound knowledgeable and natural.
-**Current focus:** v6.0 Scripted Import -- Phase 71: AI Image Prompts + Layout Assignment
+**Current focus:** v6.0 Scripted Import -- Phase 72: Day Picker UI + Mode Selector
 
 ## Current Position
 
-Phase: 71 of 73 (AI Image Prompts + Layout Assignment)
-Plan: 1 of 1 complete
-Status: Phase 71 complete (AI enrichment of scripted slides)
-Last activity: 2026-02-21 -- Phase 71 Plan 01 complete (image prompts + layout assignment)
+Phase: 72 of 73 (Day Picker UI + Mode Selector)
+Plan: 1 of 2 complete
+Status: Plan 01 complete (backend infrastructure for mode detection + day filtering)
+Last activity: 2026-02-21 -- Phase 72 Plan 01 complete (detectScriptedMarkers + selectedDays filtering)
 
 Progress: [████████░░] 80% (4/5 phases)
 
@@ -21,7 +21,7 @@ Progress: [████████░░] 80% (4/5 phases)
 **Velocity:**
 - Milestones shipped: 24 (v1.0 through v5.0)
 - Total phases completed: 68
-- Total plans completed: 229
+- Total plans completed: 230
 - Total LOC: ~37,950 TypeScript
 
 **Recent Milestones:**
@@ -47,6 +47,8 @@ See PROJECT.md Key Decisions table for full history.
 - Phase 71-01: Layout lock duplicated in prompt hints and merge logic for defense in depth
 - Phase 71-01: Partial success merges valid results then applies fallback for remaining empty prompts
 - Phase 71-01: Theme assignment included in batch call (trivial token cost, already on Slide type)
+- Phase 72-01: Reuse existing MARKER_PATTERNS for detection instead of creating separate regex set
+- Phase 72-01: Set-based day filtering for O(1) lookup per day instead of array.includes()
 
 ### Pending Todos
 
@@ -59,9 +61,9 @@ None for v6.0. Research confidence is HIGH across all areas. Zero new dependenci
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 71-01-PLAN.md (AI image prompts + layout assignment)
-Resume file: .planning/phases/71-ai-image-prompts-layout-assignment/71-01-SUMMARY.md
+Stopped at: Completed 72-01-PLAN.md (backend infrastructure for mode detection + day filtering)
+Resume file: .planning/phases/72-day-picker-ui-mode-selector/72-01-SUMMARY.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-21 -- Phase 71 Plan 01 complete (AI image prompts + layout assignment)*
+*Last updated: 2026-02-21 -- Phase 72 Plan 01 complete (detectScriptedMarkers + selectedDays filtering)*
