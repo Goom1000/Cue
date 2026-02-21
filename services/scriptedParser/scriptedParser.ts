@@ -362,3 +362,23 @@ function buildResult(state: ParserState, totalLines: number): ScriptedParseResul
     stats,
   };
 }
+
+// =============================================================================
+// Marker Detection (Phase 72)
+// =============================================================================
+
+/**
+ * Quick detection of scripted markers in text.
+ * Returns true if at least one explicit marker (Say:, Ask:, etc.) is found.
+ * Used by UI to auto-suggest scripted import mode (MODE-01).
+ * Much cheaper than a full parse -- stops at first match.
+ */
+export function detectScriptedMarkers(text: string): boolean {
+  const lines = text.split('\n');
+  for (const line of lines) {
+    for (const pattern of MARKER_PATTERNS) {
+      if (pattern.regex.test(line)) return true;
+    }
+  }
+  return false;
+}
