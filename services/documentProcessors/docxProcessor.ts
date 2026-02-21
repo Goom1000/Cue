@@ -3,7 +3,7 @@
  * Generates placeholder thumbnail (Word icon) since DOCX can't be rendered in browser
  */
 
-import mammoth from 'mammoth';
+import { extractDocxTextWithHeadings } from './docxTextExtractor';
 
 export interface DocxProcessResult {
   thumbnail: string;
@@ -27,8 +27,7 @@ const DOCX_ICON = `data:image/svg+xml,${encodeURIComponent(`
  */
 export async function processDocx(file: File): Promise<DocxProcessResult> {
   const arrayBuffer = await file.arrayBuffer();
-  const result = await mammoth.extractRawText({ arrayBuffer });
-  const text = result.value;
+  const text = await extractDocxTextWithHeadings(arrayBuffer);
 
   // Estimate pages (~3000 chars per page)
   const pageCount = Math.max(1, Math.ceil(text.length / 3000));

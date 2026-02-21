@@ -3,6 +3,8 @@
  * Uses existing pdf.js CDN loaded in index.html
  */
 
+import { extractTextWithLineBreaks } from './pdfTextExtractor';
+
 declare const pdfjsLib: any;
 
 // Maximum pages to extract for AI analysis (avoid token overflow)
@@ -67,9 +69,7 @@ export async function processPdf(file: File): Promise<PdfProcessResult> {
 
     // Extract text content
     const textContent = await page.getTextContent();
-    const pageText = textContent.items
-      .map((item: any) => item.str)
-      .join(' ');
+    const pageText = extractTextWithLineBreaks(textContent.items);
     if (pageText.trim()) {
       textParts.push(`[Page ${i}]\n${pageText}`);
     }

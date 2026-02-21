@@ -43,6 +43,8 @@ import { computePhaseDistribution, ALL_PHASES } from './utils/phaseDistribution'
 import { detectScriptedMarkers, parseScriptedLessonPlan } from './services/scriptedParser/scriptedParser';
 import { ScriptedParseResult } from './services/scriptedParser/types';
 import mammoth from 'mammoth';
+import { extractTextWithLineBreaks } from './services/documentProcessors/pdfTextExtractor';
+import { extractDocxTextWithHeadings } from './services/documentProcessors/docxTextExtractor';
 
 declare const pdfjsLib: any;
 
@@ -542,7 +544,7 @@ function App() {
       for (let i = 1; i <= pagesToProcess; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
-        const pageText = textContent.items.map((item: any) => item.str).join(' ');
+        const pageText = extractTextWithLineBreaks(textContent.items);
         console.log(`[PDF] Page ${i}: ${textContent.items.length} text items, ${pageText.length} chars`);
         fullText += pageText + "\n\n";
 
@@ -595,8 +597,8 @@ function App() {
       setIsProcessingFile(true);
       try {
         const arrayBuffer = await file.arrayBuffer();
-        const result = await mammoth.extractRawText({ arrayBuffer });
-        setLessonText(result.value);
+        const text = await extractDocxTextWithHeadings(arrayBuffer);
+        setLessonText(text);
         setPageImages([]);
       } catch (err) {
         setError('Failed to read DOCX file');

@@ -6,6 +6,7 @@
 
 import { UploadedResource, DocumentAnalysis } from '../../types';
 import { AIProviderInterface } from '../aiProvider';
+import { extractTextWithLineBreaks } from '../documentProcessors/pdfTextExtractor';
 
 // Declare pdf.js from CDN (loaded in index.html)
 declare const pdfjsLib: any;
@@ -72,9 +73,7 @@ async function extractPdfText(file: File): Promise<string> {
   for (let i = 1; i <= pagesToExtract; i++) {
     const page = await pdf.getPage(i);
     const textContent = await page.getTextContent();
-    const pageText = textContent.items
-      .map((item: any) => item.str)
-      .join(' ');
+    const pageText = extractTextWithLineBreaks(textContent.items);
     if (pageText.trim()) {
       textParts.push(`[Page ${i}]\n${pageText}`);
     }
