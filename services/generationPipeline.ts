@@ -177,8 +177,14 @@ export async function runGenerationPipeline(
     });
 
     const parseResult = parseScriptedLessonPlan(lessonPlanText);
-    // Flatten all days' blocks (day selection is Phase 72)
-    const allBlocks = parseResult.days.flatMap(day => day.blocks);
+    // Filter days by selection (Phase 72), or include all if no selection provided
+    const selectedDaySet = input.selectedDays
+      ? new Set(input.selectedDays)
+      : null;
+    const filteredDays = selectedDaySet
+      ? parseResult.days.filter(d => selectedDaySet.has(d.dayNumber))
+      : parseResult.days;
+    const allBlocks = filteredDays.flatMap(day => day.blocks);
     let slides = mapBlocksToSlides(allBlocks);
 
     // Enrich slides with AI-generated image prompts, layouts, and themes (Phase 71)

@@ -128,6 +128,7 @@ export interface GenerationInput {
   verbosity?: VerbosityLevel;
   gradeLevel?: string;  // e.g., "Year 6 (10-11 years old)"
   supplementaryResourceText?: string;  // Capped resource text for prompt injection (Pass 1 only)
+  selectedDays?: number[];  // Day numbers to include in scripted import (omit = all days)
 }
 
 // Context from slides for question generation
