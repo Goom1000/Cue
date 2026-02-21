@@ -40,6 +40,9 @@ import { MAX_SUPPLEMENTARY_RESOURCES } from './utils/resourceCapping';
 import { buildResourceInjectionText } from './utils/resourceInjection';
 import { PHASE_DISPLAY_LABELS, PHASE_COLORS } from './services/phaseDetection/phasePatterns';
 import { computePhaseDistribution, ALL_PHASES } from './utils/phaseDistribution';
+import { detectScriptedMarkers, parseScriptedLessonPlan } from './services/scriptedParser/scriptedParser';
+import { ScriptedParseResult } from './services/scriptedParser/types';
+import mammoth from 'mammoth';
 
 declare const pdfjsLib: any;
 
@@ -410,6 +413,60 @@ function App() {
     return 'none';
   }, [uploadedFile, lessonText, existingPptFile]);
 
+  // Scripted mode detection and state (Phase 72)
+  const hasScriptedMarkers = useMemo(() => {
+    if (!lessonText.trim()) return false;
+    return detectScriptedMarkers(lessonText);
+  }, [lessonText]);
+
+  const [scriptedModeOverride, setScriptedModeOverride] = useState<boolean | null>(null);
+  const isScriptedMode = scriptedModeOverride ?? hasScriptedMarkers;
+
+  // Parse result for day picker and stats (only computed when scripted mode is active)
+  const [parseResult, setParseResult] = useState<ScriptedParseResult | null>(null);
+  const [selectedDays, setSelectedDays] = useState<Set<number>>(new Set());
+
+  // Run full parse eagerly when scripted mode activates
+  useEffect(() => {
+    if (isScriptedMode && lessonText.trim()) {
+      const result = parseScriptedLessonPlan(lessonText);
+      setParseResult(result);
+      setSelectedDays(new Set(result.days.map(d => d.dayNumber)));
+    } else {
+      setParseResult(null);
+      setSelectedDays(new Set());
+    }
+  }, [isScriptedMode, lessonText]);
+
+  // Reset scripted mode override when new file is uploaded (Pitfall 2 from RESEARCH.md)
+  useEffect(() => {
+    setScriptedModeOverride(null);
+  }, [uploadedFile]);
+
+  // Day selection toggle helper
+  const toggleDaySelection = (dayNumber: number) => {
+    setSelectedDays(prev => {
+      const next = new Set(prev);
+      if (next.has(dayNumber)) {
+        next.delete(dayNumber);
+      } else {
+        next.add(dayNumber);
+      }
+      return next;
+    });
+  };
+
+  // Reactive import stats (MODE-03)
+  const importStats = useMemo(() => {
+    if (!parseResult) return null;
+    const selected = parseResult.days.filter(d => selectedDays.has(d.dayNumber));
+    const sectionCount = selected.reduce((sum, day) =>
+      sum + day.blocks.filter(b => b.type === 'section-heading').length, 0);
+    const blockCount = selected.reduce((sum, day) =>
+      sum + day.blocks.filter(b => b.type !== 'section-heading').length, 0);
+    return { days: selected.length, sections: sectionCount, blocks: blockCount };
+  }, [parseResult, selectedDays]);
+
   // Phase distribution for balance indicator (Phase 68)
   const phaseDistribution = useMemo(() => computePhaseDistribution(slides), [slides]);
 
@@ -514,22 +571,50 @@ function App() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.type !== 'application/pdf') {
-      setError("Please upload a PDF document.");
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    const supportedExts = ['pdf', 'docx', 'txt'];
+    if (!ext || !supportedExts.includes(ext)) {
+      setError("Please upload a PDF, DOCX, or TXT document.");
       return;
     }
 
     setUploadedFile(file);
     setError(null);
-    await processPdf(
-      file,
-      setIsProcessingFile,
-      (text, images) => {
+
+    if (ext === 'pdf') {
+      await processPdf(
+        file,
+        setIsProcessingFile,
+        (text, images) => {
+          setLessonText(text);
+          setPageImages(images);
+        },
+        setError
+      );
+    } else if (ext === 'docx') {
+      setIsProcessingFile(true);
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        setLessonText(result.value);
+        setPageImages([]);
+      } catch (err) {
+        setError('Failed to read DOCX file');
+      } finally {
+        setIsProcessingFile(false);
+      }
+    } else if (ext === 'txt') {
+      setIsProcessingFile(true);
+      try {
+        const text = await file.text();
         setLessonText(text);
-        setPageImages(images);
-      },
-      setError
-    );
+        setPageImages([]);
+      } catch (err) {
+        setError('Failed to read text file');
+      } finally {
+        setIsProcessingFile(false);
+      }
+    }
   };
 
   const handlePptFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -579,10 +664,12 @@ function App() {
         lessonImages: pageImages.length > 0 ? pageImages : undefined,
         presentationText: existingPptText || undefined,
         presentationImages: existingPptImages.length > 0 ? existingPptImages : undefined,
-        mode: uploadMode as GenerationMode,
+        mode: (isScriptedMode ? 'scripted' : uploadMode) as GenerationMode,
         verbosity: deckVerbosity,
         gradeLevel: 'Year 6 (10-11 years old)',
         supplementaryResourceText: buildResourceInjectionText(supplementaryResources),
+        selectedDays: isScriptedMode && parseResult && parseResult.totalDays > 1
+          ? Array.from(selectedDays) : undefined,
       };
 
       // Map pipeline progress to generationProgress state
@@ -2221,7 +2308,7 @@ function App() {
 
                 {/* Dual Upload Zones */}
                 <div data-tour="upload-zone" className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  {/* Lesson Plan PDF Upload (green theme) */}
+                  {/* Lesson Plan Upload (green theme) */}
                   <div
                     onClick={() => fileInputRef.current?.click()}
                     className={`border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all min-h-[180px] ${uploadedFile ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700' : 'border-slate-200 dark:border-slate-700 hover:border-green-400 dark:hover:border-green-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
@@ -2231,7 +2318,7 @@ function App() {
                       ref={fileInputRef}
                       onChange={handleFileChange}
                       className="hidden"
-                      accept=".pdf"
+                      accept=".pdf,.docx,.txt"
                     />
 
                     {isProcessingFile ? (
@@ -2255,8 +2342,8 @@ function App() {
                         <div className="w-14 h-14 bg-green-50 dark:bg-green-900/30 text-green-500 dark:text-green-400 rounded-2xl flex items-center justify-center mx-auto mb-3">
                           <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                         </div>
-                        <p className="font-bold text-slate-700 dark:text-slate-300 text-sm">Lesson Plan PDF</p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">AI creates fresh slides</p>
+                        <p className="font-bold text-slate-700 dark:text-slate-300 text-sm">Lesson Plan</p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">PDF, DOCX, or TXT</p>
                       </div>
                     )}
                   </div>
@@ -2339,8 +2426,38 @@ function App() {
                   </div>
                 )}
 
+                {/* Scripted Mode Banner (Phase 72 - MODE-01) */}
+                {hasScriptedMarkers && uploadMode === 'fresh' && (
+                  <div className="mb-6 p-4 rounded-xl border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm text-amber-700 dark:text-amber-300">Scripted markers detected</p>
+                          <p className="text-xs text-slate-600 dark:text-slate-400">
+                            Your lesson plan contains Say:, Ask:, and other scripted markers
+                          </p>
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
+                          checked={isScriptedMode}
+                          onChange={() => setScriptedModeOverride(prev => prev === null ? !hasScriptedMarkers : !prev)}
+                        />
+                        <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                      </label>
+                    </div>
+                  </div>
+                )}
+
                 {/* Verbosity Selection */}
-                {uploadMode !== 'none' && (
+                {uploadMode !== 'none' && !isScriptedMode && (
                   <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 mb-6">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center shadow-sm">
@@ -2481,7 +2598,7 @@ function App() {
                       disabled={uploadMode === 'none' || isGenerating}
                       title={!provider ? 'Add API key in Settings to enable' : undefined}
                     >
-                      {uploadMode === 'refine' ? 'Refine Presentation' : uploadMode === 'blend' ? 'Enhance Slides' : 'Generate Slideshow'}
+                      {isScriptedMode ? 'Import Scripted Lesson' : uploadMode === 'refine' ? 'Refine Presentation' : uploadMode === 'blend' ? 'Enhance Slides' : 'Generate Slideshow'}
                     </Button>
                     {!provider && (
                       <span className="absolute -top-1 -right-1 w-5 h-5 bg-slate-500 dark:bg-slate-600 rounded-full flex items-center justify-center shadow-sm">
