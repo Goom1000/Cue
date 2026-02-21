@@ -90,11 +90,11 @@ Plans:
   3. When importing a subset of days, a warning is shown about potential cross-day references
   4. Before generation, import preview displays detected statistics (days count, sections count, script blocks count)
   5. Scripted mode works with DOCX, PDF, and plain text uploads
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 72-01: TBD
-- [ ] 72-02: TBD
+- [ ] 72-01-PLAN.md — Marker detection + GenerationInput.selectedDays + pipeline day filtering
+- [ ] 72-02-PLAN.md — Mode banner + day picker + multi-format upload + import stats
 
 ### Phase 73: Claude Chat Tips
 **Goal**: Teachers have a reference page with a copyable prompt template for generating Cue-compatible scripted lesson plans in Claude chat
@@ -123,7 +123,7 @@ Phases execute in numeric order: 69 -> 70 -> 71 -> 72 -> 73
 | 69. Scripted Parser | 1/1 | Complete    | 2026-02-19 | - |
 | 70. Slide Mapper + Pipeline Integration | 2/2 | Complete    | 2026-02-21 | - |
 | 71. AI Image Prompts + Layout Assignment | 1/1 | Complete    | 2026-02-21 | - |
-| 72. Day Picker UI + Mode Selector | v6.0 | 0/? | Not started | - |
+| 72. Day Picker UI + Mode Selector | v6.0 | 0/2 | Not started | - |
 | 73. Claude Chat Tips | v6.0 | 0/? | Not started | - |
 
 ---
