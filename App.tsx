@@ -2492,6 +2492,74 @@ function App() {
                   </div>
                 )}
 
+                {/* Day Picker (Phase 72 - DAY-01 through DAY-05) */}
+                {parseResult && parseResult.totalDays >= 2 && isScriptedMode && (
+                  <div className="mb-6">
+                    {/* Select All / Deselect All (DAY-04) */}
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        Select Days to Import
+                      </p>
+                      <button
+                        onClick={() => {
+                          if (selectedDays.size === parseResult.totalDays) {
+                            setSelectedDays(new Set());
+                          } else {
+                            setSelectedDays(new Set(parseResult.days.map(d => d.dayNumber)));
+                          }
+                        }}
+                        className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
+                      >
+                        {selectedDays.size === parseResult.totalDays ? 'Deselect All' : 'Select All'}
+                      </button>
+                    </div>
+
+                    {/* Day Cards Grid (DAY-01, DAY-02, DAY-03) */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {parseResult.days.map(day => {
+                        const isSelected = selectedDays.has(day.dayNumber);
+                        const sectionCount = day.blocks.filter(b => b.type === 'section-heading').length;
+                        const blockCount = day.blocks.filter(b => b.type !== 'section-heading').length;
+                        return (
+                          <button
+                            key={day.dayNumber}
+                            onClick={() => toggleDaySelection(day.dayNumber)}
+                            className={`p-4 rounded-xl border-2 text-left transition-all ${
+                              isSelected
+                                ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-400'
+                                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 opacity-60'
+                            }`}
+                          >
+                            <p className="font-bold text-sm text-slate-800 dark:text-white">
+                              Day {day.dayNumber}
+                            </p>
+                            {day.title && (
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                                {day.title}
+                              </p>
+                            )}
+                            <div className="flex gap-2 mt-2">
+                              <span className="text-[10px] px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded font-medium">
+                                {sectionCount} {sectionCount === 1 ? 'section' : 'sections'}
+                              </span>
+                              <span className="text-[10px] px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded font-medium">
+                                {blockCount} {blockCount === 1 ? 'block' : 'blocks'}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Cross-day reference warning (DAY-05) */}
+                    {selectedDays.size < parseResult.totalDays && selectedDays.size > 0 && (
+                      <div className="mt-3 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-xs text-amber-700 dark:text-amber-300">
+                        Some days may reference content from unselected days
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="relative mb-6">
                     <div className="absolute inset-x-0 top-1/2 h-px bg-slate-100 dark:bg-slate-800 -z-10"></div>
                     <span className="px-4 bg-white dark:bg-slate-900 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mx-auto block w-fit">Or paste text below</span>
@@ -2580,7 +2648,16 @@ function App() {
                 </div>
 
                 {error && <p className="mt-4 text-red-500 text-sm font-medium bg-red-50 p-3 rounded-lg border border-red-100 mb-6">⚠️ {error}</p>}
-                
+
+                {/* Import Stats (Phase 72 - MODE-03) */}
+                {isScriptedMode && importStats && (
+                  <p className="text-center text-sm text-slate-500 dark:text-slate-400 mb-4 font-medium">
+                    {importStats.days} {importStats.days === 1 ? 'day' : 'days'} &middot;{' '}
+                    {importStats.sections} {importStats.sections === 1 ? 'section' : 'sections'} &middot;{' '}
+                    {importStats.blocks} script {importStats.blocks === 1 ? 'block' : 'blocks'}
+                  </p>
+                )}
+
                 <div className="flex justify-center gap-4">
                   <Button
                     variant="secondary"
@@ -2595,7 +2672,7 @@ function App() {
                       onClick={handleGenerate}
                       className={`px-16 py-5 text-xl rounded-2xl shadow-indigo-100 dark:shadow-none ${!provider ? 'opacity-50' : ''}`}
                       isLoading={isGenerating}
-                      disabled={uploadMode === 'none' || isGenerating}
+                      disabled={uploadMode === 'none' || isGenerating || (isScriptedMode && selectedDays.size === 0)}
                       title={!provider ? 'Add API key in Settings to enable' : undefined}
                     >
                       {isScriptedMode ? 'Import Scripted Lesson' : uploadMode === 'refine' ? 'Refine Presentation' : uploadMode === 'blend' ? 'Enhance Slides' : 'Generate Slideshow'}
