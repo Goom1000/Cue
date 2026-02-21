@@ -27,6 +27,8 @@ import {
   GapAnalysisResult,
   VerbosityLevel,
   withRetry,
+  SlideEnrichmentInput,
+  SlideEnrichmentResult,
 } from './aiProvider';
 import { insertGapSlides, adjustGapPositions } from '../utils/gapSlideInsertion';
 import { detectPhasesInText, assignPhasesToSlides } from './phaseDetection/phaseDetector';
@@ -75,6 +77,65 @@ const MAX_AUTO_FILL_GAPS = 8;
 const GAP_GENERATION_DELAY_MS = 500;
 
 // =============================================================================
+// Scripted Enrichment Helpers (Phase 71)
+// =============================================================================
+
+/**
+ * Prepare compact enrichment inputs from mapped slides for the batch AI call.
+ * Sends only minimal metadata to keep token budget ~700 total.
+ */
+function prepareEnrichmentInputs(slides: Slide[]): SlideEnrichmentInput[] {
+  return slides.map((slide, i) => ({
+    index: i,
+    title: slide.title,
+    firstBullet: (slide.content[0] || '').slice(0, 50),
+    hasQuestion: !!slide.hasQuestionFlag,
+    lessonPhase: slide.lessonPhase,
+    layoutLocked: slide.layout !== 'split' && slide.layout !== undefined,
+  }));
+}
+
+/**
+ * Merge AI enrichment results onto slides with layout lock protection.
+ * Mapper-assigned layouts (work-together, class-challenge) are never overridden.
+ */
+function mergeEnrichmentResults(
+  slides: Slide[],
+  results: SlideEnrichmentResult[]
+): Slide[] {
+  const resultMap = new Map(results.map(r => [r.index, r]));
+
+  return slides.map((slide, i) => {
+    const enrichment = resultMap.get(i);
+    if (!enrichment) return slide;
+
+    // Layout lock: only override if mapper set default 'split' or undefined
+    const layoutLocked = slide.layout !== 'split' && slide.layout !== undefined;
+    const newLayout = layoutLocked ? slide.layout : enrichment.layout;
+
+    return {
+      ...slide,
+      imagePrompt: enrichment.imagePrompt || slide.imagePrompt,
+      layout: newLayout,
+      theme: enrichment.theme || slide.theme,
+    };
+  });
+}
+
+/**
+ * Synthesize fallback enrichment when AI call fails or returns invalid results.
+ * Uses richer pattern from CONTEXT.md: "Educational illustration: {title} -- {first bullet}"
+ */
+function synthesizeFallbackEnrichment(slides: Slide[]): Slide[] {
+  return slides.map(slide => ({
+    ...slide,
+    imagePrompt: slide.imagePrompt ||
+      `Educational illustration: ${slide.title}${slide.content[0] ? ' \u2014 ' + slide.content[0] : ''}`,
+    // layout stays as mapper default (split or work-together) -- no heuristic logic per CONTEXT.md
+  }));
+}
+
+// =============================================================================
 // Main Pipeline
 // =============================================================================
 
@@ -118,13 +179,46 @@ export async function runGenerationPipeline(
     const parseResult = parseScriptedLessonPlan(lessonPlanText);
     // Flatten all days' blocks (day selection is Phase 72)
     const allBlocks = parseResult.days.flatMap(day => day.blocks);
-    const slides = mapBlocksToSlides(allBlocks);
+    let slides = mapBlocksToSlides(allBlocks);
+
+    // Enrich slides with AI-generated image prompts, layouts, and themes (Phase 71)
+    try {
+      const inputs = prepareEnrichmentInputs(slides);
+      const results = await provider.enrichScriptedSlides(inputs, gradeLevel);
+
+      // Validate result count -- if mismatched, fall back entirely
+      if (results.length === slides.length) {
+        // Validate each result individually: use valid ones, fallback for invalid
+        const validResults = results.filter(r =>
+          typeof r.imagePrompt === 'string' && r.imagePrompt.length > 0 &&
+          ['split', 'full-image', 'center-text'].includes(r.layout)
+        );
+
+        if (validResults.length === slides.length) {
+          slides = mergeEnrichmentResults(slides, validResults);
+        } else {
+          // Partial success: merge valid results, fallback for the rest
+          slides = mergeEnrichmentResults(slides, validResults);
+          slides = synthesizeFallbackEnrichment(slides);
+          warnings.push('Some slides used auto-generated image prompts (AI enrichment partially succeeded)');
+        }
+      } else {
+        // Array length mismatch -- fall back entirely
+        slides = synthesizeFallbackEnrichment(slides);
+        warnings.push('Image prompts were auto-generated from slide titles (AI enrichment returned unexpected results)');
+      }
+    } catch (error) {
+      // PIPE-04: Enrichment failure does not block import
+      console.warn('Scripted slide enrichment failed, using fallback:', error);
+      slides = synthesizeFallbackEnrichment(slides);
+      warnings.push('Image prompts were auto-generated from slide titles (AI enrichment unavailable)');
+    }
 
     return {
       slides,
       coveragePercentage: null,
       remainingGaps: [],
-      warnings: parseResult.warnings,
+      warnings: [...parseResult.warnings, ...warnings],
       wasPartial: false,
     };
   }
