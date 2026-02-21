@@ -122,7 +122,7 @@ Phases execute in numeric order: 69 -> 70 -> 71 -> 72 -> 73
 | 68. Phase-Aware UI + Resource Injection | v5.0 | 3/3 | Complete | 2026-02-16 |
 | 69. Scripted Parser | 1/1 | Complete    | 2026-02-19 | - |
 | 70. Slide Mapper + Pipeline Integration | 2/2 | Complete    | 2026-02-21 | - |
-| 71. AI Image Prompts + Layout Assignment | 1/1 | Complete   | 2026-02-21 | - |
+| 71. AI Image Prompts + Layout Assignment | 1/1 | Complete    | 2026-02-21 | - |
 | 72. Day Picker UI + Mode Selector | v6.0 | 0/? | Not started | - |
 | 73. Claude Chat Tips | v6.0 | 0/? | Not started | - |
 
