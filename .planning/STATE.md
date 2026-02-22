@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 73 of 73 (Claude Chat Tips)
-Plan: 0 of ? complete
-Status: Phase 72 complete (Day Picker UI + Mode Selector), ready for Phase 73
-Last activity: 2026-02-21 -- Phase 72 Plan 02 complete (mode banner + day picker + multi-format upload + import stats)
+Plan: 1 of 1 complete
+Status: Phase 73 complete (Claude Chat Tips), v6.0 Scripted Import milestone complete
+Last activity: 2026-02-22 -- Phase 73 Plan 01 complete (Claude Chat Tips overlay)
 
-Progress: [█████████░] 90% (4.5/5 phases)
+Progress: [██████████] 100% (5/5 phases)
 
 ## Performance Metrics
 
 **Velocity:**
 - Milestones shipped: 24 (v1.0 through v5.0)
 - Total phases completed: 68
-- Total plans completed: 231
+- Total plans completed: 232
 - Total LOC: ~37,950 TypeScript
 
 **Recent Milestones:**
@@ -52,6 +52,9 @@ See PROJECT.md Key Decisions table for full history.
 - Phase 72-02: Scripted mode override uses nullable boolean (null = auto, true/false = manual) for clean toggle semantics
 - Phase 72-02: Day picker positioned inline on landing page between banner and verbosity selector
 - Phase 72-02: Verbosity selector hidden in scripted mode since scripted preserves verbatim text
+- Phase 73-01: Marker descriptions hardcoded in component since SUPPORTED_MARKERS only has names
+- Phase 73-01: Tips link shown unconditionally so teachers can read format before toggling scripted mode
+- Phase 73-01: Prompt template stored as dedented string constant to avoid whitespace issues on copy
 
 ### Pending Todos
 
@@ -63,10 +66,10 @@ None for v6.0. Research confidence is HIGH across all areas. Zero new dependenci
 
 ## Session Continuity
 
-Last session: 2026-02-21
-Stopped at: Completed 72-02-PLAN.md (mode banner + day picker + multi-format upload + import stats)
-Resume file: .planning/phases/72-day-picker-ui-mode-selector/72-02-SUMMARY.md
+Last session: 2026-02-22
+Stopped at: Completed 73-01-PLAN.md (Claude Chat Tips overlay)
+Resume file: .planning/phases/73-claude-chat-tips/73-01-SUMMARY.md
 
 ---
 *State initialized: 2026-01-18*
-*Last updated: 2026-02-21 -- Phase 72 complete (day picker UI + mode selector)*
+*Last updated: 2026-02-22 -- Phase 73 complete (Claude Chat Tips), v6.0 milestone complete*

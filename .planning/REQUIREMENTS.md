@@ -50,11 +50,11 @@ Requirements for Scripted Import milestone. Each maps to roadmap phases.
 
 ### Claude Chat Tips
 
-- [ ] **TIPS-01**: Static tips page accessible from landing page with copyable prompt template for Claude chat
-- [ ] **TIPS-02**: Format specification shows supported markers (Say:, Ask:, Write on board:, Activity:, section headings, Day headers)
-- [ ] **TIPS-03**: Example output snippet demonstrates expected lesson plan structure
-- [ ] **TIPS-04**: Copy-to-clipboard with toast feedback and HTTPS fallback
-- [ ] **TIPS-05**: Shared `SUPPORTED_MARKERS` constant imported by both parser and tips page to prevent drift
+- [x] **TIPS-01**: Static tips page accessible from landing page with copyable prompt template for Claude chat
+- [x] **TIPS-02**: Format specification shows supported markers (Say:, Ask:, Write on board:, Activity:, section headings, Day headers)
+- [x] **TIPS-03**: Example output snippet demonstrates expected lesson plan structure
+- [x] **TIPS-04**: Copy-to-clipboard with toast feedback and HTTPS fallback
+- [x] **TIPS-05**: Shared `SUPPORTED_MARKERS` constant imported by both parser and tips page to prevent drift
 
 ## Future Requirements
 
@@ -111,11 +111,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MODE-01 | Phase 72 | Complete |
 | MODE-02 | Phase 72 | Complete |
 | MODE-03 | Phase 72 | Complete |
-| TIPS-01 | Phase 73 | Pending |
-| TIPS-02 | Phase 73 | Pending |
-| TIPS-03 | Phase 73 | Pending |
-| TIPS-04 | Phase 73 | Pending |
-| TIPS-05 | Phase 73 | Pending |
+| TIPS-01 | Phase 73 | Complete |
+| TIPS-02 | Phase 73 | Complete |
+| TIPS-03 | Phase 73 | Complete |
+| TIPS-04 | Phase 73 | Complete |
+| TIPS-05 | Phase 73 | Complete |
 
 **Coverage:**
 - v6.0 requirements: 31 total

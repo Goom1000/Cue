@@ -33,7 +33,7 @@ See MILESTONES.md for full history.
 - [x] **Phase 70: Slide Mapper + Pipeline Integration** - Converts parsed blocks to slides and wires scripted mode into the generation pipeline (completed 2026-02-20)
 - [x] **Phase 71: AI Image Prompts + Layout Assignment** - Minimal AI enrichment call adds image prompts and layout selection to scripted slides (completed 2026-02-21)
 - [x] **Phase 72: Day Picker UI + Mode Selector** - Teacher-facing UI for multi-day selection and scripted import mode toggle (completed 2026-02-21)
-- [ ] **Phase 73: Claude Chat Tips** - Static tips page with copyable prompt template for generating Cue-compatible lesson plans
+- [x] **Phase 73: Claude Chat Tips** - Static tips page with copyable prompt template for generating Cue-compatible lesson plans (completed 2026-02-22)
 
 ## Phase Details
 
@@ -124,7 +124,7 @@ Phases execute in numeric order: 69 -> 70 -> 71 -> 72 -> 73
 | 70. Slide Mapper + Pipeline Integration | 2/2 | Complete    | 2026-02-21 | - |
 | 71. AI Image Prompts + Layout Assignment | 1/1 | Complete    | 2026-02-21 | - |
 | 72. Day Picker UI + Mode Selector | 2/2 | Complete    | 2026-02-21 | - |
-| 73. Claude Chat Tips | v6.0 | 0/1 | Not started | - |
+| 73. Claude Chat Tips | 1/1 | Complete   | 2026-02-22 | - |
 
 ---
 *Roadmap created: 2026-02-14*
