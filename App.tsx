@@ -45,6 +45,7 @@ import { ScriptedParseResult } from './services/scriptedParser/types';
 import mammoth from 'mammoth';
 import { extractTextWithLineBreaks } from './services/documentProcessors/pdfTextExtractor';
 import { extractDocxTextWithHeadings } from './services/documentProcessors/docxTextExtractor';
+import ClaudeChatTips from './components/ClaudeChatTips';
 
 declare const pdfjsLib: any;
 
@@ -335,6 +336,7 @@ function App() {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [showResourceHub, setShowResourceHub] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showClaudeTips, setShowClaudeTips] = useState(false);
   
   const [autoGenerateImages, setAutoGenerateImages] = useState(true);
   // Deck-wide verbosity: used for generation, presentation mode, and persistence
@@ -2282,6 +2284,13 @@ function App() {
             />
         )}
 
+        {showClaudeTips && (
+          <ClaudeChatTips
+            onClose={() => setShowClaudeTips(false)}
+            addToast={addToast}
+          />
+        )}
+
         {appState === AppState.INPUT && (
           <div className="flex-1 overflow-y-auto py-12 px-6 custom-scrollbar">
             <div className="max-w-4xl mx-auto">
@@ -2691,6 +2700,12 @@ function App() {
                 <p className="text-center text-sm text-slate-400 dark:text-slate-500 mt-4">
                   or drag a <span className="font-mono text-indigo-500 dark:text-amber-400">.cue</span> file anywhere to open
                 </p>
+                <button
+                  onClick={() => setShowClaudeTips(true)}
+                  className="text-sm text-slate-400 hover:text-indigo-500 dark:hover:text-amber-400 transition-colors mt-2 block mx-auto"
+                >
+                  Tips for generating lesson plans with Claude
+                </button>
               </div>
             </div>
           </div>
