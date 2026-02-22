@@ -67,7 +67,7 @@ Each task was committed atomically:
 1. **Task 1: Add detectScriptedMarkers() pure function** - `5597aa8` (feat)
 2. **Task 2: Add selectedDays to GenerationInput and pipeline day filtering** - `38424f5` (feat)
 
-**Plan metadata:** [pending] (docs: complete plan)
+**Plan metadata:** `376a9ee` (docs: complete plan)
 
 ## Files Created/Modified
 - `services/scriptedParser/scriptedParser.ts` - Added detectScriptedMarkers() export reusing MARKER_PATTERNS

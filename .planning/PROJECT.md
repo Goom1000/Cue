@@ -4,11 +4,11 @@
 
 A presentation tool for teachers that transforms PDF lesson plans into interactive slideshows with AI-generated content, a teleprompter script for the teacher, and progressive bullet reveal. Teachers upload their existing lesson plans, select student age/grade level, and the AI creates an engaging presentation with speaker notes that guide the teacher through natural, conversational delivery.
 
-**v5.0 shipped:** Smart Generation — Three-pass pipeline (generate → check coverage → fill gaps) produces near-complete decks automatically. Teachers can upload supplementary resources (PDF, PPTX, DOCX, images) that AI weaves into slides. Lesson phase detection tags slides with pedagogical stages (Hook, I Do, We Do, You Do, Plenary). Deployed at https://goom1000.github.io/Cue/
+**v6.0 shipped:** Scripted Import — Teachers can import pre-scripted lesson plans with marker annotations (Say:/Ask:/Write on board:/Activity:) directly into Cue. The parser preserves the teacher's exact words as the teleprompter script, maps markers to slide structure, and adds AI-generated image prompts with graceful fallback. Multi-day lesson plans split into selectable days via day picker. Claude Chat Tips page provides copyable prompt templates. Deployed at https://goom1000.github.io/Cue/
 
 ## Current State
 
-Shipped v5.0 with ~36,860 LOC TypeScript. v5.0 delivered Smart Generation: three-pass generation pipeline (generate → check coverage → fill gaps) for near-complete decks, supplementary resource upload with PPTX text extraction and content-capping, lesson phase detection with GRR methodology tagging, phase-aware sidebar UI with color-coded badges and balance indicator, and resource injection into AI prompts with dual-provider parity. 24 milestones shipped, 68 phases completed, 225 plans executed.
+Shipped v6.0 with ~39,847 LOC TypeScript. v6.0 delivered Scripted Import: marker-annotated lesson plan parser (Say/Ask/Write on board/Activity), positional segment mapper enforcing teleprompter invariant, scripted pipeline mode bypassing AI with early-return, batch AI enrichment for image prompts/layouts with three-tier fallback, multi-day day picker UI with auto-detection banner, multi-format upload (PDF/DOCX/TXT), and Claude Chat Tips with copyable prompt templates. 25 milestones shipped, 73 phases completed, 232 plans executed.
 
 ## Core Value
 
@@ -183,17 +183,17 @@ Students see only the presentation; teachers see the presentation plus a telepro
 - ✓ Phase detection scoped to Fresh/Blend modes only — v5.0
 - ✓ Dual-provider parity for all pipeline features (Gemini + Claude) — v5.0
 - ✓ Resource injection uses same prompt structure for both providers — v5.0
+- ✓ Scripted lesson plan parser with 4 marker types (Say/Ask/Write on board/Activity) — v6.0
+- ✓ Multi-day lesson plan splitting and day selection — v6.0
+- ✓ Scripted mode bypasses AI generation, preserving teacher's exact words — v6.0
+- ✓ Batch AI enrichment for image prompts and layouts with three-tier fallback — v6.0
+- ✓ Auto-detection banner and mode toggle for scripted import — v6.0
+- ✓ Multi-format upload (PDF, DOCX, TXT) for lesson plans — v6.0
+- ✓ Claude Chat Tips with copyable prompt template and shared SUPPORTED_MARKERS constant — v6.0
 
 ### Active
 
-**Current Milestone: v6.0 Scripted Import**
-
-**Goal:** Enable teachers to import pre-scripted lesson plans (with explicit Say:/Write on board:/Ask: markers) directly into Cue with minimal AI transformation, preserving the teacher's exact words as the teleprompter script.
-
-**Target features:**
-- Scripted Import generation mode — 4th mode alongside Fresh/Refine/Blend where lesson plan markers map directly to slide structure
-- Day picker for multi-day lesson plans — teachers select which day to generate a deck for
-- Claude chat integration tips — guidance for generating Cue-optimised lesson plans in Claude chat
+(No active milestone — run `/gsd:new-milestone` to start next)
 
 ### Deferred
 
@@ -222,18 +222,18 @@ Students see only the presentation; teachers see the presentation plus a telepro
 
 ### Current State
 
-Shipped v5.0 with ~36,860 LOC TypeScript.
+Shipped v6.0 with ~39,847 LOC TypeScript.
 Tech stack: React 19, Vite, Gemini/Claude API, Tailwind CSS, react-rnd, jsPDF, html2canvas, mammoth.js, react-diff-viewer-continued, JSZip, PptxGenJS, Jest 30.
 Client-side only (no backend).
 Deployed at: https://goom1000.github.io/Cue/
 
-v5.0 delivered Smart Generation:
-- Three-pass generation pipeline (generate → check coverage → fill gaps) with AbortController cancellation
-- Supplementary resource upload (PDF, PPTX, DOCX, images) with content-capping and prompt injection
-- Lesson phase detection with regex-based UK/Australian terminology matching
-- Phase-aware sidebar UI with color-coded badges, balance indicator, and manual override
-- Resource injection into AI prompts with system prompt directives for dual-provider parity
-- Coverage score toast, multi-stage progress UI, and graceful degradation
+v6.0 delivered Scripted Import:
+- Marker-annotated lesson plan parser (Say/Ask/Write on board/Activity) with multi-day splitting
+- Positional segment mapper enforcing teleprompter segment count invariant
+- Scripted pipeline mode bypassing all AI passes with early-return
+- Batch AI enrichment for image prompts, layouts, and themes with three-tier fallback
+- Auto-detection banner, day picker grid, multi-format upload (PDF/DOCX/TXT)
+- Claude Chat Tips overlay with copyable prompt template sharing SUPPORTED_MARKERS constant
 
 ### Technical Environment
 
@@ -394,6 +394,17 @@ v5.0 delivered Smart Generation:
 | Resource injection in user prompt (not system) | AI sees resources as teacher-provided context, not system rules | ✓ Good — v5.0 |
 | Shared buildResourceInjectionText | Single function ensures PROV-01/PROV-02 parity | ✓ Good — v5.0 |
 | Copy-paste system prompt directives | Character-level parity between providers, no shared module abstraction | ✓ Good — v5.0 |
+| Line-by-line state machine parser | 5-priority processing chain (day/section/marker/implicit/continuation) | ✓ Good — v6.0 |
+| SUPPORTED_MARKERS longest-first | Prevents partial regex matches (Write on board before Say) | ✓ Good — v6.0 |
+| Positional segment groups | Track Say blocks by position relative to content for correct teleprompter alignment | ✓ Good — v6.0 |
+| Early-return before Pass 1 | Scripted mode bypasses all AI with zero regression risk on existing paths | ✓ Good — v6.0 |
+| Shared buildEnrichmentPrompt | Single function in aiProvider.ts prevents prompt drift between providers | ✓ Good — v6.0 |
+| Layout lock defense in depth | Check in both prompt hints and merge logic to prevent AI overriding mapper layouts | ✓ Good — v6.0 |
+| Three-tier enrichment fallback | Full → partial merge → synthesized from titles ensures import never fails | ✓ Good — v6.0 |
+| Nullable boolean for mode override | null = auto-detect, true/false = manual toggle, resets on new upload | ✓ Good — v6.0 |
+| Set-based day filtering | O(1) lookup per day instead of array.includes() | ✓ Good — v6.0 |
+| Tips link shown unconditionally | Teachers can read format before toggling scripted mode | ✓ Good — v6.0 |
+| Shared SUPPORTED_MARKERS constant | Parser and tips page import same constant to prevent drift | ✓ Good — v6.0 |
 
 ---
-*Last updated: 2026-02-19 after v6.0 milestone started*
+*Last updated: 2026-02-22 after v6.0 milestone shipped*

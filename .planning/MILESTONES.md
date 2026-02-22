@@ -582,12 +582,31 @@
 
 ---
 
-## v5.0 Smart Generation (Shipped: 2026-02-15)
+## v6.0 Scripted Import (Shipped: 2026-02-22)
 
-**Phases completed:** 75 phases, 166 plans, 19 tasks
+**Delivered:** Teachers can now import pre-scripted lesson plans (with explicit Say:/Write on board:/Ask: markers) directly into Cue with minimal AI transformation, preserving the teacher's exact words as the teleprompter script. Multi-day lesson plans split into selectable days, and a Claude Chat Tips page provides copyable prompt templates.
+
+**Phases completed:** 69-73 (7 plans total)
 
 **Key accomplishments:**
-- (none recorded)
+
+- TDD-built scripted parser with 37 tests handling 4 marker types, section headings, multi-day splitting, and implicit Say detection
+- Positional segment mapper enforcing teleprompter segment count invariant for correct "say this, then show that" alignment
+- Zero-regression pipeline integration — scripted mode bypasses all three AI passes with early-return before Pass 1
+- Batch AI enrichment for image prompts, layouts, and themes with three-tier fallback (full → partial → synthesized)
+- Teacher-facing UI with auto-detection banner, day picker grid, multi-format upload (PDF/DOCX/TXT), and reactive import statistics
+- Claude Chat Tips overlay with copyable prompt template sharing SUPPORTED_MARKERS constant between parser and UI
+
+**Stats:**
+
+- 64 files created/modified (+13,267 lines)
+- ~39,847 lines of TypeScript (project total)
+- 5 phases, 7 plans, 31 requirements
+- 4 days (2026-02-19 → 2026-02-22)
+
+**Git range:** `e76a3b5` → `6ae975d`
+
+**What's next:** TBD with /gsd:new-milestone
 
 ---
 
