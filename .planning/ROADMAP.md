@@ -104,10 +104,10 @@ Plans:
   1. A static tips page is accessible from the landing page showing the supported marker format (Say:, Ask:, Write on board:, Activity:, section headings, Day headers) with an example lesson plan snippet
   2. The teacher can copy the prompt template to clipboard with a single click, with toast confirmation feedback
   3. The marker list on the tips page and the parser share a single SUPPORTED_MARKERS constant, so they cannot drift out of sync
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 73-01: TBD
+- [ ] 73-01-PLAN.md — ClaudeChatTips overlay component + App.tsx landing page integration
 
 ## Progress
 
@@ -124,7 +124,7 @@ Phases execute in numeric order: 69 -> 70 -> 71 -> 72 -> 73
 | 70. Slide Mapper + Pipeline Integration | 2/2 | Complete    | 2026-02-21 | - |
 | 71. AI Image Prompts + Layout Assignment | 1/1 | Complete    | 2026-02-21 | - |
 | 72. Day Picker UI + Mode Selector | 2/2 | Complete    | 2026-02-21 | - |
-| 73. Claude Chat Tips | v6.0 | 0/? | Not started | - |
+| 73. Claude Chat Tips | v6.0 | 0/1 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-14*
